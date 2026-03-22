@@ -10,20 +10,23 @@ import { JobCredentialMatch } from "@/components/operators/JobCredentialMatch";
 import { QuoteComparisonTable } from "@/components/jobs/QuoteComparisonTable";
 import { OperatorDecisionStrip } from "@/components/jobs/OperatorDecisionStrip";
 import { JobExecutionPanel } from "@/components/jobs/JobExecutionPanel";
+import { CancelJobDialog } from "@/components/jobs/CancelJobDialog";
 import { formatContractMode } from "@/components/jobs/ContractModeSelector";
+import { canCancelJob, canEditJob } from "@/hooks/useJobActions";
 import { useJob } from "@/hooks/useJobs";
 import {
   formatCurrency, formatAcres, formatOperationType, formatDate,
-  formatPricingModel, formatCropType,
+  formatPricingModel, formatCropType, formatRelative,
 } from "@/lib/format";
 import {
   ChevronRight, Calendar, DollarSign, User, MapPin, AlertTriangle,
   Clock, FileText, Truck, CheckCircle2, Package, ShieldCheck, Users,
+  Ban, Edit, History,
 } from "lucide-react";
 
 export default function JobDetail() {
   const { jobId } = useParams();
-  const { activeMode } = useAuth();
+  const { user, activeMode } = useAuth();
   const { data: job, isLoading } = useJob(jobId);
 
   if (isLoading) return <AppShell title=""><DetailSkeleton /></AppShell>;
@@ -42,6 +45,9 @@ export default function JobDetail() {
   const inputs = (job as any).job_inputs || [];
   const invoices = (job as any).invoices || [];
   const contractMode = (job as any).contract_mode || "fixed_price";
+  const isCancelled = job.status === "cancelled";
+  const cancelInfo = canCancelJob(job, user?.id || "");
+  const editInfo = canEditJob(job, user?.id || "");
 
   return (
     <AppShell title="">
@@ -51,6 +57,24 @@ export default function JobDetail() {
           <ChevronRight size={14} />
           <span className="text-foreground font-medium">{job.display_id}</span>
         </div>
+
+        {/* Cancelled banner */}
+        {isCancelled && (
+          <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-3 mb-4 flex items-start gap-2">
+            <Ban size={16} className="text-destructive shrink-0 mt-0.5" />
+            <div>
+              <p className="text-[13px] font-semibold text-destructive">Job Cancelled</p>
+              <p className="text-[12px] text-muted-foreground mt-0.5">
+                {(job as any).cancellation_reason
+                  ? `Reason: ${(job as any).cancellation_reason}`
+                  : "This job has been cancelled."}
+              </p>
+              {(job as any).cancelled_at && (
+                <p className="text-[10px] text-muted-foreground mt-1">Cancelled {formatRelative((job as any).cancelled_at)}</p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Header */}
         <div className="rounded-lg bg-card border p-4 mb-4">
@@ -67,9 +91,10 @@ export default function JobDetail() {
                 {job.display_id} · {formatOperationType(job.operation_type)} · {formatAcres(Number(job.total_acres))} · {formatContractMode(contractMode)}
               </p>
             </div>
-            {activeMode === "grower" && (
+            {activeMode === "grower" && !isCancelled && (
               <div className="flex gap-2 flex-wrap">
                 {job.proof_submitted && !job.proof_approved && <Button size="sm">Approve Completion</Button>}
+                {cancelInfo.allowed && <CancelJobDialog job={job} />}
               </div>
             )}
           </div>
@@ -120,9 +145,9 @@ export default function JobDetail() {
                 <h3 className="text-xs font-semibold mb-2 flex items-center gap-1.5"><DollarSign size={13} /> Pricing</h3>
                 <div className="space-y-1.5 text-[13px]">
                   <div className="flex justify-between"><span className="text-muted-foreground">Model</span><span className="font-medium">{formatPricingModel(job.pricing_model)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Rate</span><span className="font-medium tabular">{formatCurrency(Number(job.base_rate))}</span></div>
-                  <div className="flex justify-between border-t pt-1.5"><span className="text-muted-foreground">Estimated</span><span className="font-bold tabular">{formatCurrency(Number(job.estimated_total))}</span></div>
-                  {job.approved_total && <div className="flex justify-between"><span className="text-muted-foreground">Approved</span><span className="font-medium tabular text-success">{formatCurrency(Number(job.approved_total))}</span></div>}
+                  <div className="flex justify-between"><span className="text-muted-foreground">Rate</span><span className="font-medium tabular-nums">{formatCurrency(Number(job.base_rate))}</span></div>
+                  <div className="flex justify-between border-t pt-1.5"><span className="text-muted-foreground">Estimated</span><span className="font-bold tabular-nums">{formatCurrency(Number(job.estimated_total))}</span></div>
+                  {job.approved_total && <div className="flex justify-between"><span className="text-muted-foreground">Approved</span><span className="font-medium tabular-nums text-success">{formatCurrency(Number(job.approved_total))}</span></div>}
                 </div>
               </div>
             </div>
@@ -185,12 +210,14 @@ export default function JobDetail() {
             )}
 
             {/* Execution Panel */}
-            <JobExecutionPanel
-              jobId={job.id}
-              jobStatus={job.status}
-              isOperator={activeMode === "operator"}
-              isGrowerView={activeMode === "grower"}
-            />
+            {!isCancelled && (
+              <JobExecutionPanel
+                jobId={job.id}
+                jobStatus={job.status}
+                isOperator={activeMode === "operator"}
+                isGrowerView={activeMode === "grower"}
+              />
+            )}
           </div>
 
           {/* Sidebar */}
@@ -232,7 +259,7 @@ export default function JobDetail() {
                     <div key={inv.id} className="flex items-center justify-between text-[13px]">
                       <span className="font-medium">{inv.display_id}</span>
                       <div className="flex items-center gap-2">
-                        <span className="tabular">{formatCurrency(Number(inv.total))}</span>
+                        <span className="tabular-nums">{formatCurrency(Number(inv.total))}</span>
                         <StatusBadge status={inv.status} />
                       </div>
                     </div>
@@ -264,6 +291,12 @@ export default function JobDetail() {
                 {job.scheduled_start && <div className="flex justify-between"><span className="text-muted-foreground">Scheduled</span><span className="font-medium">{formatDate(job.scheduled_start)}</span></div>}
                 {job.actual_start && <div className="flex justify-between"><span className="text-muted-foreground">Started</span><span className="font-medium">{formatDate(job.actual_start)}</span></div>}
                 {job.actual_end && <div className="flex justify-between"><span className="text-muted-foreground">Completed</span><span className="font-medium">{formatDate(job.actual_end)}</span></div>}
+                {isCancelled && (job as any).cancelled_at && (
+                  <div className="flex justify-between text-destructive"><span>Cancelled</span><span className="font-medium">{formatDate((job as any).cancelled_at)}</span></div>
+                )}
+                {(job as any).last_edited_at && (
+                  <div className="flex justify-between"><span className="text-muted-foreground flex items-center gap-1"><Edit size={10} /> Edited</span><span className="font-medium">{formatRelative((job as any).last_edited_at)}</span></div>
+                )}
               </div>
             </div>
           </div>
