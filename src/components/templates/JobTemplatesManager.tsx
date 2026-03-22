@@ -23,8 +23,8 @@ import { formatRelative } from "@/lib/format";
 const OP_LABELS: Record<string, string> = {
   spraying: "Spraying", planting: "Planting", harvest: "Harvest", tillage: "Tillage",
   fertilizing: "Fertilizing", hauling: "Hauling", scouting: "Scouting",
-  soil_sampling: "Soil Sampling", seeding: "Seeding", mowing: "Mowing",
-  drainage: "Drainage", other: "Other",
+  soil_sampling: "Soil Sampling", seeding: "Seeding", mowing: "Mowing / Hay Cutting",
+  baling: "Baling", drainage: "Drainage", other: "Other",
 };
 
 const OP_ICONS: Record<string, typeof Sprout> = {
