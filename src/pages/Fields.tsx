@@ -3,7 +3,7 @@ import AppShell from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { FieldMap } from "@/components/map/FieldMap";
-import { Map, Plus, ArrowRight } from "lucide-react";
+import { Map, Plus, ArrowRight, Upload } from "lucide-react";
 import { fields, farms, fieldStats } from "@/data/mock";
 import { formatAcres, formatCropType, formatCurrency } from "@/lib/format";
 
