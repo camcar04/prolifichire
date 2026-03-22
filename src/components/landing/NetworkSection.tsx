@@ -33,7 +33,7 @@ export default function NetworkSection() {
           {points.map((p) => (
             <div key={p.text} className="flex items-start gap-2.5">
               <p.icon size={15} className="text-primary mt-0.5 shrink-0" />
-              <p className="text-[13px] text-muted-foreground leading-relaxed">{p.text}</p>
+              <p className="text-[13px] text-primary-foreground/55 leading-relaxed">{p.text}</p>
             </div>
           ))}
         </div>
