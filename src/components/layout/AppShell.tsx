@@ -43,6 +43,7 @@ const operatorNav: NavItem[] = [
   { icon: Calendar, label: "Calendar", to: "/calendar" },
   { icon: Package, label: "Field Packets", to: "/packets" },
   { icon: Store, label: "Marketplace", to: "/marketplace" },
+  { icon: Users, label: "Labor", to: "/labor" },
   { icon: Bookmark, label: "Bid Queue", to: "/bid-queue" },
   { icon: DollarSign, label: "Payouts", to: "/payouts" },
   { icon: MessageSquare, label: "Messages", to: "/messages" },
