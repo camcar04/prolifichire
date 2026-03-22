@@ -8,6 +8,7 @@ import { ActivityTimeline } from "@/components/shared/ActivityTimeline";
 import { FieldPacketCard } from "@/components/shared/FieldPacketCard";
 import { PricingSuggestionCard } from "@/components/intelligence/PricingSuggestionCard";
 import { RouteContextBadge } from "@/components/intelligence/RouteContext";
+import { WeatherPanel } from "@/components/weather/WeatherPanel";
 import { usePricingEngine } from "@/hooks/useIntelligence";
 import {
   getJobById, getFieldById, getExceptionsByJob, getQuotesByJob,
@@ -19,7 +20,7 @@ import {
 } from "@/lib/format";
 import {
   ChevronRight, Calendar, DollarSign, User, MapPin, AlertTriangle,
-  Clock, FileText, Truck, CheckCircle2, Sparkles,
+  Clock, FileText, Truck, CheckCircle2, Sparkles, Cloud,
 } from "lucide-react";
 import { useEffect } from "react";
 
