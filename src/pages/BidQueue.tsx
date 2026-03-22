@@ -71,7 +71,7 @@ export default function BidQueue() {
               action={{ label: "Browse Marketplace", to: "/marketplace" }}
             />
           ) : (
-            <div className="rounded-lg border bg-card overflow-hidden divide-y">
+            <div className="rounded border bg-card overflow-hidden divide-y">
               {savedJobs.map((sj: any) => {
                 const job = sj.jobs;
                 if (!job) return null;
@@ -129,7 +129,7 @@ export default function BidQueue() {
                         <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                           Active ({active.length})
                         </p>
-                        <div className="rounded-lg border bg-card overflow-hidden divide-y">
+                        <div className="rounded border bg-card overflow-hidden divide-y">
                           {active.map((q: any) => <QuoteRow key={q.id} quote={q} />)}
                         </div>
                       </div>
@@ -139,7 +139,7 @@ export default function BidQueue() {
                         <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                           History ({resolved.length})
                         </p>
-                        <div className="rounded-lg border bg-card overflow-hidden divide-y">
+                        <div className="rounded border bg-card overflow-hidden divide-y">
                           {resolved.map((q: any) => <QuoteRow key={q.id} quote={q} />)}
                         </div>
                       </div>
