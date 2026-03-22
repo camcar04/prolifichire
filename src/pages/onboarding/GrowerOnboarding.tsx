@@ -226,16 +226,16 @@ export default function GrowerOnboarding() {
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1.5">
-                    <Label>City</Label>
-                    <Input value={form.city} onChange={e => set("city", e.target.value)} />
+                    <Label>City <span className="text-destructive">*</span></Label>
+                    <Input value={form.city} onChange={e => set("city", e.target.value)} required />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>State</Label>
-                    <Input value={form.state} onChange={e => set("state", e.target.value)} placeholder="NE" />
+                    <Label>State <span className="text-destructive">*</span></Label>
+                    <Input value={form.state} onChange={e => set("state", e.target.value)} placeholder="NE" required />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>ZIP</Label>
-                    <Input value={form.zip} onChange={e => set("zip", e.target.value)} />
+                    <Label>ZIP <span className="text-destructive">*</span></Label>
+                    <Input value={form.zip} onChange={e => set("zip", e.target.value)} required />
                   </div>
                 </div>
                 <div className="space-y-1.5">
