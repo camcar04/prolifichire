@@ -13,10 +13,10 @@ export type JobStatus =
 
 export type OperationType =
   | "spraying" | "planting" | "harvest" | "tillage"
-  | "hauling" | "scouting" | "soil_sampling" | "fertilizing"
+  | "hauling" | "grain_hauling" | "scouting" | "soil_sampling" | "fertilizing"
   | "seeding" | "mowing" | "baling" | "drainage" | "rock_picking" | "other";
 
-export type PricingModel = "per_acre" | "per_hour" | "flat_rate" | "negotiated";
+export type PricingModel = "per_acre" | "per_hour" | "flat_rate" | "negotiated" | "per_load" | "per_bushel" | "per_mile" | "day_rate";
 
 export type CropType =
   | "corn" | "soybeans" | "wheat" | "alfalfa" | "oats"
@@ -752,7 +752,24 @@ export interface RockPickingSpec {
   boundaryFileAttached: boolean;
 }
 
-export type OperationSpecData = PlantingSpec | ApplicationSpec | HarvestSpec | MowingSpec | BalingSpec | RockPickingSpec;
+export interface GrainHaulingSpec {
+  cropType: CropType;
+  trucksNeeded: number;
+  truckType: "semi" | "hopper_bottom" | "end_dump" | "belly_dump" | "other";
+  scheduleModel: "full_day" | "hourly" | "time_block";
+  deliveryLocationName: string;
+  deliveryAddress: string;
+  estimatedDistanceMiles: number;
+  estimatedCycleMinutes: number;
+  expectedLoadsPerDay: number;
+  scaleTicketRequired: boolean;
+  unloadInstructions: string;
+  moistureNotes: string;
+  harvestConditions: string;
+  pricingPreference: "per_hour" | "per_load" | "per_bushel" | "per_mile" | "day_rate";
+}
+
+export type OperationSpecData = PlantingSpec | ApplicationSpec | HarvestSpec | MowingSpec | BalingSpec | RockPickingSpec | GrainHaulingSpec;
 
 export interface OperationSpec {
   id: string;

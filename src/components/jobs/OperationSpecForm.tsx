@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import type { OperationType, PlantingSpec, ApplicationSpec, HarvestSpec, CropType, MowingSpec, BalingSpec, RockPickingSpec } from "@/types/domain";
+import type { OperationType, PlantingSpec, ApplicationSpec, HarvestSpec, CropType, MowingSpec, BalingSpec, RockPickingSpec, GrainHaulingSpec } from "@/types/domain";
 
 interface OperationSpecFormProps {
   operationType: OperationType;
@@ -505,6 +505,125 @@ function RockPickingSpecForm({ value, onChange }: { value: Partial<RockPickingSp
   );
 }
 
+function GrainHaulingSpecForm({ value, onChange }: { value: Partial<GrainHaulingSpec>; onChange: (v: Partial<GrainHaulingSpec>) => void }) {
+  const set = (k: keyof GrainHaulingSpec, v: any) => onChange({ ...value, [k]: v });
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+        <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+        Grain Hauling Specifications
+      </h3>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Crop being hauled</Label>
+          <Select value={value.cropType || "corn"} onValueChange={v => set("cropType", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {["corn", "soybeans", "wheat", "sorghum", "oats", "barley", "other"].map(c => (
+                <SelectItem key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Trucks needed</Label>
+          <Input type="number" value={value.trucksNeeded || ""} onChange={e => set("trucksNeeded", parseInt(e.target.value) || 1)} placeholder="e.g. 3" min={1} />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Truck type</Label>
+          <Select value={value.truckType || "semi"} onValueChange={v => set("truckType", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="semi">Semi / Tractor-Trailer</SelectItem>
+              <SelectItem value="hopper_bottom">Hopper Bottom</SelectItem>
+              <SelectItem value="end_dump">End Dump</SelectItem>
+              <SelectItem value="belly_dump">Belly Dump</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Schedule model</Label>
+          <Select value={value.scheduleModel || "full_day"} onValueChange={v => set("scheduleModel", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="full_day">Full-day coverage</SelectItem>
+              <SelectItem value="hourly">Hourly coverage</SelectItem>
+              <SelectItem value="time_block">Specific time block</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="border-t pt-4 mt-2">
+        <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">Delivery Destination</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label>Location name</Label>
+            <Input value={value.deliveryLocationName || ""} onChange={e => set("deliveryLocationName", e.target.value)} placeholder="e.g. Heartland Co-op, Farm bin site" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Address</Label>
+            <Input value={value.deliveryAddress || ""} onChange={e => set("deliveryAddress", e.target.value)} placeholder="Full address" />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <div className="space-y-1.5">
+          <Label>Est. distance (miles)</Label>
+          <Input type="number" value={value.estimatedDistanceMiles || ""} onChange={e => set("estimatedDistanceMiles", parseFloat(e.target.value) || 0)} placeholder="e.g. 12" />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Est. cycle time (min)</Label>
+          <Input type="number" value={value.estimatedCycleMinutes || ""} onChange={e => set("estimatedCycleMinutes", parseInt(e.target.value) || 0)} placeholder="e.g. 22" />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Expected loads/day</Label>
+          <Input type="number" value={value.expectedLoadsPerDay || ""} onChange={e => set("expectedLoadsPerDay", parseInt(e.target.value) || 0)} placeholder="e.g. 14" />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Scale ticket required</p>
+          <p className="text-xs text-muted-foreground">Driver must weigh each load</p>
+        </div>
+        <Switch checked={value.scaleTicketRequired || false} onCheckedChange={v => set("scaleTicketRequired", v)} />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Unload instructions</Label>
+        <Textarea value={value.unloadInstructions || ""} onChange={e => set("unloadInstructions", e.target.value)} placeholder="e.g. Dump at pit #2, check in with scale house first" rows={2} />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Moisture / condition notes</Label>
+        <Textarea value={value.moistureNotes || ""} onChange={e => set("moistureNotes", e.target.value)} placeholder="e.g. Running 16–18% moisture, no test weight issues expected" rows={2} />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Harvest conditions</Label>
+        <Textarea value={value.harvestConditions || ""} onChange={e => set("harvestConditions", e.target.value)} placeholder="e.g. 2 combines running, cart available, field access from north" rows={2} />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Pricing preference</Label>
+        <Select value={value.pricingPreference || "per_hour"} onValueChange={v => set("pricingPreference", v)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="per_hour">Per Hour</SelectItem>
+            <SelectItem value="per_load">Per Load</SelectItem>
+            <SelectItem value="per_bushel">Per Bushel</SelectItem>
+            <SelectItem value="per_mile">Per Mile</SelectItem>
+            <SelectItem value="day_rate">Day Rate</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+}
+
 export function OperationSpecForm({ operationType, value, onChange }: OperationSpecFormProps) {
   if (operationType === "planting" || operationType === "seeding") {
     return <PlantingSpecForm value={value} onChange={onChange} />;
@@ -523,6 +642,9 @@ export function OperationSpecForm({ operationType, value, onChange }: OperationS
   }
   if (operationType === "rock_picking") {
     return <RockPickingSpecForm value={value} onChange={onChange} />;
+  }
+  if (operationType === "grain_hauling") {
+    return <GrainHaulingSpecForm value={value} onChange={onChange} />;
   }
 
   return (
