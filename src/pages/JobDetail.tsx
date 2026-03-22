@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AppShell from "@/components/layout/AppShell";
@@ -11,12 +12,14 @@ import { JobEquipmentMatch } from "@/components/operators/JobEquipmentMatch";
 import { QuoteComparisonTable } from "@/components/jobs/QuoteComparisonTable";
 import { OperatorDecisionStrip } from "@/components/jobs/OperatorDecisionStrip";
 import { JobExecutionPanel } from "@/components/jobs/JobExecutionPanel";
+import { ExecutionChecklist } from "@/components/jobs/ExecutionChecklist";
 import { CancelJobDialog } from "@/components/jobs/CancelJobDialog";
 import { PrivateCostCalculator } from "@/components/operators/PrivateCostCalculator";
 import { ProfitReviewPanel } from "@/components/operators/ProfitReviewPanel";
 import { formatContractMode } from "@/components/jobs/ContractModeSelector";
 import { canCancelJob, canEditJob } from "@/hooks/useJobActions";
 import { useJob } from "@/hooks/useJobs";
+import { usePostJobUpdate, type JobUpdateStatus, UPDATE_STATUS_LABELS } from "@/hooks/useJobExecution";
 import {
   formatCurrency, formatAcres, formatOperationType, formatDate,
   formatPricingModel, formatCropType, formatRelative,
@@ -25,6 +28,7 @@ import {
   ChevronRight, Calendar, DollarSign, User, MapPin, AlertTriangle,
   Clock, FileText, Truck, CheckCircle2, Package, ShieldCheck, Users,
   Ban, Edit, History, Navigation, Phone, Download, Compass, TriangleAlert,
+  Play, Pause, Camera, MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
