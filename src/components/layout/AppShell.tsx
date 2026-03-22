@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Map, Briefcase, Store, DollarSign,
   ChevronLeft, ChevronRight, Search, Bell, X,
   MessageSquare, Calendar, Package, LogOut, Bookmark,
-  Link2, Settings, Menu,
+  Link2, Settings, Menu, Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, type AppMode } from "@/contexts/AuthContext";
