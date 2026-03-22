@@ -48,6 +48,7 @@ const App = () => (
             <Route path="/templates" element={<Templates />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/payouts" element={<Payouts />} />
+            <Route path="/integrations" element={<Integrations />} />
             <Route path="/finance" element={<Dashboard />} />
             <Route path="/files" element={<Dashboard />} />
             <Route path="/messages" element={<Dashboard />} />
