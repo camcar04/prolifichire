@@ -12,6 +12,7 @@ import { QuoteComparisonTable } from "@/components/jobs/QuoteComparisonTable";
 import { OperatorDecisionStrip } from "@/components/jobs/OperatorDecisionStrip";
 import { JobExecutionPanel } from "@/components/jobs/JobExecutionPanel";
 import { CancelJobDialog } from "@/components/jobs/CancelJobDialog";
+import { PrivateCostCalculator } from "@/components/operators/PrivateCostCalculator";
 import { formatContractMode } from "@/components/jobs/ContractModeSelector";
 import { canCancelJob, canEditJob } from "@/hooks/useJobActions";
 import { useJob } from "@/hooks/useJobs";
@@ -272,6 +273,9 @@ export default function JobDetail() {
                 </div>
               </div>
 
+              {/* Private Cost Calculator — only operator sees */}
+              <PrivateCostCalculator job={job} />
+
               {/* Credential match */}
               <div className="rounded-lg border bg-card p-3">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Qualifications</p>
@@ -369,9 +373,12 @@ export default function JobDetail() {
           )}
         </div>
 
-        {/* Operator decision strip */}
+        {/* Operator decision strip + private costing for marketplace/quoted jobs */}
         {isOperatorView && ["requested", "quoted"].includes(job.status) && (
-          <div className="mb-4"><OperatorDecisionStrip job={job} /></div>
+          <div className="mb-4 space-y-3">
+            <OperatorDecisionStrip job={job} />
+            <PrivateCostCalculator job={job} />
+          </div>
         )}
 
         <div className="grid lg:grid-cols-3 gap-4">

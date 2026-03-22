@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { PricingProfileEditor } from "@/components/operators/PricingProfileEditor";
 import { useSearchParams } from "react-router-dom";
 import AppShell from "@/components/layout/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
@@ -249,6 +250,7 @@ export default function Settings() {
             <TabsContent value="dowork" className="space-y-5">
               <OperatorLocationSection />
               <OperatorServicesSection />
+              <OperatorPricingSection />
               <OperatorEquipmentSection />
               <OperatorCredentialsSection />
             </TabsContent>
@@ -567,4 +569,8 @@ function BlockedItem({ label, reason, link, cta }: { label: string; reason: stri
       </Button>
     </div>
   );
+}
+
+function OperatorPricingSection() {
+  return <PricingProfileEditor />;
 }
