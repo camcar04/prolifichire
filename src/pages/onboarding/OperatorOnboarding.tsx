@@ -316,7 +316,7 @@ export default function OperatorOnboarding() {
                   Next <ChevronRight size={16} className="ml-1" />
                 </Button>
               ) : (
-                <Button onClick={handleFinish} disabled={saving}>
+                <Button onClick={handleFinish} disabled={saving || !canNext()}>
                   {saving && <Loader2 size={16} className="animate-spin mr-2" />}
                   Complete Setup
                 </Button>
