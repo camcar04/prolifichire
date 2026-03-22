@@ -113,7 +113,21 @@ export default function Signup() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="terms"
+                checked={agreedToTerms}
+                onCheckedChange={(c) => setAgreedToTerms(c === true)}
+                className="mt-0.5"
+              />
+              <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer select-none">
+                I agree to the{" "}
+                <Link to="/legal/terms" className="text-primary underline" target="_blank">Terms of Service</Link>,{" "}
+                <Link to="/legal/privacy" className="text-primary underline" target="_blank">Privacy Policy</Link>, and{" "}
+                <Link to="/legal/acceptable-use" className="text-primary underline" target="_blank">Acceptable Use Policy</Link>.
+              </label>
+            </div>
+            <Button type="submit" className="w-full" disabled={loading || !agreedToTerms}>
               {loading && <Loader2 size={16} className="animate-spin mr-2" />}
               Create Account
             </Button>
