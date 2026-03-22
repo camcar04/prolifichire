@@ -3,7 +3,7 @@ import AppShell from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { FieldMap } from "@/components/map/FieldMap";
-import { Map, Plus, ArrowRight } from "lucide-react";
+import { Map, Plus, ArrowRight, Upload } from "lucide-react";
 import { fields, farms, fieldStats } from "@/data/mock";
 import { formatAcres, formatCropType, formatCurrency } from "@/lib/format";
 
@@ -15,7 +15,10 @@ export default function FieldsPage() {
       <div className="animate-fade-in">
         <div className="flex items-center justify-between mb-6">
           <p className="text-sm text-muted-foreground">{fields.length} fields · {formatAcres(totalAcres)} total across {farms.length} farms</p>
-          <Button size="sm"><Plus size={14} /> Add Field</Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline"><Upload size={14} /> Upload Shapefile</Button>
+            <Button size="sm"><Plus size={14} /> Draw Field</Button>
+          </div>
         </div>
 
         <div className="rounded-xl bg-card shadow-card mb-6 overflow-hidden">
