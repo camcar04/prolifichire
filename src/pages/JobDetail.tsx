@@ -18,6 +18,9 @@ import { CancelJobDialog } from "@/components/jobs/CancelJobDialog";
 import { PrivateCostCalculator } from "@/components/operators/PrivateCostCalculator";
 import { ProfitReviewPanel } from "@/components/operators/ProfitReviewPanel";
 import { ContractSignatureDialog } from "@/components/contracts/ContractSignatureDialog";
+import { VerifiedJobBadge, deriveJobBadges } from "@/components/trust/VerifiedJobBadge";
+import { PosterStatsCard } from "@/components/trust/PosterStatsCard";
+import { ReportJobDialog } from "@/components/trust/ReportJobDialog";
 import { formatContractMode } from "@/components/jobs/ContractModeSelector";
 import { canCancelJob, canEditJob } from "@/hooks/useJobActions";
 import { useJob } from "@/hooks/useJobs";
@@ -415,6 +418,10 @@ export default function JobDetail() {
           {job.urgency !== "normal" && (
             <span className="text-[10px] font-bold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded-full uppercase">{job.urgency}</span>
           )}
+          {(() => {
+            const badges = deriveJobBadges({ ...job, _confirmed: true }, null);
+            return badges.map(b => <VerifiedJobBadge key={b} type={b} size="md" />);
+          })()}
           <span className="text-[12px] text-muted-foreground ml-auto">
             {job.display_id} · {formatOperationType(job.operation_type)} · {formatAcres(Number(job.total_acres))} · {formatContractMode(contractMode)}
           </span>
@@ -608,6 +615,16 @@ export default function JobDetail() {
                 {job.description && <div><p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5 font-medium">Description</p><p className="text-[12px]">{job.description}</p></div>}
                 {job.notes && <div><p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5 font-medium">Notes</p><p className="text-[12px]">{job.notes}</p></div>}
               </div>
+            )}
+
+            {/* Poster trust & report — operator view */}
+            {isOperatorView && (
+              <>
+                <PosterStatsCard userId={job.requested_by} />
+                <div className="flex justify-end">
+                  <ReportJobDialog jobId={job.id} />
+                </div>
+              </>
             )}
           </div>
         </div>

@@ -11,6 +11,10 @@ import { FieldMap } from "@/components/map/FieldMap";
 import { PrivateCostCalculator } from "@/components/operators/PrivateCostCalculator";
 import { JobEquipmentMatch } from "@/components/operators/JobEquipmentMatch";
 import { JobCredentialMatch } from "@/components/operators/JobCredentialMatch";
+import { VerifiedJobBadge, deriveJobBadges } from "@/components/trust/VerifiedJobBadge";
+import { PosterStatsCard } from "@/components/trust/PosterStatsCard";
+import { ReportJobDialog } from "@/components/trust/ReportJobDialog";
+import { validateJobQuality } from "@/hooks/useTrustSystem";
 import {
   MapPin, Clock, DollarSign, Search, Bookmark, BookmarkCheck,
   X, ChevronRight, Wheat, Navigation, FileText,
@@ -294,6 +298,13 @@ export default function Marketplace() {
                                 {job.urgency}
                               </span>
                             )}
+                            {(() => {
+                              const quality = validateJobQuality(job);
+                              const badges = deriveJobBadges({ ...job, _confirmed: true }, null);
+                              return badges.slice(0, 2).map(b => (
+                                <VerifiedJobBadge key={b} type={b} size="sm" />
+                              ));
+                            })()}
                           </div>
                           <p className="text-[10px] text-muted-foreground leading-none mt-0.5 truncate">
                             {formatOperationType(job.operation_type)}
@@ -416,6 +427,10 @@ function JobDetailPane({ job, isSaved, onToggleSave, onOpenFull }: {
                 {job.urgency}
               </span>
             )}
+            {(() => {
+              const badges = deriveJobBadges({ ...job, _confirmed: true }, null);
+              return badges.map(b => <VerifiedJobBadge key={b} type={b} size="md" />);
+            })()}
           </div>
           <h2 className="text-sm font-bold leading-tight">{job.title}</h2>
           <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -480,6 +495,14 @@ function JobDetailPane({ job, isSaved, onToggleSave, onOpenFull }: {
             <p className="text-[11px] text-muted-foreground">{job.requirements}</p>
           </div>
         )}
+
+        {/* Poster trust info */}
+        <PosterStatsCard userId={job.requested_by} compact />
+
+        {/* Report */}
+        <div className="flex justify-end">
+          <ReportJobDialog jobId={job.id} />
+        </div>
       </div>
 
       {/* Sticky action bar */}

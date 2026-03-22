@@ -1309,6 +1309,41 @@ export type Database = {
           },
         ]
       }
+      job_confirmations: {
+        Row: {
+          confirmed_at: string
+          id: string
+          ip_address: unknown
+          job_id: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          confirmed_at?: string
+          id?: string
+          ip_address?: unknown
+          job_id: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          confirmed_at?: string
+          id?: string
+          ip_address?: unknown
+          job_id?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_confirmations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_edit_history: {
         Row: {
           acknowledged_at: string | null
@@ -1539,6 +1574,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "job_inputs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          job_id: string
+          reason: string
+          reported_by: string
+          resolution: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          job_id: string
+          reason: string
+          reported_by: string
+          resolution?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          job_id?: string
+          reason?: string
+          reported_by?: string
+          resolution?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_reports_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
@@ -3424,6 +3506,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_poster_stats: { Args: { _user_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
