@@ -1,0 +1,1 @@
+ALTER TYPE public.operation_type ADD VALUE IF NOT EXISTS 'rock_picking';

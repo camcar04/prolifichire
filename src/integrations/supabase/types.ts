@@ -2403,6 +2403,7 @@ export type Database = {
         | "baling"
         | "drainage"
         | "other"
+        | "rock_picking"
       packet_status:
         | "pending"
         | "generating"
@@ -2677,6 +2678,7 @@ export const Constants = {
         "baling",
         "drainage",
         "other",
+        "rock_picking",
       ],
       packet_status: [
         "pending",

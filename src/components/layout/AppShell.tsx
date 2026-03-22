@@ -12,7 +12,9 @@ import { RoleModeSwitcher } from "@/components/layout/RoleModeSwitcher";
 import { useNotifications } from "@/hooks/useNotifications";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { OfflineBanner, SyncStatusIndicator } from "@/components/offline/OfflineBanner";
+import { MobileBottomBar } from "@/components/layout/MobileBottomBar";
 import { getInitials } from "@/lib/format";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface NavItem {
   icon: typeof LayoutDashboard;
@@ -64,6 +66,7 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
   const searchRef = useRef<HTMLInputElement>(null);
   const { unreadCount } = useNotifications();
   const { activeMode, profile, signOut } = useAuth();
+  const isMobile = useIsMobile();
   const navItems = getNavItems(activeMode);
 
   const initials = profile
@@ -96,69 +99,71 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen bg-surface-2">
-      {/* Sidebar */}
-      <aside className={cn(
-        "fixed top-0 left-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-[width] duration-200 z-40",
-        collapsed ? "w-16" : "w-56"
-      )}>
-        <Link to="/" className="h-14 flex items-center gap-2 px-4 border-b border-sidebar-border shrink-0">
-          <div className="h-7 w-7 shrink-0 rounded-md bg-sidebar-primary flex items-center justify-center">
-            <span className="text-sidebar-primary-foreground font-bold text-[10px]">PH</span>
+      {/* Sidebar — hidden on mobile */}
+      {!isMobile && (
+        <aside className={cn(
+          "fixed top-0 left-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-[width] duration-200 z-40",
+          collapsed ? "w-16" : "w-56"
+        )}>
+          <Link to="/" className="h-14 flex items-center gap-2 px-4 border-b border-sidebar-border shrink-0">
+            <div className="h-7 w-7 shrink-0 rounded-md bg-sidebar-primary flex items-center justify-center">
+              <span className="text-sidebar-primary-foreground font-bold text-[10px]">PH</span>
+            </div>
+            {!collapsed && <span className="font-bold text-sidebar-foreground tracking-tight text-sm">ProlificHire</span>}
+          </Link>
+
+          {/* Role mode switcher */}
+          <div className={cn("px-2 py-2.5 border-b border-sidebar-border", collapsed && "px-1")}>
+            <RoleModeSwitcher collapsed={collapsed} />
           </div>
-          {!collapsed && <span className="font-bold text-sidebar-foreground tracking-tight text-sm">ProlificHire</span>}
-        </Link>
 
-        {/* Role mode switcher */}
-        <div className={cn("px-2 py-2.5 border-b border-sidebar-border", collapsed && "px-1")}>
-          <RoleModeSwitcher collapsed={collapsed} />
-        </div>
+          <nav className="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto">
+            {navItems.map((item) => {
+              const active = location.pathname === item.to || (item.to !== "/dashboard" && location.pathname.startsWith(item.to));
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] transition-colors",
+                    active
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      : "text-sidebar-foreground/65 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                  )}
+                  title={collapsed ? item.label : undefined}
+                >
+                  <item.icon size={17} className="shrink-0" />
+                  {!collapsed && <span>{item.label}</span>}
+                </Link>
+              );
+            })}
+          </nav>
 
-        <nav className="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => {
-            const active = location.pathname === item.to || (item.to !== "/dashboard" && location.pathname.startsWith(item.to));
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] transition-colors",
-                  active
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                    : "text-sidebar-foreground/65 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-                )}
-                title={collapsed ? item.label : undefined}
-              >
-                <item.icon size={17} className="shrink-0" />
-                {!collapsed && <span>{item.label}</span>}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Bottom section */}
-        <div className="border-t border-sidebar-border">
-          <button
-            onClick={handleSignOut}
-            className={cn(
-              "flex items-center gap-3 w-full px-3 py-2.5 text-[13px] text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/30 transition-colors",
-              collapsed && "justify-center px-0"
-            )}
-            title="Sign out"
-          >
-            <LogOut size={15} className="shrink-0" />
-            {!collapsed && <span>Sign out</span>}
-          </button>
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="h-10 w-full flex items-center justify-center border-t border-sidebar-border text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
-          >
-            {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-          </button>
-        </div>
-      </aside>
+          {/* Bottom section */}
+          <div className="border-t border-sidebar-border">
+            <button
+              onClick={handleSignOut}
+              className={cn(
+                "flex items-center gap-3 w-full px-3 py-2.5 text-[13px] text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/30 transition-colors",
+                collapsed && "justify-center px-0"
+              )}
+              title="Sign out"
+            >
+              <LogOut size={15} className="shrink-0" />
+              {!collapsed && <span>Sign out</span>}
+            </button>
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="h-10 w-full flex items-center justify-center border-t border-sidebar-border text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
+            >
+              {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+            </button>
+          </div>
+        </aside>
+      )}
 
       {/* Main */}
-      <div className={cn("flex-1 transition-[margin-left] duration-200 flex flex-col", collapsed ? "ml-16" : "ml-56")}>
+      <div className={cn("flex-1 transition-[margin-left] duration-200 flex flex-col", !isMobile && (collapsed ? "ml-16" : "ml-56"))}>
         <OfflineBanner />
         <header className="h-14 bg-background border-b flex items-center justify-between px-6 sticky top-0 z-30">
           <div className="flex items-center gap-4">
@@ -203,8 +208,11 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
           </div>
         </header>
 
-        <main className="flex-1 p-6">{children}</main>
+        <main className={cn("flex-1 p-4 sm:p-6", isMobile && "pb-20")}>{children}</main>
       </div>
+
+      {/* Mobile bottom bar */}
+      <MobileBottomBar />
 
       {/* Search Modal */}
       {searchOpen && (

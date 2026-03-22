@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import type { OperationType, PlantingSpec, ApplicationSpec, HarvestSpec, CropType, MowingSpec, BalingSpec } from "@/types/domain";
+import type { OperationType, PlantingSpec, ApplicationSpec, HarvestSpec, CropType, MowingSpec, BalingSpec, RockPickingSpec } from "@/types/domain";
 
 interface OperationSpecFormProps {
   operationType: OperationType;
@@ -436,6 +436,75 @@ function BalingSpecForm({ value, onChange }: { value: Partial<BalingSpec>; onCha
   );
 }
 
+function RockPickingSpecForm({ value, onChange }: { value: Partial<RockPickingSpec>; onChange: (v: Partial<RockPickingSpec>) => void }) {
+  const set = (k: keyof RockPickingSpec, v: any) => onChange({ ...value, [k]: v });
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+        <span className="h-1.5 w-1.5 rounded-full bg-stone-500" />
+        Rock Picking Specifications
+      </h3>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Rock density estimate</Label>
+          <Select value={value.rockDensity || "medium"} onValueChange={v => set("rockDensity", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">Low — Scattered</SelectItem>
+              <SelectItem value="medium">Medium — Moderate</SelectItem>
+              <SelectItem value="high">High — Heavy</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Estimated rock size</Label>
+          <Select value={value.estimatedRockSize || "mixed"} onValueChange={v => set("estimatedRockSize", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="small">Small (fist-size)</SelectItem>
+              <SelectItem value="mixed">Mixed sizes</SelectItem>
+              <SelectItem value="large">Large (basketball+)</SelectItem>
+              <SelectItem value="boulders">Boulders</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label>Equipment type (optional)</Label>
+        <Input value={value.equipmentType || ""} onChange={e => set("equipmentType", e.target.value)} placeholder="e.g. Rock picker, skid steer, by hand" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Disposal method</Label>
+          <Select value={value.disposalMethod || "pile_at_edge"} onValueChange={v => set("disposalMethod", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pile_on_field">Pile on field</SelectItem>
+              <SelectItem value="pile_at_edge">Pile at field edge</SelectItem>
+              <SelectItem value="haul_off">Haul off-site</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Disposal location</Label>
+          <Input value={value.disposalLocation || ""} onChange={e => set("disposalLocation", e.target.value)} placeholder="e.g. NW corner pile" />
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label>Field condition notes</Label>
+        <Textarea value={value.fieldConditionNotes || ""} onChange={e => set("fieldConditionNotes", e.target.value)} placeholder="e.g. Heavy rocks on east 40, mostly clear west side" rows={2} />
+      </div>
+      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Boundary file attached</p>
+        </div>
+        <Switch checked={value.boundaryFileAttached || false} onCheckedChange={v => set("boundaryFileAttached", v)} />
+      </div>
+    </div>
+  );
+}
+
 export function OperationSpecForm({ operationType, value, onChange }: OperationSpecFormProps) {
   if (operationType === "planting" || operationType === "seeding") {
     return <PlantingSpecForm value={value} onChange={onChange} />;
@@ -451,6 +520,9 @@ export function OperationSpecForm({ operationType, value, onChange }: OperationS
   }
   if (operationType === "baling") {
     return <BalingSpecForm value={value} onChange={onChange} />;
+  }
+  if (operationType === "rock_picking") {
+    return <RockPickingSpecForm value={value} onChange={onChange} />;
   }
 
   return (

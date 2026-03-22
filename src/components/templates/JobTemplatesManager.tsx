@@ -24,7 +24,7 @@ const OP_LABELS: Record<string, string> = {
   spraying: "Spraying", planting: "Planting", harvest: "Harvest", tillage: "Tillage",
   fertilizing: "Fertilizing", hauling: "Hauling", scouting: "Scouting",
   soil_sampling: "Soil Sampling", seeding: "Seeding", mowing: "Mowing / Hay Cutting",
-  baling: "Baling", drainage: "Drainage", other: "Other",
+  baling: "Baling", rock_picking: "Rock Picking", drainage: "Drainage", other: "Other",
 };
 
 const OP_ICONS: Record<string, typeof Sprout> = {
