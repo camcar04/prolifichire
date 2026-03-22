@@ -248,6 +248,7 @@ export default function Settings() {
           {/* ── Do Work Section ── */}
           {hasRole("operator") && (
             <TabsContent value="dowork" className="space-y-5">
+              <EnsureOperatorProfile />
               <OperatorLocationSection />
               <OperatorServicesSection />
               <OperatorPricingSection />
