@@ -221,8 +221,8 @@ export default function GrowerOnboarding() {
             {step === 3 && (
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label>Street address</Label>
-                  <Input value={form.address} onChange={e => set("address", e.target.value)} />
+                  <Label>Street address <span className="text-destructive">*</span></Label>
+                  <Input value={form.address} onChange={e => set("address", e.target.value)} required />
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1.5">
