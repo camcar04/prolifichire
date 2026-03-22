@@ -6,6 +6,7 @@ import AppShell from "@/components/layout/AppShell";
 import { DetailSkeleton } from "@/components/shared/PageSkeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { CredentialManager } from "@/components/operators/CredentialManager";
+import { EquipmentManager } from "@/components/operators/EquipmentManager";
 import { VerifiedBadge, deriveBadgesFromRows } from "@/components/operators/VerifiedBadge";
 import { formatOperationType } from "@/lib/format";
 import { MapPin, Briefcase, Wrench, Users, Award, Clock, Star, User } from "lucide-react";
@@ -42,7 +43,7 @@ export default function OperatorProfile() {
   if (isLoading) return <AppShell title=""><DetailSkeleton /></AppShell>;
   if (!op) return <AppShell title=""><EmptyState icon={<User size={24} />} title="Operator not found" description="This profile doesn't exist or you don't have access." /></AppShell>;
 
-  const badges = deriveBadgesFromRows(op.credentials);
+  const badges = deriveBadgesFromRows(op.credentials, op.equipment);
   const isOwn = user?.id === op.user_id;
   const isAdmin = roles.includes("admin");
 
@@ -105,23 +106,10 @@ export default function OperatorProfile() {
               )}
             </div>
 
-            {/* Equipment */}
-            {op.equipment.length > 0 && (
-              <div className="rounded-lg bg-card border">
-                <div className="p-4 border-b"><h3 className="text-sm font-semibold flex items-center gap-1.5"><Wrench size={14} /> Equipment ({op.equipment.length})</h3></div>
-                <div className="divide-y">
-                  {op.equipment.map((eq: any) => (
-                    <div key={eq.id} className="px-4 py-3 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">{eq.year ? `${eq.year} ` : ""}{eq.make} {eq.model}</p>
-                        <p className="text-xs text-muted-foreground capitalize">{eq.type}{eq.width_ft ? ` · ${eq.width_ft}ft` : ""}{eq.gps_equipped ? " · GPS" : ""}</p>
-                      </div>
-                      <span className={cn("text-[10px] font-medium", eq.status === "active" ? "text-success" : "text-muted-foreground")}>{eq.status}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Equipment & Verification */}
+            <div className="rounded-lg bg-card border p-4">
+              <EquipmentManager operatorProfileId={op.id} readOnly={!isOwn && !isAdmin} />
+            </div>
 
             {/* Credentials */}
             <div className="rounded-lg bg-card border p-4">

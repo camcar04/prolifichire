@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatCurrency, formatAcres, formatOperationType } from "@/lib/format";
+import { JobEquipmentMatch } from "@/components/operators/JobEquipmentMatch";
 import { toast } from "sonner";
 import {
   Check, Send, Bookmark, BookmarkCheck, MapPin, Clock, Wheat,
@@ -146,6 +147,8 @@ export function OperatorDecisionStrip({ job }: OperatorDecisionStripProps) {
             <AlertTriangle size={9} /> {job.urgency}
           </span>
         )}
+        {/* Equipment match badge */}
+        <JobEquipmentMatch operationType={job.operation_type} operatorProfileId={job.operator_id || undefined} compact />
       </div>
 
       {/* Contract mode label + actions */}

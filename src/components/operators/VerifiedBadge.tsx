@@ -1,14 +1,15 @@
 import { cn } from "@/lib/utils";
-import { ShieldCheck, Truck, Beaker, FileCheck } from "lucide-react";
+import { ShieldCheck, Truck, Beaker, FileCheck, Wrench } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-type BadgeType = "fully_verified" | "cdl_verified" | "licensed_applicator" | "insurance_verified";
+type BadgeType = "fully_verified" | "cdl_verified" | "licensed_applicator" | "insurance_verified" | "equipment_verified";
 
 const BADGE_CONFIG: Record<BadgeType, { icon: typeof ShieldCheck; label: string; color: string }> = {
   fully_verified: { icon: ShieldCheck, label: "Fully Verified", color: "text-primary bg-primary/10 border-primary/20" },
   cdl_verified: { icon: Truck, label: "CDL Verified", color: "text-blue-600 bg-blue-50 border-blue-200" },
   licensed_applicator: { icon: Beaker, label: "Licensed Applicator", color: "text-emerald-600 bg-emerald-50 border-emerald-200" },
   insurance_verified: { icon: FileCheck, label: "Insurance Verified", color: "text-amber-600 bg-amber-50 border-amber-200" },
+  equipment_verified: { icon: Wrench, label: "Equipment Verified", color: "text-violet-600 bg-violet-50 border-violet-200" },
 };
 
 interface VerifiedBadgeProps {
@@ -59,7 +60,10 @@ export function deriveBadges(credentials: Array<{ type: string; is_verified: boo
 }
 
 // Overload for raw credential rows
-export function deriveBadgesFromRows(credentials: Array<{ type: string; is_verified: boolean; status: string; expires_at?: string | null; name: string }>): BadgeType[] {
+export function deriveBadgesFromRows(
+  credentials: Array<{ type: string; is_verified: boolean; status: string; expires_at?: string | null; name: string }>,
+  equipment?: Array<{ verification_status?: string }>
+): BadgeType[] {
   const badges: BadgeType[] = [];
   const now = new Date();
 
@@ -70,10 +74,12 @@ export function deriveBadgesFromRows(credentials: Array<{ type: string; is_verif
   const hasCDL = verified.some(c => c.name.toLowerCase().includes("cdl"));
   const hasLicense = verified.some(c => c.type === "license" || c.type === "certification");
   const hasInsurance = verified.some(c => c.type === "insurance");
+  const hasVerifiedEquipment = equipment?.some(e => e.verification_status === "verified") ?? false;
 
   if (hasCDL) badges.push("cdl_verified");
   if (hasLicense) badges.push("licensed_applicator");
   if (hasInsurance) badges.push("insurance_verified");
+  if (hasVerifiedEquipment) badges.push("equipment_verified");
   if (badges.length >= 2) badges.unshift("fully_verified");
 
   return [...new Set(badges)];
