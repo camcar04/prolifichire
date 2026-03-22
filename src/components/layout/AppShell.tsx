@@ -251,9 +251,13 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
               <NotificationCenter open={notifOpen} onClose={() => setNotifOpen(false)} />
             </div>
 
-            <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-[10px] font-bold">
+            <button
+              onClick={() => navigate("/settings?tab=account")}
+              className="h-7 w-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-[10px] font-bold hover:ring-2 hover:ring-primary/30 transition-all cursor-pointer"
+              title="Account Hub"
+            >
               {initials}
-            </div>
+            </button>
 
             {actions}
           </div>
