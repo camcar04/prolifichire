@@ -306,12 +306,17 @@ function JobsContent({ jobs, isLoading }: { jobs: any[]; isLoading: boolean }) {
   );
 }
 
-function FilesContent({ datasets }: { datasets: any[] }) {
+function FilesContent({ datasets, fieldId, onUpload }: { datasets: any[]; fieldId: string; onUpload: () => void }) {
+  const handleDownload = async (ds: any) => {
+    const { data } = await supabase.storage.from("field-data").createSignedUrl(ds.storage_path, 300);
+    if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+  };
+
   return (
     <div className="rounded-lg bg-card border">
       <div className="flex items-center justify-between px-4 py-2.5 border-b">
         <h3 className="text-sm font-semibold">Files & Maps ({datasets.length})</h3>
-        <Button variant="outline" size="sm" className="h-7 text-xs"><Upload size={12} className="mr-1" /> Upload</Button>
+        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={onUpload}><Upload size={12} className="mr-1" /> Upload</Button>
       </div>
       {datasets.length === 0 ? (
         <div className="p-8 text-center">
