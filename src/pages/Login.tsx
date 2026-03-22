@@ -15,6 +15,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = (location.state as any)?.from || "/dashboard";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
