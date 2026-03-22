@@ -1672,6 +1672,141 @@ export type Database = {
           },
         ]
       }
+      network_members: {
+        Row: {
+          created_at: string
+          id: string
+          invited_by: string | null
+          joined_at: string | null
+          member_type: string
+          network_id: string
+          status: Database["public"]["Enums"]["network_member_status"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          member_type?: string
+          network_id: string
+          status?: Database["public"]["Enums"]["network_member_status"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          member_type?: string
+          network_id?: string
+          status?: Database["public"]["Enums"]["network_member_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "network_members_network_id_fkey"
+            columns: ["network_id"]
+            isOneToOne: false
+            referencedRelation: "networks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      network_rules: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          network_id: string
+          rule_data: Json
+          rule_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          network_id: string
+          rule_data?: Json
+          rule_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          network_id?: string
+          rule_data?: Json
+          rule_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "network_rules_network_id_fkey"
+            columns: ["network_id"]
+            isOneToOne: false
+            referencedRelation: "networks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      networks: {
+        Row: {
+          allowed_operation_types: string[] | null
+          created_at: string
+          description: string | null
+          id: string
+          max_members: number | null
+          name: string
+          network_type: Database["public"]["Enums"]["network_type"]
+          organization_id: string
+          pricing_visible: boolean | null
+          require_grower_approval: boolean | null
+          require_operator_approval: boolean | null
+          required_credentials: string[] | null
+          updated_at: string
+          visibility: Database["public"]["Enums"]["network_visibility"]
+        }
+        Insert: {
+          allowed_operation_types?: string[] | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          max_members?: number | null
+          name: string
+          network_type?: Database["public"]["Enums"]["network_type"]
+          organization_id: string
+          pricing_visible?: boolean | null
+          require_grower_approval?: boolean | null
+          require_operator_approval?: boolean | null
+          required_credentials?: string[] | null
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["network_visibility"]
+        }
+        Update: {
+          allowed_operation_types?: string[] | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          max_members?: number | null
+          name?: string
+          network_type?: Database["public"]["Enums"]["network_type"]
+          organization_id?: string
+          pricing_visible?: boolean | null
+          require_grower_approval?: boolean | null
+          require_operator_approval?: boolean | null
+          required_credentials?: string[] | null
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["network_visibility"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "networks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -2740,6 +2875,14 @@ export type Database = {
         | "closed"
         | "cancelled"
         | "disputed"
+      network_member_status: "invited" | "active" | "suspended" | "removed"
+      network_type:
+        | "retailer"
+        | "coop"
+        | "ethanol_plant"
+        | "grain_handler"
+        | "other"
+      network_visibility: "private" | "hybrid" | "public"
       operation_type:
         | "spraying"
         | "planting"
@@ -3024,6 +3167,15 @@ export const Constants = {
         "cancelled",
         "disputed",
       ],
+      network_member_status: ["invited", "active", "suspended", "removed"],
+      network_type: [
+        "retailer",
+        "coop",
+        "ethanol_plant",
+        "grain_handler",
+        "other",
+      ],
+      network_visibility: ["private", "hybrid", "public"],
       operation_type: [
         "spraying",
         "planting",
