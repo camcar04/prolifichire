@@ -5,6 +5,7 @@ import type {
   DatasetAsset, Invoice, InvoiceLineItem, Payment, SplitRule, Payout,
   Dispute, Review, MessageThread, Message, AuditLog, Notification,
   PermissionGrant, ChangeOrder, JobException, ProofOfWork, JobEvent,
+  JobInput,
 } from "@/types/domain";
 
 // ═══════════════════════════════════════════════════════
