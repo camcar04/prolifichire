@@ -5,10 +5,12 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { DashboardSkeleton } from "@/components/shared/PageSkeleton";
 import { ProfileScoreCard } from "@/components/shared/ProfileScoreCard";
 import { NextStepBanner } from "@/components/dashboard/NextStepBanner";
+import { ActionHero } from "@/components/dashboard/ActionHero";
+import { ContextualGuidance, buildOperatorGuidance } from "@/components/dashboard/ContextualGuidance";
 import { Link } from "react-router-dom";
 import {
   Briefcase, DollarSign, ArrowRight, Package,
-  Clock, FileText, Truck, Bell, Star,
+  Clock, FileText, Truck, Bell, Star, Search,
 } from "lucide-react";
 import { useJobs } from "@/hooks/useJobs";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -42,9 +44,52 @@ export default function OperatorDashboard() {
     );
   }
 
+  // Determine primary action
+  const hasWorkToday = todayRoute.length > 0;
+  const hasProofNeeded = jobsNeedingAction.length > 0;
+
+  const guidanceItems = buildOperatorGuidance(myJobs, jobsToQuote);
+
   return (
     <div className="space-y-4 animate-fade-in">
       <NextStepBanner />
+
+      {/* Primary Action Hero */}
+      {hasProofNeeded ? (
+        <ActionHero
+          icon={<FileText size={22} />}
+          headline={`${jobsNeedingAction.length} Job${jobsNeedingAction.length > 1 ? "s" : ""} Need Proof of Work`}
+          subline="Submit completion proof to get paid"
+          cta="Submit Proof"
+          to={`/jobs/${jobsNeedingAction[0].id}`}
+          variant="operator"
+          secondary={{ label: "View All", to: "/jobs" }}
+        />
+      ) : hasWorkToday ? (
+        <ActionHero
+          icon={<Truck size={22} />}
+          headline={`${todayRoute.length} Job${todayRoute.length > 1 ? "s" : ""} Scheduled Today`}
+          subline="Review packets and start your route"
+          cta="Start Today's Work"
+          to={`/jobs/${todayRoute[0].id}`}
+          variant="operator"
+          secondary={{ label: "View Schedule", to: "/schedule" }}
+        />
+      ) : (
+        <ActionHero
+          icon={<Search size={22} />}
+          headline="Find Your Next Job"
+          subline={`${jobsToQuote.length} job${jobsToQuote.length !== 1 ? "s" : ""} available in your area`}
+          cta="Browse Jobs"
+          to="/marketplace"
+          variant="operator"
+          secondary={{ label: "View Schedule", to: "/schedule" }}
+        />
+      )}
+
+      {/* Contextual Guidance */}
+      <ContextualGuidance items={guidanceItems} title="What needs your attention" />
+
       {/* Summary strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label="Today's Jobs" value={String(todayRoute.length)} change={`${jobsNeedingAction.length} need action`} changeType={jobsNeedingAction.length > 0 ? "negative" : "positive"} icon={<Briefcase size={15} />} />

@@ -6,10 +6,12 @@ import { DashboardSkeleton } from "@/components/shared/PageSkeleton";
 import { FirstJobOnboarding } from "@/components/onboarding/FirstJobOnboarding";
 import { ProfileScoreCard } from "@/components/shared/ProfileScoreCard";
 import { NextStepBanner } from "@/components/dashboard/NextStepBanner";
+import { ActionHero } from "@/components/dashboard/ActionHero";
+import { ContextualGuidance, buildGrowerGuidance } from "@/components/dashboard/ContextualGuidance";
 import { Link } from "react-router-dom";
 import {
   Map, Briefcase, DollarSign, TrendingUp, Plus, ArrowRight,
-  AlertTriangle, CheckCircle2, Bell, CalendarDays,
+  AlertTriangle, CheckCircle2, Bell, CalendarDays, Sprout,
 } from "lucide-react";
 import { useFields } from "@/hooks/useFields";
 import { useJobs } from "@/hooks/useJobs";
@@ -35,14 +37,56 @@ export default function GrowerDashboard() {
   const recentAlerts = notifications.filter(n => !n.read).slice(0, 5);
   const totalSpend = jobs.reduce((a, j) => a + Number(j.paid_total || 0), 0);
 
-  // Show first-job onboarding if user has no fields and no jobs
   if (fields.length === 0 && jobs.length === 0) {
     return <FirstJobOnboarding />;
   }
 
+  // Determine primary action
+  const hasPendingApprovals = pendingApprovals.length > 0;
+  const hasFieldsNeedingWork = fieldsNeedingAction.length > 0;
+
+  const guidanceItems = buildGrowerGuidance(jobs, fields);
+
   return (
     <div className="space-y-4 animate-fade-in">
       <NextStepBanner />
+
+      {/* Primary Action Hero */}
+      {hasPendingApprovals ? (
+        <ActionHero
+          icon={<CheckCircle2 size={22} />}
+          headline={`${pendingApprovals.length} Job${pendingApprovals.length > 1 ? "s" : ""} Awaiting Your Approval`}
+          subline="Review completed work and release payment"
+          cta="Review Now"
+          to={`/jobs/${pendingApprovals[0].id}`}
+          variant="grower"
+          secondary={{ label: "View All Jobs", to: "/jobs" }}
+        />
+      ) : hasFieldsNeedingWork ? (
+        <ActionHero
+          icon={<AlertTriangle size={22} />}
+          headline={`${fieldsNeedingAction.length} Field${fieldsNeedingAction.length > 1 ? "s" : ""} Need Attention`}
+          subline="Update field data to keep operations running"
+          cta="View Fields"
+          to="/fields"
+          variant="grower"
+          secondary={{ label: "Post a Job", to: "/marketplace" }}
+        />
+      ) : (
+        <ActionHero
+          icon={<Sprout size={22} />}
+          headline="Ready to Hire?"
+          subline="Post a job to get quotes from verified operators in your area"
+          cta="Post a Job"
+          to="/marketplace"
+          variant="grower"
+          secondary={{ label: "Add Field", to: "/fields" }}
+        />
+      )}
+
+      {/* Contextual Guidance */}
+      <ContextualGuidance items={guidanceItems} />
+
       {/* Summary strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label="Active Jobs" value={String(activeJobs.length)} change={`${inProgress.length} in progress`} changeType="neutral" icon={<Briefcase size={15} />} />
