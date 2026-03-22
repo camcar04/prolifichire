@@ -135,19 +135,13 @@ export default function Settings() {
                 <h3 className="text-sm font-semibold flex items-center gap-2 mb-2">
                   <AlertTriangle size={13} className="text-warning" /> Setup Required
                 </h3>
+                <p className="text-[11px] text-muted-foreground mb-3">Complete these items to unlock platform features.</p>
                 <div className="space-y-1.5">
-                  {activeMode === "grower" && score.missing.some(m => m.includes("Farm") || m.includes("field")) && (
-                    <BlockedItem label="Post a job" reason="Add a farm and field first" link="/fields" cta="Go to Fields" />
-                  )}
-                  {activeMode === "operator" && score.missing.some(m => m.includes("equipment") || m.includes("Equipment")) && (
-                    <BlockedItem label="Bid on jobs" reason="Add equipment to your profile" link="/settings?tab=dowork" cta="Add Equipment" />
-                  )}
-                  {activeMode === "operator" && score.missing.some(m => m.includes("Service radius") || m.includes("Base location")) && (
-                    <BlockedItem label="Receive job matches" reason="Set your base location and service radius" link="/settings?tab=dowork" cta="Set Location" />
-                  )}
-                  {activeMode === "operator" && score.missing.some(m => m.includes("Service types")) && (
-                    <BlockedItem label="Match with jobs" reason="Select the types of work you perform" link="/settings?tab=dowork" cta="Set Services" />
-                  )}
+                  {score.missing.map(item => {
+                    const mapping = MISSING_ITEM_MAP[item];
+                    if (!mapping) return null;
+                    return <BlockedItem key={item} label={mapping.blocked} reason={mapping.reason} link={mapping.link} cta={mapping.cta} />;
+                  })}
                 </div>
               </section>
             )}
