@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import type { JobStatus, PacketStatus, DisputeStatus, PaymentStatus } from "@/types/domain";
 
-type BadgeStatus = JobStatus | PacketStatus | DisputeStatus | PaymentStatus | "active" | "idle" | "pending" | "restricted" | "expiring_soon" | "expired" | "pending_verification" | "overdue" | "sent" | "viewed" | "draft" | "voided";
+type BadgeStatus = JobStatus | PacketStatus | DisputeStatus | PaymentStatus | "active" | "idle" | "pending" | "restricted" | "expiring_soon" | "expired" | "pending_verification" | "overdue" | "sent" | "viewed" | "draft" | "voided" | "opened" | "under_review" | "resolved" | "open" | string;
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   // Job
