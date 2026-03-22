@@ -629,3 +629,129 @@ export interface PermissionGrant {
   expiresAt?: string;
   createdAt: string;
 }
+
+// ── Operation Specifications ─────────────────────────
+
+export type RateType = "flat" | "split" | "variable_rate" | "zone_based" | "see_and_spray";
+export type ProductForm = "dry" | "liquid" | "gas" | "granular" | "other";
+export type ContractType = "work_authorization" | "payment_agreement";
+export type ContractStatus = "draft" | "pending_signature" | "partially_signed" | "fully_signed" | "expired" | "voided";
+export type SignatureStatus = "pending" | "signed" | "declined" | "expired";
+export type CommMethod = "in_app" | "email" | "sms" | "phone";
+
+export interface PlantingSpec {
+  seedBrand: string;
+  productLine: string;
+  hybridVariety: string;
+  traitPackage: string;
+  treatment: string;
+  targetPopulation: number;
+  variableRate: boolean;
+  prescriptionRequired: boolean;
+  rowSpacing: number;
+  plantingDepthNotes: string;
+  seedSuppliedBy: "owner" | "operator";
+}
+
+export interface ApplicationSpec {
+  productCategory: string;
+  productBrandBlend: string;
+  form: ProductForm;
+  rateType: RateType;
+  targetRate: number;
+  rateUnits: string;
+  numberOfPasses: number;
+  passTiming: string;
+  operatorSuppliesProduct: boolean;
+  prescriptionRequired: boolean;
+  restrictedEntryNotes: string;
+  specialRequirements: string;
+}
+
+export interface HarvestSpec {
+  cropType: CropType;
+  conditionMoistureNotes: string;
+  unloadLogisticsNotes: string;
+  plantingFileAttached: boolean;
+  boundaryFileAttached: boolean;
+  yieldDataSharingExpected: boolean;
+  machineDataRequired: boolean;
+}
+
+export type OperationSpecData = PlantingSpec | ApplicationSpec | HarvestSpec;
+
+export interface OperationSpec {
+  id: string;
+  jobId: string;
+  operationType: OperationType;
+  specData: OperationSpecData;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Location {
+  id: string;
+  organizationId: string;
+  type: "headquarters" | "yard" | "shop" | "access_point";
+  label: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  lat?: number;
+  lng?: number;
+  isPrimary: boolean;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface CommunicationPreferences {
+  id: string;
+  userId: string;
+  preferredMethod: CommMethod;
+  alternatePhone?: string;
+  quietHoursStart?: string;
+  quietHoursEnd?: string;
+  notifyQuotes: boolean;
+  notifyScheduling: boolean;
+  notifyDelays: boolean;
+  notifyPackets: boolean;
+  notifyApprovals: boolean;
+  notifyInvoices: boolean;
+  notifyPayouts: boolean;
+  notifyContracts: boolean;
+}
+
+export interface ServiceArea {
+  id: string;
+  operatorProfileId: string;
+  state: string;
+  county?: string;
+}
+
+export interface Contract {
+  id: string;
+  jobId: string;
+  type: ContractType;
+  status: ContractStatus;
+  title: string;
+  contentHtml?: string;
+  fieldsIncluded: string[];
+  terms: Record<string, unknown>;
+  createdBy: string;
+  createdAt: string;
+  expiresAt?: string;
+  fullySignedAt?: string;
+  signatures: ContractSignature[];
+}
+
+export interface ContractSignature {
+  id: string;
+  contractId: string;
+  signerId: string;
+  signerName: string;
+  signerRole: string;
+  status: SignatureStatus;
+  signedAt?: string;
+  createdAt: string;
+}
