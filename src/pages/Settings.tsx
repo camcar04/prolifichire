@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { PricingProfileEditor } from "@/components/operators/PricingProfileEditor";
 import { useSearchParams } from "react-router-dom";
 import AppShell from "@/components/layout/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
