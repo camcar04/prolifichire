@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AppShell from "@/components/layout/AppShell";
@@ -11,12 +12,14 @@ import { JobEquipmentMatch } from "@/components/operators/JobEquipmentMatch";
 import { QuoteComparisonTable } from "@/components/jobs/QuoteComparisonTable";
 import { OperatorDecisionStrip } from "@/components/jobs/OperatorDecisionStrip";
 import { JobExecutionPanel } from "@/components/jobs/JobExecutionPanel";
+import { ExecutionChecklist } from "@/components/jobs/ExecutionChecklist";
 import { CancelJobDialog } from "@/components/jobs/CancelJobDialog";
 import { PrivateCostCalculator } from "@/components/operators/PrivateCostCalculator";
 import { ProfitReviewPanel } from "@/components/operators/ProfitReviewPanel";
 import { formatContractMode } from "@/components/jobs/ContractModeSelector";
 import { canCancelJob, canEditJob } from "@/hooks/useJobActions";
 import { useJob } from "@/hooks/useJobs";
+import { usePostJobUpdate, type JobUpdateStatus, UPDATE_STATUS_LABELS } from "@/hooks/useJobExecution";
 import {
   formatCurrency, formatAcres, formatOperationType, formatDate,
   formatPricingModel, formatCropType, formatRelative,
@@ -25,6 +28,7 @@ import {
   ChevronRight, Calendar, DollarSign, User, MapPin, AlertTriangle,
   Clock, FileText, Truck, CheckCircle2, Package, ShieldCheck, Users,
   Ban, Edit, History, Navigation, Phone, Download, Compass, TriangleAlert,
+  Play, Pause, Camera, MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -69,80 +73,85 @@ export default function JobDetail() {
     boundary_geojson: (fieldData as any).boundary_geojson || null,
   } : null;
 
-  // For operator active jobs, use 3-zone mission control layout
+  // For operator active jobs, use mission-control layout
   if (isOperatorView && isActive) {
     return (
       <AppShell title="">
         <div className="animate-fade-in">
-          {/* Compact header bar */}
-          <div className="flex items-center gap-2 mb-3">
-            <Link to="/jobs" className="text-xs text-muted-foreground hover:text-foreground">Jobs</Link>
-            <ChevronRight size={10} className="text-muted-foreground" />
-            <span className="text-xs font-medium">{job.display_id}</span>
+          {/* Top execution bar — compact, dense, informational */}
+          <div className="flex items-center gap-2 px-1 py-2 mb-2 border-b">
+            <Link to="/jobs" className="text-[11px] text-muted-foreground hover:text-foreground">Jobs</Link>
+            <ChevronRight size={9} className="text-muted-foreground" />
+            <span className="text-[11px] font-mono font-medium">{job.display_id}</span>
             <StatusBadge status={job.status} />
             {job.urgency !== "normal" && (
               <span className="text-[9px] font-bold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded-full uppercase">{job.urgency}</span>
             )}
-            <div className="ml-auto flex items-center gap-2">
-              <span className="text-[11px] font-semibold">{formatOperationType(job.operation_type)}</span>
-              <span className="text-[11px] text-muted-foreground">·</span>
-              <span className="text-[11px] tabular-nums font-medium">{formatAcres(Number(job.total_acres))}</span>
+            <div className="ml-auto flex items-center gap-3 text-[11px]">
+              <span className="font-semibold">{formatOperationType(job.operation_type)}</span>
+              <span className="text-muted-foreground">·</span>
+              <span className="tabular-nums">{formatAcres(Number(job.total_acres))}</span>
+              <span className="text-muted-foreground">·</span>
+              <span className="tabular-nums font-bold">{formatCurrency(Number(job.estimated_total))}</span>
+              {job.scheduled_start && (
+                <>
+                  <span className="text-muted-foreground">·</span>
+                  <span className="flex items-center gap-1 text-muted-foreground"><Clock size={10} />{formatDate(job.scheduled_start)}</span>
+                </>
+              )}
             </div>
           </div>
 
-          {/* 3-zone layout: map | center | right */}
+          {/* 3-zone mission control */}
           <div className="grid lg:grid-cols-12 gap-3">
-            {/* LEFT — Map zone */}
-            <div className="lg:col-span-4 space-y-3">
+            {/* LEFT — Map + location (dominant) */}
+            <div className="lg:col-span-5 space-y-3">
               {mapField ? (
                 <div className="rounded-lg border overflow-hidden bg-card">
-                  <FieldMap field={mapField} aspectRatio="1/1" showControls />
-                  <div className="px-3 py-2 border-t space-y-1">
-                    <div className="flex items-center gap-1.5 text-xs">
-                      <MapPin size={11} className="text-primary shrink-0" />
-                      <span className="font-medium truncate">{fieldData.name}</span>
+                  <div style={{ height: "340px" }}>
+                    <FieldMap field={mapField} aspectRatio="auto" showControls />
+                  </div>
+                  <div className="px-3 py-2.5 border-t">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-[12px]">
+                        <MapPin size={12} className="text-primary shrink-0" />
+                        <span className="font-semibold">{fieldData.name}</span>
+                      </div>
+                      {fieldData.crop && (
+                        <span className="text-[10px] text-muted-foreground">{formatCropType(fieldData.crop)}</span>
+                      )}
                     </div>
                     {job.travel_distance && (
-                      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-1">
                         <Navigation size={10} className="shrink-0" />
                         <span>{Number(job.travel_distance).toFixed(0)} mi away</span>
                         {job.travel_eta && <span>· ~{job.travel_eta} min</span>}
                       </div>
                     )}
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
                       {fieldData.centroid_lat.toFixed(4)}°N, {Math.abs(Number(fieldData.centroid_lng)).toFixed(4)}°W
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="rounded-lg border bg-card p-6 text-center">
-                  <MapPin size={20} className="mx-auto text-muted-foreground mb-2" />
-                  <p className="text-xs text-muted-foreground">No field location data</p>
+                <div className="rounded-lg border bg-card p-8 text-center">
+                  <MapPin size={24} className="mx-auto text-muted-foreground/30 mb-2" />
+                  <p className="text-xs text-muted-foreground">No field location data available</p>
                 </div>
               )}
 
-              {/* Contact & quick info */}
-              <div className="rounded-lg border bg-card">
-                <div className="px-3 py-2 border-b">
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Job Info</p>
-                </div>
-                <div className="px-3 py-2 space-y-2 text-[12px]">
-                  <Row label="Type" value={formatOperationType(job.operation_type)} />
-                  <Row label="Crop" value={fieldData ? formatCropType(fieldData.crop) : "—"} />
-                  <Row label="Acres" value={formatAcres(Number(job.total_acres))} />
-                  <Row label="Deadline" value={formatDate(job.deadline)} />
-                  <Row label="Rate" value={`${formatCurrency(Number(job.base_rate))} ${formatPricingModel(job.pricing_model)}`} />
-                  <Row label="Payout" value={formatCurrency(Number(job.estimated_total))} bold />
-                </div>
-              </div>
+              {/* Execution checklist */}
+              <ExecutionChecklist job={job} packets={packets} />
             </div>
 
-            {/* CENTER — Execution hub */}
-            <div className="lg:col-span-5 space-y-3">
-              {/* Field Packet section */}
+            {/* CENTER — Packet + instructions + controls */}
+            <div className="lg:col-span-4 space-y-3">
+              {/* Field Packet */}
               <div className="rounded-lg border bg-card">
                 <div className="px-3 py-2 border-b flex items-center justify-between">
-                  <h3 className="text-xs font-semibold flex items-center gap-1.5"><Package size={12} /> Field Packet</h3>
+                  <h3 className="text-[11px] font-semibold flex items-center gap-1.5">
+                    <Package size={12} className="text-primary" /> Field Packet
+                  </h3>
                   {packets.length > 0 && (
                     <span className="text-[10px] text-primary font-medium">v{packets[0].version}</span>
                   )}
@@ -151,53 +160,43 @@ export default function JobDetail() {
                   <div className="p-3 space-y-2">
                     <div className="flex items-center gap-2">
                       <StatusBadge status={packets[0].status} />
-                      <span className="text-[11px] text-muted-foreground">
-                        {packets[0].field_packet_files?.length || 0} files
-                      </span>
+                      <span className="text-[10px] text-muted-foreground">{packets[0].field_packet_files?.length || 0} files</span>
                     </div>
-                    {/* Files list */}
                     {packets[0].field_packet_files?.filter((f: any) => f.included).map((f: any) => (
                       <div key={f.id} className="flex items-center justify-between py-1 text-[11px]">
-                        <span className="flex items-center gap-1.5 text-muted-foreground">
-                          <FileText size={10} />
-                          {f.file_name || f.category}
-                        </span>
+                        <span className="flex items-center gap-1.5 text-muted-foreground"><FileText size={10} />{f.file_name || f.category}</span>
                         <span className="text-[9px] text-muted-foreground uppercase">{f.format}</span>
                       </div>
                     ))}
-                    {/* Missing items */}
                     {packets[0].missing_required?.length > 0 && (
                       <div className="rounded bg-warning/5 border border-warning/20 p-2 mt-1">
-                        <p className="text-[10px] font-medium text-warning flex items-center gap-1 mb-1">
-                          <TriangleAlert size={10} /> Missing Required
-                        </p>
+                        <p className="text-[10px] font-medium text-warning flex items-center gap-1 mb-1"><TriangleAlert size={10} /> Missing Required</p>
                         {packets[0].missing_required.map((m: string) => (
                           <p key={m} className="text-[10px] text-muted-foreground ml-3.5">· {m}</p>
                         ))}
                       </div>
                     )}
                     <Button size="sm" variant="outline" className="w-full text-[11px] h-7 gap-1 mt-1">
-                      <Download size={10} /> Download Packet
+                      <Download size={10} /> Download All Files
                     </Button>
                   </div>
                 ) : (
                   <div className="p-4 text-center">
-                    <Package size={18} className="mx-auto text-muted-foreground mb-2" />
-                    <p className="text-[12px] text-muted-foreground">No packet generated yet.</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">Contact the job poster to ensure field data is complete.</p>
+                    <Package size={18} className="mx-auto text-muted-foreground/30 mb-2" />
+                    <p className="text-[11px] text-muted-foreground">No packet generated yet</p>
                   </div>
                 )}
               </div>
 
-              {/* Operation specs */}
+              {/* Operation details */}
               {(specs.length > 0 || inputs.length > 0) && (
                 <div className="rounded-lg border bg-card">
                   <div className="px-3 py-2 border-b">
-                    <h3 className="text-xs font-semibold flex items-center gap-1.5"><Compass size={12} /> Operation Details</h3>
+                    <h3 className="text-[11px] font-semibold flex items-center gap-1.5"><Compass size={12} /> Operation Details</h3>
                   </div>
-                  <div className="p-3 space-y-2">
+                  <div className="p-3 space-y-2 text-[12px]">
                     {specs.map((s: any) => (
-                      <div key={s.id} className="text-[12px] space-y-1">
+                      <div key={s.id} className="space-y-1">
                         {s.application_method && <Row label="Method" value={s.application_method} />}
                         {s.target_rate && <Row label="Rate" value={`${s.target_rate} ${s.rate_unit || ""}`} />}
                         {s.passes && <Row label="Passes" value={String(s.passes)} />}
@@ -207,7 +206,7 @@ export default function JobDetail() {
                     {inputs.map((input: any) => (
                       <div key={input.id} className="flex items-center justify-between py-1 border-t first:border-0 first:pt-0">
                         <div>
-                          <p className="text-[12px] font-medium">{input.product_name}</p>
+                          <p className="font-medium">{input.product_name}</p>
                           {input.brand && <p className="text-[10px] text-muted-foreground">{input.brand}{input.variant ? ` · ${input.variant}` : ""}</p>}
                         </div>
                         <span className={cn("text-[9px] font-medium px-1.5 py-0.5 rounded",
@@ -221,15 +220,10 @@ export default function JobDetail() {
                 </div>
               )}
 
-              {/* Execution controls */}
-              <JobExecutionPanel
-                jobId={job.id}
-                jobStatus={job.status}
-                isOperator={true}
-                isGrowerView={false}
-              />
+              {/* Execution panel */}
+              <JobExecutionPanel jobId={job.id} jobStatus={job.status} isOperator={true} isGrowerView={false} />
 
-              {/* Notes/description */}
+              {/* Notes */}
               {(job.description || job.notes || job.requirements) && (
                 <div className="rounded-lg border bg-card p-3 space-y-2">
                   {job.description && <div><p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-0.5">Description</p><p className="text-[12px]">{job.description}</p></div>}
@@ -239,12 +233,25 @@ export default function JobDetail() {
               )}
             </div>
 
-            {/* RIGHT — Status & timeline */}
+            {/* RIGHT — Status, timeline, cost, actions */}
             <div className="lg:col-span-3 space-y-3">
-              {/* Status card */}
+              {/* Quick job info */}
               <div className="rounded-lg border bg-card p-3">
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Status</p>
-                <div className="space-y-2 text-[12px]">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Job Info</p>
+                <div className="space-y-1.5 text-[12px]">
+                  <Row label="Type" value={formatOperationType(job.operation_type)} />
+                  <Row label="Crop" value={fieldData ? formatCropType(fieldData.crop) : "—"} />
+                  <Row label="Acres" value={formatAcres(Number(job.total_acres))} />
+                  <Row label="Deadline" value={formatDate(job.deadline)} />
+                  <Row label="Rate" value={`${formatCurrency(Number(job.base_rate))} ${formatPricingModel(job.pricing_model)}`} />
+                  <Row label="Payout" value={formatCurrency(Number(job.estimated_total))} bold />
+                </div>
+              </div>
+
+              {/* Status timeline */}
+              <div className="rounded-lg border bg-card p-3">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Timeline</p>
+                <div className="space-y-1.5 text-[12px]">
                   <Row label="Created" value={formatDate(job.created_at)} />
                   {job.scheduled_start && <Row label="Scheduled" value={formatDate(job.scheduled_start)} />}
                   {job.actual_start && <Row label="Started" value={formatDate(job.actual_start)} />}
@@ -267,16 +274,14 @@ export default function JobDetail() {
                 </div>
               </div>
 
-              {/* Private Cost Calculator — only operator sees */}
+              {/* Private cost */}
               <PrivateCostCalculator job={job} />
 
-              {/* Credential match */}
+              {/* Qualifications */}
               <div className="rounded-lg border bg-card p-3">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Qualifications</p>
                 <JobCredentialMatch operationType={job.operation_type} />
-                <div className="mt-2">
-                  <JobEquipmentMatch operationType={job.operation_type} compact />
-                </div>
+                <div className="mt-2"><JobEquipmentMatch operationType={job.operation_type} compact /></div>
               </div>
 
               {/* Invoices */}
@@ -314,11 +319,14 @@ export default function JobDetail() {
 
           {/* Mobile sticky execution bar */}
           <div className="fixed bottom-14 left-0 right-0 bg-card/95 backdrop-blur-sm border-t p-2.5 flex gap-2 lg:hidden z-40">
-            <Button size="sm" className="flex-1 gap-1 h-9 text-xs">
-              <Navigation size={13} /> Update Status
+            <Button size="sm" className="flex-1 gap-1 h-10 text-xs font-semibold">
+              <Play size={14} /> Update Status
             </Button>
-            <Button size="sm" variant="outline" className="gap-1 h-9 text-xs">
-              <Download size={13} /> Packet
+            <Button size="sm" variant="outline" className="gap-1 h-10 text-xs">
+              <Camera size={14} />
+            </Button>
+            <Button size="sm" variant="outline" className="gap-1 h-10 text-xs">
+              <Download size={14} />
             </Button>
           </div>
         </div>
