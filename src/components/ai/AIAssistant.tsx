@@ -47,8 +47,11 @@ export function AIAssistant() {
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isStreaming) return;
+    if (!canPerformAction("ai_send", 1500)) return;
 
-    const userMsg: Msg = { role: "user", content: text.trim() };
+    // Truncate to prevent abuse
+    const safeText = text.trim().slice(0, 2000);
+    const userMsg: Msg = { role: "user", content: safeText };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput("");
@@ -57,16 +60,24 @@ export function AIAssistant() {
     let assistantSoFar = "";
 
     try {
+      // Get current session token for auth
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setMessages(prev => [...prev, { role: "assistant", content: "⚠️ Please sign in to use the assistant." }]);
+        setIsStreaming(false);
+        return;
+      }
+
       const resp = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
-            messages: newMessages.map(m => ({ role: m.role, content: m.content })),
+            messages: newMessages.slice(-20).map(m => ({ role: m.role, content: m.content.slice(0, 2000) })),
             mode: activeMode,
           }),
         }
