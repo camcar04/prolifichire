@@ -150,6 +150,24 @@ export default function OperatorDashboard() {
 
         {/* Right sidebar */}
         <div className="space-y-4">
+          {/* Matching opportunities */}
+          {matchAlerts.length > 0 && (
+            <div className="rounded-xl bg-card shadow-card p-5">
+              <h2 className="font-semibold mb-3 flex items-center gap-2"><Bell size={15} className="text-primary" /> New Matches</h2>
+              <div className="space-y-2.5">
+                {matchAlerts.map(n => (
+                  <Link key={n.id} to={n.action_url || "/marketplace"} className="block rounded-lg bg-primary/5 border border-primary/15 p-2.5 hover:bg-primary/10 transition-colors">
+                    <p className="text-sm font-medium leading-snug">{n.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
+                  </Link>
+                ))}
+              </div>
+              <Button variant="ghost" size="sm" className="w-full mt-2 text-muted-foreground" asChild>
+                <Link to="/notifications">View all alerts</Link>
+              </Button>
+            </div>
+          )}
+
           {/* Packets ready */}
           {packetsReady.length > 0 && (
             <div className="rounded-xl bg-card shadow-card p-5">
@@ -182,6 +200,23 @@ export default function OperatorDashboard() {
                 <Link to="/payouts"><DollarSign size={14} /> View Payouts</Link>
               </Button>
             </div>
+          </div>
+
+          {/* Activity feed */}
+          <div className="rounded-xl bg-card shadow-card p-5">
+            <h2 className="font-semibold mb-3 flex items-center gap-2"><Bell size={15} /> Recent Activity</h2>
+            {recentActivity.length > 0 ? (
+              <div className="space-y-2">
+                {recentActivity.map(n => (
+                  <div key={n.id} className="text-sm">
+                    <p className="font-medium leading-snug">{n.title}</p>
+                    <p className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">No recent activity.</p>
+            )}
           </div>
 
           {/* Earnings summary */}
