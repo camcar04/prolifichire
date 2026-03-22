@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export default function Settings() {
-  const { profile, user, roles, hasRole, canSwitchRoles, refreshProfile } = useAuth();
+  const { profile, user, roles, hasRole, canSwitchRoles, activeMode, refreshProfile } = useAuth();
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get("tab") || "profile";
   const [enablingRole, setEnablingRole] = useState(false);

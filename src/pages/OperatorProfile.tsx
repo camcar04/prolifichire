@@ -8,9 +8,11 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { CredentialManager } from "@/components/operators/CredentialManager";
 import { EquipmentManager } from "@/components/operators/EquipmentManager";
 import { VerifiedBadge, deriveBadgesFromRows } from "@/components/operators/VerifiedBadge";
+import { DirectHireActions } from "@/components/shared/DirectHireActions";
 import { formatOperationType } from "@/lib/format";
-import { MapPin, Briefcase, Wrench, Users, Award, Clock, Star, User } from "lucide-react";
+import { MapPin, Briefcase, Wrench, Users, Award, Clock, Star, User, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
 
 function useOperatorProfile(operatorId?: string) {
   return useQuery({
@@ -29,7 +31,18 @@ function useOperatorProfile(operatorId?: string) {
         supabase.from("profiles").select("first_name, last_name, email, phone, avatar_url").eq("user_id", op.user_id).single(),
       ]);
 
-      return { ...op, equipment: equipment || [], credentials: credentials || [], profile: profile || null };
+      // Compute a basic profile score
+      let pScore = 0;
+      if (op.business_name) pScore += 15;
+      if (op.base_lat) pScore += 15;
+      if (op.service_radius) pScore += 10;
+      if ((op.service_types as string[] || []).length > 0) pScore += 15;
+      if ((equipment || []).length > 0) pScore += 20;
+      if ((credentials || []).length > 0) pScore += 10;
+      if ((credentials || []).some((c: any) => c.is_verified)) pScore += 10;
+      if (op.bio) pScore += 5;
+
+      return { ...op, equipment: equipment || [], credentials: credentials || [], profile: profile || null, profileScore: Math.min(100, pScore) };
     },
     enabled: !!operatorId,
   });
@@ -46,6 +59,7 @@ export default function OperatorProfile() {
   const badges = deriveBadgesFromRows(op.credentials, op.equipment);
   const isOwn = user?.id === op.user_id;
   const isAdmin = roles.includes("admin");
+  const scoreColor = op.profileScore >= 80 ? "bg-success" : op.profileScore >= 50 ? "bg-warning" : "bg-destructive";
 
   return (
     <AppShell title={op.business_name}>
@@ -59,13 +73,23 @@ export default function OperatorProfile() {
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg font-bold">{op.business_name}</h2>
-              {op.profile && (
-                <p className="text-sm text-muted-foreground">
-                  {op.profile.first_name} {op.profile.last_name}
-                  {op.profile.email && ` · ${op.profile.email}`}
-                </p>
-              )}
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-bold">{op.business_name}</h2>
+                  {op.profile && (
+                    <p className="text-sm text-muted-foreground">
+                      {op.profile.first_name} {op.profile.last_name}
+                    </p>
+                  )}
+                </div>
+                {!isOwn && (
+                  <DirectHireActions
+                    operatorUserId={op.user_id}
+                    operatorName={op.business_name || "Operator"}
+                    operatorProfileId={op.id}
+                  />
+                )}
+              </div>
               <div className="flex flex-wrap items-center gap-1.5 mt-2">
                 {badges.map(b => <VerifiedBadge key={b} type={b} size="sm" />)}
               </div>
@@ -119,7 +143,19 @@ export default function OperatorProfile() {
 
           {/* Sidebar */}
           <div className="space-y-4">
-            {/* Performance placeholder */}
+            {/* Profile Score */}
+            <div className="rounded-lg bg-card border p-4">
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5"><Shield size={14} /> Profile Strength</h3>
+              <div className="flex items-center gap-3 mb-2">
+                <span className={cn("text-lg font-bold tabular-nums", op.profileScore >= 80 ? "text-success" : op.profileScore >= 50 ? "text-warning" : "text-destructive")}>{op.profileScore}%</span>
+                <Progress value={op.profileScore} className="h-2 flex-1" />
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                {op.profileScore >= 80 ? "Well-configured profile" : op.profileScore >= 50 ? "Profile needs some attention" : "Profile incomplete"}
+              </p>
+            </div>
+
+            {/* Performance */}
             <div className="rounded-lg bg-card border p-4">
               <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5"><Award size={14} /> Performance</h3>
               <div className="space-y-2 text-sm">
