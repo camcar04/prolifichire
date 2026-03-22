@@ -133,6 +133,7 @@ export default function OperatorDashboard() {
           </div>
 
           <ProfileScoreCard />
+          <PricingInsightsPanel />
 
           <div className="space-y-1">
             <Button variant="outline" size="sm" className="w-full justify-start h-7 text-[11px]" asChild>

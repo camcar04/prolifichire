@@ -502,6 +502,11 @@ export default function JobDetail() {
               </div>
             </div>
 
+            {/* Profit Review — operator only, completed jobs */}
+            {isOperatorView && ["completed", "approved", "paid", "closed"].includes(job.status) && (
+              <ProfitReviewPanel job={job} />
+            )}
+
             {/* Field Packets */}
             {packets.length > 0 && (
               <div className="rounded-lg border bg-card p-3">
