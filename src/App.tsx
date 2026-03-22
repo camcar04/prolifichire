@@ -26,7 +26,7 @@ import TermsOfService from "./pages/legal/TermsOfService";
 import CookiePolicy from "./pages/legal/CookiePolicy";
 import AcceptableUse from "./pages/legal/AcceptableUse";
 import CookieConsent from "./components/legal/CookieConsent";
-
+import { AIAssistant } from "./components/ai/AIAssistant";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -67,6 +67,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <CookieConsent />
+          <AIAssistant />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

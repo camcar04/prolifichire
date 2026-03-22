@@ -77,8 +77,8 @@ function PlantingSpecForm({ value, onChange }: { value: Partial<PlantingSpec>; o
         <Select value={value.seedSuppliedBy || "owner"} onValueChange={v => set("seedSuppliedBy", v)}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="owner">Owner / Grower</SelectItem>
-            <SelectItem value="operator">Operator</SelectItem>
+            <SelectItem value="owner">Owner / Hire Work side</SelectItem>
+            <SelectItem value="operator">Do Work side (Operator)</SelectItem>
           </SelectContent>
         </Select>
       </div>

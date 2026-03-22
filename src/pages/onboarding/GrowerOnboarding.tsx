@@ -97,7 +97,7 @@ export default function GrowerOnboarding() {
           <span className="text-primary-foreground font-bold text-[10px]">PH</span>
         </div>
         <span className="font-bold text-sm tracking-tight">ProlificHire</span>
-        <span className="ml-3 text-xs text-muted-foreground">Setup your account</span>
+        <span className="ml-3 text-xs text-muted-foreground">Hire Work — Setup your account</span>
       </div>
 
       <div className="flex-1 flex items-start justify-center pt-12 px-4">
