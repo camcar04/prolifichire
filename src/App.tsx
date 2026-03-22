@@ -29,6 +29,7 @@ import AcceptableUse from "./pages/legal/AcceptableUse";
 import CookieConsent from "./components/legal/CookieConsent";
 import { AIAssistant } from "./components/ai/AIAssistant";
 import OperatorProfile from "./pages/OperatorProfile";
+import Enterprise from "./pages/Enterprise";
 const queryClient = new QueryClient();
 
 const App = () => (
