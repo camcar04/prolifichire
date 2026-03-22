@@ -343,7 +343,7 @@ function FilesContent({ datasets, fieldId, onUpload }: { datasets: any[]; fieldI
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-xs text-muted-foreground">{formatRelative(ds.created_at)}</span>
-                <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDownload(ds)}>
                   <Download size={13} />
                 </Button>
               </div>
