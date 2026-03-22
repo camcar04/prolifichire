@@ -159,9 +159,9 @@ export default function FieldWorkspace() {
         {activeTab === "jobs" && <JobsContent jobs={fieldJobs} />}
         {activeTab === "history" && <ActivityTimeline events={fieldAuditLogs} />}
         {activeTab === "files" && <FilesContent datasets={fieldDatasets} />}
-        {activeTab === "financials" && <FinancialsContent stats={stats} invoices={fieldInvoices} />}
+        {activeMode === "grower" && activeTab === "financials" && <FinancialsContent stats={stats} invoices={fieldInvoices} />}
         {activeTab === "messages" && <MessagesContent threads={fieldThreads} />}
-        {activeTab === "permissions" && <PermissionsContent permissions={fieldPermissions} />}
+        {activeMode === "grower" && activeTab === "permissions" && <PermissionsContent permissions={fieldPermissions} />}
       </div>
     </AppShell>
   );

@@ -52,8 +52,10 @@ export default function JobDetail() {
               <p className="text-sm text-muted-foreground">{job.displayId} · {formatOperationType(job.operationType)} · {formatAcres(job.totalAcres)}</p>
             </div>
             <div className="flex gap-2">
-              {job.proofSubmitted && !job.proofApproved && <Button size="sm">Approve Completion</Button>}
-              {!job.proofSubmitted && job.status === "completed" && <Button size="sm" variant="outline">Submit Proof</Button>}
+              {activeMode === "grower" && job.proofSubmitted && !job.proofApproved && <Button size="sm">Approve Completion</Button>}
+              {activeMode === "operator" && !job.proofSubmitted && ["in_progress", "completed"].includes(job.status) && <Button size="sm">Submit Proof of Work</Button>}
+              {activeMode === "operator" && job.status === "requested" && <Button size="sm">Submit Quote</Button>}
+              {activeMode === "operator" && job.status === "scheduled" && <Button size="sm" variant="outline">Start Job</Button>}
               <Button size="sm" variant="outline">Actions</Button>
             </div>
           </div>
