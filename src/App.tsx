@@ -21,6 +21,11 @@ import OperatorOnboarding from "./pages/onboarding/OperatorOnboarding";
 import Templates from "./pages/Templates";
 import NotificationsPage from "./pages/Notifications";
 import Integrations from "./pages/Integrations";
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
+import TermsOfService from "./pages/legal/TermsOfService";
+import CookiePolicy from "./pages/legal/CookiePolicy";
+import AcceptableUse from "./pages/legal/AcceptableUse";
+import CookieConsent from "./components/legal/CookieConsent";
 
 const queryClient = new QueryClient();
 
@@ -55,8 +60,13 @@ const App = () => (
             <Route path="/operators" element={<Dashboard />} />
             <Route path="/compliance" element={<Dashboard />} />
             <Route path="/settings" element={<Dashboard />} />
+            <Route path="/legal/privacy" element={<PrivacyPolicy />} />
+            <Route path="/legal/terms" element={<TermsOfService />} />
+            <Route path="/legal/cookies" element={<CookiePolicy />} />
+            <Route path="/legal/acceptable-use" element={<AcceptableUse />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <CookieConsent />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
