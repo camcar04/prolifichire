@@ -32,6 +32,23 @@ export default function JobDetail() {
   const quotes = getQuotesByJob(job.id);
   const packet = getFieldPacketByJob(job.id);
   const jobEvents = auditLogs.filter(a => a.entityId === job.id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const { estimate, loading: pricingLoading, getEstimate } = usePricingEngine();
+
+  const operator = operators.find(o => o.userId === job.operatorId);
+  const operatorBase = operator?.baseLat ? { lat: operator.baseLat, lng: operator.baseLng! } : null;
+  const fieldLocation = field?.centroid ? { lat: field.centroid.lat, lng: field.centroid.lng } : null;
+
+  useEffect(() => {
+    if (job && ["requested", "quoted"].includes(job.status)) {
+      getEstimate({
+        operation_type: job.operationType,
+        acreage: job.totalAcres,
+        travel_distance: job.travelDistance,
+        urgency: job.urgency,
+        crop: job.fields[0]?.crop,
+      });
+    }
+  }, [job?.id]);
 
   return (
     <AppShell title="">
