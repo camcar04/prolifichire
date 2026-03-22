@@ -1247,6 +1247,53 @@ export type Database = {
           },
         ]
       }
+      job_edit_history: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          change_type: string
+          edited_at: string
+          edited_by: string
+          id: string
+          job_id: string
+          new_value: Json | null
+          previous_value: Json | null
+          requires_acknowledgment: boolean | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          change_type: string
+          edited_at?: string
+          edited_by: string
+          id?: string
+          job_id: string
+          new_value?: Json | null
+          previous_value?: Json | null
+          requires_acknowledgment?: boolean | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          change_type?: string
+          edited_at?: string
+          edited_by?: string
+          id?: string
+          job_id?: string
+          new_value?: Json | null
+          previous_value?: Json | null
+          requires_acknowledgment?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_edit_history_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_exceptions: {
         Row: {
           created_at: string
@@ -1547,6 +1594,10 @@ export type Database = {
           actual_start: string | null
           approved_total: number | null
           base_rate: number
+          cancel_fee_amount: number | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           change_order_count: number | null
           contract_mode: string
           created_at: string
@@ -1558,6 +1609,8 @@ export type Database = {
           farm_id: string
           id: string
           invoiced_total: number | null
+          last_edited_at: string | null
+          last_edited_by: string | null
           notes: string | null
           operation_type: Database["public"]["Enums"]["operation_type"]
           operator_id: string | null
@@ -1584,6 +1637,10 @@ export type Database = {
           actual_start?: string | null
           approved_total?: number | null
           base_rate?: number
+          cancel_fee_amount?: number | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           change_order_count?: number | null
           contract_mode?: string
           created_at?: string
@@ -1595,6 +1652,8 @@ export type Database = {
           farm_id: string
           id?: string
           invoiced_total?: number | null
+          last_edited_at?: string | null
+          last_edited_by?: string | null
           notes?: string | null
           operation_type: Database["public"]["Enums"]["operation_type"]
           operator_id?: string | null
@@ -1621,6 +1680,10 @@ export type Database = {
           actual_start?: string | null
           approved_total?: number | null
           base_rate?: number
+          cancel_fee_amount?: number | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           change_order_count?: number | null
           contract_mode?: string
           created_at?: string
@@ -1632,6 +1695,8 @@ export type Database = {
           farm_id?: string
           id?: string
           invoiced_total?: number | null
+          last_edited_at?: string | null
+          last_edited_by?: string | null
           notes?: string | null
           operation_type?: Database["public"]["Enums"]["operation_type"]
           operator_id?: string | null
