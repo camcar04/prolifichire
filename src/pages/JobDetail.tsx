@@ -38,6 +38,7 @@ export default function JobDetail() {
   const { jobId } = useParams();
   const { user, activeMode } = useAuth();
   const { data: job, isLoading } = useJob(jobId);
+  const [signingContractId, setSigningContractId] = useState<string | null>(null);
 
   if (isLoading) return <AppShell title=""><DetailSkeleton /></AppShell>;
   if (!job) {
