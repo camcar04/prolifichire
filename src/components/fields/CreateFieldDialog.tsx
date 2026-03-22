@@ -66,7 +66,7 @@ export function CreateFieldDialog({ open, onOpenChange, preselectedFarmId }: Pro
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const insertData: Record<string, any> = {
+      const baseData = {
         name: form.name,
         farm_id: form.farmId,
         acreage: Number(form.acreage) || 0,
@@ -77,23 +77,23 @@ export function CreateFieldDialog({ open, onOpenChange, preselectedFarmId }: Pro
         legal_description: form.legalDescription || null,
         clu_number: form.cluNumber || null,
         fsa_farm_number: form.fsaFarmNumber || null,
+        ...(boundary ? (() => {
+          const ring = boundary.coordinates[0];
+          const cent = getCentroid(ring);
+          const bbox = getBbox(ring);
+          return {
+            boundary_geojson: boundary as any,
+            centroid_lat: cent.lat,
+            centroid_lng: cent.lng,
+            bbox_north: bbox.north,
+            bbox_south: bbox.south,
+            bbox_east: bbox.east,
+            bbox_west: bbox.west,
+          };
+        })() : {}),
       };
 
-      // If boundary drawn, include geospatial data
-      if (boundary) {
-        const ring = boundary.coordinates[0];
-        const cent = getCentroid(ring);
-        const bbox = getBbox(ring);
-        insertData.boundary_geojson = boundary as any;
-        insertData.centroid_lat = cent.lat;
-        insertData.centroid_lng = cent.lng;
-        insertData.bbox_north = bbox.north;
-        insertData.bbox_south = bbox.south;
-        insertData.bbox_east = bbox.east;
-        insertData.bbox_west = bbox.west;
-      }
-
-      const { error } = await supabase.from("fields").insert(insertData);
+      const { error } = await supabase.from("fields").insert(baseData as any);
       if (error) throw error;
     },
     onSuccess: () => {
