@@ -11,11 +11,11 @@ import { FieldMap } from "@/components/map/FieldMap";
 import { PrivateCostCalculator } from "@/components/operators/PrivateCostCalculator";
 import { JobEquipmentMatch } from "@/components/operators/JobEquipmentMatch";
 import { JobCredentialMatch } from "@/components/operators/JobCredentialMatch";
-import { OperatorDecisionStrip } from "@/components/jobs/OperatorDecisionStrip";
 import {
-  MapPin, Clock, DollarSign, Filter, Search, Bookmark, BookmarkCheck,
-  X, ChevronRight, Sliders, Wheat, Navigation, Package, FileText,
-  CheckCircle2, AlertTriangle, Target, SlidersHorizontal,
+  MapPin, Clock, DollarSign, Search, Bookmark, BookmarkCheck,
+  X, ChevronRight, Wheat, Navigation, FileText,
+  CheckCircle2, AlertTriangle, Target, SlidersHorizontal, ArrowUpDown,
+  Layers, Truck, Sprout, Tractor, Package,
 } from "lucide-react";
 import { useMarketplaceJobs } from "@/hooks/useJobs";
 import { useSavedJobIds, useToggleSaveJob } from "@/hooks/useSavedJobs";
@@ -27,9 +27,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { OperationType } from "@/types/domain";
 import { cn } from "@/lib/utils";
 
-const OP_FILTERS: (OperationType | "all")[] = [
-  "all", "spraying", "planting", "harvest", "grain_hauling", "tillage",
-  "hauling", "soil_sampling", "fertilizing", "mowing", "baling", "rock_picking",
+const OP_FILTERS: { value: OperationType | "all"; label: string; icon: any }[] = [
+  { value: "all", label: "All", icon: Layers },
+  { value: "spraying", label: "Spray", icon: Sprout },
+  { value: "planting", label: "Plant", icon: Sprout },
+  { value: "harvest", label: "Harvest", icon: Wheat },
+  { value: "grain_hauling", label: "Haul", icon: Truck },
+  { value: "tillage", label: "Tillage", icon: Tractor },
+  { value: "fertilizing", label: "Fertilize", icon: Package },
+  { value: "rock_picking", label: "Rock Pick", icon: Tractor },
 ];
 
 export default function Marketplace() {
@@ -76,195 +82,255 @@ export default function Marketplace() {
     return allJobs.find(j => j.id === selectedJobId) || null;
   }, [selectedJobId, allJobs]);
 
-  // Auto-select first job
   const effectiveSelected = selectedJob || (filtered.length > 0 ? filtered[0] : null);
 
-  const getContractLabel = (mode: string) => {
-    if (mode === "open_bidding") return { text: "Bids Open", cls: "bg-info/10 text-info" };
-    if (mode === "invite_only") return { text: "Invite", cls: "bg-muted text-muted-foreground" };
-    return { text: "Fixed Price", cls: "bg-primary/10 text-primary" };
+  const getContractTag = (mode: string) => {
+    if (mode === "open_bidding") return { text: "BID", cls: "bg-blue-600/90 text-white" };
+    if (mode === "invite_only") return { text: "INV", cls: "bg-muted text-muted-foreground" };
+    return { text: "FIX", cls: "bg-primary/90 text-primary-foreground" };
+  };
+
+  const getOpIcon = (type: string) => {
+    if (type.includes("spray") || type.includes("fertil")) return Sprout;
+    if (type.includes("harvest")) return Wheat;
+    if (type.includes("haul")) return Truck;
+    if (type.includes("plant")) return Sprout;
+    return Tractor;
   };
 
   return (
     <AppShell title="Marketplace">
       <div className="animate-fade-in -mx-3 sm:-mx-5 -mt-2">
-        {/* Toolbar */}
-        <div className="sticky top-12 z-20 px-3 sm:px-5 py-2 bg-background/90 backdrop-blur-sm border-b space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1 max-w-sm">
-              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        {/* Command bar */}
+        <div className="sticky top-12 z-20 bg-background border-b">
+          {/* Row 1: search + controls */}
+          <div className="flex items-center gap-1.5 px-2 sm:px-4 h-10">
+            <div className="relative flex-1 max-w-xs">
+              <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search jobs, fields, crops…" className="h-8 pl-8 text-xs" />
+                placeholder="Search…" className="h-7 pl-7 text-[11px] bg-surface-2 border-0 focus-visible:ring-1" />
               {searchQuery && (
                 <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2">
-                  <X size={11} className="text-muted-foreground" />
+                  <X size={10} className="text-muted-foreground" />
                 </button>
               )}
             </div>
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="h-8 w-[130px] text-[11px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-7 w-[110px] text-[10px] border-0 bg-surface-2">
+                <ArrowUpDown size={9} className="mr-1" /><SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                <SelectItem value="newest">Newest First</SelectItem>
-                <SelectItem value="pay_high">Pay: High→Low</SelectItem>
-                <SelectItem value="pay_low">Pay: Low→High</SelectItem>
-                <SelectItem value="acres">Largest First</SelectItem>
-                <SelectItem value="deadline">Soonest Deadline</SelectItem>
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="pay_high">Pay ↓</SelectItem>
+                <SelectItem value="pay_low">Pay ↑</SelectItem>
+                <SelectItem value="acres">Acres ↓</SelectItem>
+                <SelectItem value="deadline">Deadline ↑</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant={showSavedOnly ? "default" : "outline"} size="sm"
-              className={cn("h-8 text-[11px] gap-1")} onClick={() => setShowSavedOnly(!showSavedOnly)}>
-              <Bookmark size={11} /> Queue {savedJobIds.size > 0 && `(${savedJobIds.size})`}
+            <Button variant={showSavedOnly ? "default" : "ghost"} size="sm"
+              className="h-7 text-[10px] gap-1 px-2" onClick={() => setShowSavedOnly(!showSavedOnly)}>
+              <Bookmark size={10} />
+              <span className="hidden sm:inline">Queue</span>
+              {savedJobIds.size > 0 && <span className="tabular-nums">({savedJobIds.size})</span>}
             </Button>
-            <Button variant="ghost" size="sm" className="h-8 text-[11px] gap-1 hidden lg:flex"
+            <Button variant="ghost" size="sm" className="h-7 text-[10px] gap-1 px-2 hidden lg:flex"
               onClick={() => setShowFilters(!showFilters)}>
-              <SlidersHorizontal size={11} /> {showFilters ? "Hide" : "Show"} Filters
+              <SlidersHorizontal size={10} />
             </Button>
-            <span className="text-[11px] text-muted-foreground tabular-nums ml-auto hidden sm:block">
-              {filtered.length} job{filtered.length !== 1 ? "s" : ""}
+            <span className="text-[10px] text-muted-foreground tabular-nums ml-auto font-medium">
+              {filtered.length}
             </span>
           </div>
 
-          {/* Type pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-            {OP_FILTERS.map(f => (
-              <button key={f} onClick={() => setFilter(f)}
-                className={cn("px-2.5 py-1 rounded-md text-[10px] font-medium whitespace-nowrap transition-colors active:scale-[0.97]",
-                  filter === f ? "bg-primary text-primary-foreground shadow-sm" : "bg-card text-muted-foreground hover:text-foreground border"
-                )}>
-                {f === "all" ? "All Types" : formatOperationType(f)}
-              </button>
-            ))}
+          {/* Row 2: type chips */}
+          <div className="flex items-center gap-1 px-2 sm:px-4 pb-1.5 overflow-x-auto no-scrollbar">
+            {OP_FILTERS.map(f => {
+              const active = filter === f.value && !showSavedOnly;
+              return (
+                <button key={f.value} onClick={() => { setFilter(f.value); setShowSavedOnly(false); }}
+                  className={cn(
+                    "flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium whitespace-nowrap transition-all active:scale-[0.96]",
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-surface-2"
+                  )}>
+                  <f.icon size={9} />
+                  {f.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {isLoading ? (
           <div className="px-3 sm:px-5 pt-3"><ListSkeleton rows={8} /></div>
         ) : filtered.length === 0 ? (
-          <div className="px-3 sm:px-5 pt-6">
+          <div className="px-3 sm:px-5 pt-8">
             <EmptyState
-              icon={showSavedOnly ? <Bookmark size={24} /> : <Filter size={24} />}
+              icon={showSavedOnly ? <Bookmark size={20} /> : <Target size={20} />}
               title={showSavedOnly ? "Bid queue empty" : "No jobs match"}
-              description={showSavedOnly ? "Save jobs to build your bid queue." : "Adjust filters or check back later."}
+              description={showSavedOnly
+                ? "Save jobs from the marketplace to build your queue."
+                : "Try expanding your radius or adjusting filters."}
               action={showSavedOnly ? { label: "Browse All", onClick: () => setShowSavedOnly(false) } : undefined}
             />
           </div>
         ) : (
-          /* 3-pane workboard */
-          <div className="flex" style={{ height: "calc(100vh - 170px)" }}>
-            {/* LEFT — Filter sidebar (desktop) */}
+          <div className="flex" style={{ height: "calc(100vh - 150px)" }}>
+            {/* LEFT — Sidebar */}
             {showFilters && (
-              <div className="hidden lg:flex flex-col w-[200px] shrink-0 border-r bg-card/50 p-3 space-y-4 overflow-y-auto">
+              <aside className="hidden lg:flex flex-col w-[180px] shrink-0 border-r p-2 space-y-3 overflow-y-auto bg-surface-1">
                 <div>
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Saved Views</p>
-                  <div className="space-y-1">
+                  <p className="section-header px-1 mb-1.5">Views</p>
+                  <nav className="space-y-px">
                     {[
-                      { label: "All Jobs", filter: "all" },
-                      { label: "Spray Jobs", filter: "spraying" },
-                      { label: "Harvest Jobs", filter: "harvest" },
-                      { label: "Hauling Jobs", filter: "grain_hauling" },
-                      { label: "Planting Jobs", filter: "planting" },
+                      { label: "All Jobs", val: "all" },
+                      { label: "Spray", val: "spraying" },
+                      { label: "Harvest", val: "harvest" },
+                      { label: "Hauling", val: "grain_hauling" },
+                      { label: "Planting", val: "planting" },
                     ].map(v => (
-                      <button key={v.filter} onClick={() => { setFilter(v.filter); setShowSavedOnly(false); }}
-                        className={cn("w-full text-left px-2 py-1.5 rounded text-[11px] transition-colors",
-                          filter === v.filter && !showSavedOnly ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      <button key={v.val} onClick={() => { setFilter(v.val); setShowSavedOnly(false); }}
+                        className={cn("w-full text-left px-2 py-1 rounded text-[11px] transition-colors",
+                          filter === v.val && !showSavedOnly
+                            ? "bg-primary/8 text-primary font-medium"
+                            : "text-muted-foreground hover:text-foreground hover:bg-surface-2"
                         )}>
                         {v.label}
                       </button>
                     ))}
                     <button onClick={() => setShowSavedOnly(true)}
-                      className={cn("w-full text-left px-2 py-1.5 rounded text-[11px] transition-colors flex items-center gap-1.5",
-                        showSavedOnly ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      className={cn("w-full text-left px-2 py-1 rounded text-[11px] transition-colors flex items-center gap-1.5",
+                        showSavedOnly
+                          ? "bg-primary/8 text-primary font-medium"
+                          : "text-muted-foreground hover:text-foreground hover:bg-surface-2"
                       )}>
-                      <Bookmark size={10} /> My Bid Queue
+                      <Bookmark size={9} /> Bid Queue
                     </button>
-                  </div>
+                  </nav>
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Quick Filters</p>
-                  <div className="space-y-1.5 text-[11px]">
-                    <label className="flex items-center gap-2 text-muted-foreground cursor-pointer hover:text-foreground">
-                      <DollarSign size={10} /> Fixed Price Only
+                  <p className="section-header px-1 mb-1.5">Quick Filters</p>
+                  <div className="space-y-0.5 text-[11px] px-1">
+                    <label className="flex items-center gap-1.5 text-muted-foreground cursor-pointer hover:text-foreground py-0.5">
+                      <DollarSign size={9} /> Fixed Price
                     </label>
-                    <label className="flex items-center gap-2 text-muted-foreground cursor-pointer hover:text-foreground">
-                      <AlertTriangle size={10} /> Urgent Only
+                    <label className="flex items-center gap-1.5 text-muted-foreground cursor-pointer hover:text-foreground py-0.5">
+                      <AlertTriangle size={9} /> Urgent
                     </label>
-                    <label className="flex items-center gap-2 text-muted-foreground cursor-pointer hover:text-foreground">
-                      <Target size={10} /> Best Match
+                    <label className="flex items-center gap-1.5 text-muted-foreground cursor-pointer hover:text-foreground py-0.5">
+                      <Target size={9} /> Best Match
                     </label>
                   </div>
                 </div>
 
                 <div className="flex-1" />
-
-                <div className="pt-3 border-t">
-                  <p className="text-[10px] text-muted-foreground">
-                    {allJobs.length} total · {savedJobIds.size} saved
-                  </p>
-                </div>
-              </div>
+                <p className="text-[9px] text-muted-foreground px-1 pb-1">
+                  {allJobs.length} total · {savedJobIds.size} saved
+                </p>
+              </aside>
             )}
 
-            {/* CENTER — Job list */}
+            {/* CENTER — Job rows */}
             <div className={cn(
-              "flex-1 min-w-0 overflow-y-auto border-r",
-              !effectiveSelected && "lg:border-r-0"
+              "flex-1 min-w-0 overflow-y-auto",
+              effectiveSelected && "lg:border-r"
             )}>
-              <div className="divide-y">
+              {/* Table header (desktop) */}
+              <div className="hidden sm:grid grid-cols-[1fr_80px_70px_80px] items-center px-3 h-7 border-b bg-surface-2/60 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <span>Job</span>
+                <span className="text-right">Pay</span>
+                <span className="text-right">Acres</span>
+                <span className="text-right">Deadline</span>
+              </div>
+
+              <div className="divide-y divide-border/60">
                 {filtered.map(job => {
                   const jf = (job as any).job_fields?.[0];
                   const fieldData = jf?.fields;
                   const fieldName = fieldData?.name || "—";
-                  const locationSummary = fieldData?.county && fieldData?.state
+                  const loc = fieldData?.county && fieldData?.state
                     ? `${fieldData.county}, ${fieldData.state}`
-                    : fieldData?.state || (fieldData?.centroid_lat ? "Located" : "No location");
+                    : fieldData?.state || "";
                   const isSaved = savedJobIds.has(job.id);
                   const isSelected = effectiveSelected?.id === job.id;
-                  const contractLabel = getContractLabel((job as any).contract_mode || "fixed_price");
+                  const tag = getContractTag((job as any).contract_mode || "fixed_price");
+                  const OpIcon = getOpIcon(job.operation_type);
 
                   return (
                     <div key={job.id}
                       onClick={() => setSelectedJobId(job.id)}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors group",
-                        isSelected ? "bg-primary/5 border-l-2 border-l-primary" : "hover:bg-muted/50 border-l-2 border-l-transparent",
+                        "grid grid-cols-[1fr_80px_70px_80px] sm:grid items-center px-3 py-2 cursor-pointer transition-[background-color] duration-100 group",
+                        "flex flex-col sm:grid",
+                        isSelected
+                          ? "bg-primary/4 border-l-2 border-l-primary"
+                          : "hover:bg-surface-2/70 border-l-2 border-l-transparent",
                       )}>
-                      {/* Save toggle */}
-                      <button onClick={e => toggleSave(job.id, e)} className="shrink-0 p-0.5 hover:text-primary">
-                        {isSaved ? <BookmarkCheck size={14} className="text-primary" /> : <Bookmark size={14} className="text-muted-foreground/40 group-hover:text-muted-foreground" />}
-                      </button>
+                      {/* Job info */}
+                      <div className="flex items-center gap-2 min-w-0 col-span-1 sm:col-span-1">
+                        <button onClick={e => toggleSave(job.id, e)}
+                          className="shrink-0 p-0.5 hover:text-primary transition-colors">
+                          {isSaved
+                            ? <BookmarkCheck size={12} className="text-primary" />
+                            : <Bookmark size={12} className="text-muted-foreground/30 group-hover:text-muted-foreground" />}
+                        </button>
 
-                      {/* Main content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={cn("text-[9px] font-semibold px-1.5 py-0.5 rounded", contractLabel.cls)}>
-                            {contractLabel.text}
-                          </span>
-                          <p className="text-[12px] font-semibold truncate group-hover:text-primary transition-colors">
-                            {job.title}
-                          </p>
+                        <div className="shrink-0 w-6 h-6 rounded bg-surface-3 flex items-center justify-center">
+                          <OpIcon size={11} className="text-muted-foreground" />
                         </div>
-                        <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground">
-                          <span className="flex items-center gap-0.5"><MapPin size={8} />{fieldName}</span>
-                          <span>·</span>
-                          <span className="truncate max-w-[100px]">{locationSummary}</span>
-                          <span>·</span>
-                          <span>{formatAcres(Number(job.total_acres))}</span>
-                          <span>·</span>
-                          <span>by {formatDateShort(job.deadline)}</span>
-                          {job.urgency !== "normal" && (
-                            <>
-                              <span>·</span>
-                              <span className="text-destructive font-bold uppercase">{job.urgency}</span>
-                            </>
-                          )}
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className={cn("text-[8px] font-bold px-1 py-px rounded leading-none", tag.cls)}>
+                              {tag.text}
+                            </span>
+                            <p className="text-[12px] font-semibold truncate leading-tight group-hover:text-primary transition-colors">
+                              {fieldName}
+                            </p>
+                            {job.urgency !== "normal" && (
+                              <span className="text-[8px] font-bold text-destructive bg-destructive/10 px-1 py-px rounded uppercase leading-none">
+                                {job.urgency}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground leading-none mt-0.5 truncate">
+                            {formatOperationType(job.operation_type)}
+                            {loc && ` · ${loc}`}
+                            {job.travel_distance && ` · ${Number(job.travel_distance).toFixed(0)} mi`}
+                          </p>
                         </div>
                       </div>
 
-                      {/* Right — payout */}
-                      <div className="text-right shrink-0">
-                        <p className="text-[13px] font-bold tabular-nums">{formatCurrency(Number(job.estimated_total))}</p>
-                        <p className="text-[9px] text-muted-foreground">{formatPricingModel(job.pricing_model)}</p>
+                      {/* Pay */}
+                      <div className="text-right hidden sm:block">
+                        <p className="text-[12px] font-bold tabular-nums leading-none">
+                          {formatCurrency(Number(job.estimated_total))}
+                        </p>
+                        <p className="text-[9px] text-muted-foreground mt-0.5">
+                          {formatPricingModel(job.pricing_model)}
+                        </p>
+                      </div>
+
+                      {/* Acres */}
+                      <p className="text-[11px] tabular-nums text-right hidden sm:block text-muted-foreground">
+                        {formatAcres(Number(job.total_acres))}
+                      </p>
+
+                      {/* Deadline */}
+                      <p className="text-[10px] text-right hidden sm:block text-muted-foreground tabular-nums">
+                        {formatDateShort(job.deadline)}
+                      </p>
+
+                      {/* Mobile: secondary row */}
+                      <div className="flex items-center justify-between mt-1 sm:hidden col-span-full">
+                        <span className="text-[11px] tabular-nums text-muted-foreground">
+                          {formatAcres(Number(job.total_acres))} · {formatDateShort(job.deadline)}
+                        </span>
+                        <span className="text-[12px] font-bold tabular-nums">
+                          {formatCurrency(Number(job.estimated_total))}
+                        </span>
                       </div>
                     </div>
                   );
@@ -272,9 +338,9 @@ export default function Marketplace() {
               </div>
             </div>
 
-            {/* RIGHT — Detail pane (desktop) */}
+            {/* RIGHT — Detail pane */}
             {effectiveSelected && (
-              <div className="hidden lg:flex flex-col w-[380px] shrink-0 overflow-y-auto bg-card/30">
+              <div className="hidden lg:flex flex-col w-[360px] shrink-0 overflow-y-auto">
                 <JobDetailPane
                   job={effectiveSelected}
                   isSaved={savedJobIds.has(effectiveSelected.id)}
@@ -286,17 +352,17 @@ export default function Marketplace() {
           </div>
         )}
 
-        {/* Mobile: selected job overlay */}
+        {/* Mobile: selected job bottom bar */}
         {effectiveSelected && (
-          <div className="lg:hidden fixed bottom-14 left-0 right-0 z-30 bg-card/95 backdrop-blur-sm border-t p-2.5 flex items-center gap-2">
+          <div className="lg:hidden fixed bottom-14 left-0 right-0 z-30 bg-card border-t px-3 py-2 flex items-center gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-[12px] font-semibold truncate">{effectiveSelected.title}</p>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-[11px] font-semibold truncate">{effectiveSelected.title}</p>
+              <p className="text-[10px] text-muted-foreground tabular-nums">
                 {formatAcres(Number(effectiveSelected.total_acres))} · {formatCurrency(Number(effectiveSelected.estimated_total))}
               </p>
             </div>
-            <Button size="sm" className="h-8 text-xs" onClick={() => navigate(`/jobs/${effectiveSelected.id}`)}>
-              View <ChevronRight size={12} />
+            <Button size="sm" className="h-7 text-[10px] gap-1" onClick={() => navigate(`/jobs/${effectiveSelected.id}`)}>
+              View <ChevronRight size={10} />
             </Button>
           </div>
         )}
@@ -305,7 +371,8 @@ export default function Marketplace() {
   );
 }
 
-/* Detail pane for the right side of the workboard */
+/* ──────────────────── Detail Pane ──────────────────── */
+
 function JobDetailPane({ job, isSaved, onToggleSave, onOpenFull }: {
   job: any; isSaved: boolean; onToggleSave: () => void; onOpenFull: () => void;
 }) {
@@ -329,66 +396,68 @@ function JobDetailPane({ job, isSaved, onToggleSave, onOpenFull }: {
     <div className="flex flex-col h-full">
       {/* Map */}
       {mapField ? (
-        <div className="h-[180px] shrink-0">
+        <div className="h-[160px] shrink-0 border-b">
           <FieldMap field={mapField} aspectRatio="auto" />
         </div>
       ) : (
-        <div className="h-[100px] shrink-0 bg-muted/30 flex items-center justify-center">
-          <MapPin size={18} className="text-muted-foreground/30" />
+        <div className="h-[80px] shrink-0 bg-surface-2 flex items-center justify-center border-b">
+          <MapPin size={16} className="text-muted-foreground/20" />
         </div>
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {/* Header */}
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-1.5 mb-1">
             <StatusBadge status={job.status} />
             {job.urgency !== "normal" && (
-              <span className="text-[9px] font-bold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded-full uppercase">{job.urgency}</span>
+              <span className="text-[8px] font-bold text-destructive bg-destructive/10 px-1 py-px rounded uppercase">
+                {job.urgency}
+              </span>
             )}
           </div>
-          <h2 className="text-[15px] font-bold leading-tight">{job.title}</h2>
+          <h2 className="text-sm font-bold leading-tight">{job.title}</h2>
           <p className="text-[11px] text-muted-foreground mt-0.5">
             {formatOperationType(job.operation_type)} · {fieldData?.name || "No field"}
           </p>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* Metrics strip */}
+        <div className="flex items-stretch divide-x border rounded bg-surface-1">
           {[
-            { label: "Acreage", value: formatAcres(Number(job.total_acres)), icon: Wheat },
-            { label: "Payout", value: formatCurrency(Number(job.estimated_total)), icon: DollarSign },
-            { label: "Deadline", value: formatDateShort(job.deadline), icon: Clock },
-            { label: "Pricing", value: formatPricingModel(job.pricing_model), icon: DollarSign },
+            { label: "Pay", value: formatCurrency(Number(job.estimated_total)) },
+            { label: "Acres", value: formatAcres(Number(job.total_acres)) },
+            { label: "Rate", value: `${formatCurrency(Number(job.base_rate))}/${formatPricingModel(job.pricing_model).split(" ")[1]?.toLowerCase() || "ac"}` },
+            { label: "Due", value: formatDateShort(job.deadline) },
           ].map(k => (
-            <div key={k.label} className="rounded-md bg-muted/40 p-2">
-              <p className="text-[9px] text-muted-foreground flex items-center gap-1"><k.icon size={9} />{k.label}</p>
-              <p className="text-[12px] font-semibold tabular-nums mt-0.5">{k.value}</p>
+            <div key={k.label} className="flex-1 px-2 py-1.5 text-center">
+              <p className="text-[8px] text-muted-foreground font-medium uppercase tracking-wider">{k.label}</p>
+              <p className="text-[11px] font-bold tabular-nums mt-px">{k.value}</p>
             </div>
           ))}
         </div>
 
         {/* Distance */}
         {job.travel_distance && (
-          <div className="flex items-center gap-2 text-[11px] text-muted-foreground bg-muted/30 rounded-md px-2.5 py-1.5">
-            <Navigation size={11} className="text-primary" />
-            <span>{Number(job.travel_distance).toFixed(0)} mi from your base</span>
-            {job.travel_eta && <span>· ~{job.travel_eta} min</span>}
+          <div className="flex items-center gap-1.5 text-[10px] bg-surface-2 rounded px-2 py-1">
+            <Navigation size={10} className="text-primary" />
+            <span className="text-muted-foreground">{Number(job.travel_distance).toFixed(0)} mi from base</span>
+            {job.travel_eta && <span className="text-muted-foreground">· ~{job.travel_eta} min</span>}
           </div>
         )}
 
         {/* Crop */}
-        {fieldData?.crop && (
-          <div className="flex items-center gap-2 text-[11px]">
-            <Wheat size={11} className="text-muted-foreground" />
+        {fieldData?.crop && fieldData.crop !== "other" && (
+          <div className="flex items-center gap-1.5 text-[10px]">
+            <Wheat size={10} className="text-muted-foreground" />
             <span className="text-muted-foreground">Crop:</span>
             <span className="font-medium">{formatCropType(fieldData.crop)}</span>
           </div>
         )}
 
         {/* Equipment + Credential match */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <JobEquipmentMatch operationType={job.operation_type} compact />
           <JobCredentialMatch operationType={job.operation_type} />
         </div>
@@ -398,41 +467,41 @@ function JobDetailPane({ job, isSaved, onToggleSave, onOpenFull }: {
 
         {/* Description */}
         {job.description && (
-          <div>
-            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Description</p>
-            <p className="text-[12px] text-muted-foreground leading-relaxed">{job.description}</p>
+          <div className="flat-panel">
+            <p className="section-header mb-1">Description</p>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">{job.description}</p>
           </div>
         )}
 
-        {/* Notes */}
+        {/* Requirements */}
         {job.requirements && (
-          <div>
-            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Requirements</p>
-            <p className="text-[12px] text-muted-foreground">{job.requirements}</p>
+          <div className="flat-panel">
+            <p className="section-header mb-1">Requirements</p>
+            <p className="text-[11px] text-muted-foreground">{job.requirements}</p>
           </div>
         )}
       </div>
 
-      {/* Action bar */}
-      <div className="shrink-0 border-t bg-card p-3 space-y-2">
-        <div className="flex gap-2">
+      {/* Sticky action bar */}
+      <div className="shrink-0 border-t p-2.5 space-y-1.5 bg-surface-1">
+        <div className="flex gap-1.5">
           {contractMode === "fixed_price" ? (
-            <Button className="flex-1 h-9 text-xs gap-1" onClick={onOpenFull}>
-              <CheckCircle2 size={12} /> Accept · {formatCurrency(Number(job.base_rate))}/{formatPricingModel(job.pricing_model).split(" ")[1]?.toLowerCase() || "ac"}
+            <Button className="flex-1 h-8 text-[11px] gap-1" onClick={onOpenFull}>
+              <CheckCircle2 size={11} /> Accept · {formatCurrency(Number(job.base_rate))}/{formatPricingModel(job.pricing_model).split(" ")[1]?.toLowerCase() || "ac"}
             </Button>
           ) : (
-            <Button className="flex-1 h-9 text-xs gap-1" onClick={onOpenFull}>
-              <FileText size={12} /> Submit Quote
+            <Button className="flex-1 h-8 text-[11px] gap-1" onClick={onOpenFull}>
+              <FileText size={11} /> Submit Quote
             </Button>
           )}
-          <Button variant="outline" size="sm" className="h-9 gap-1 text-xs" onClick={onToggleSave}>
-            {isSaved ? <BookmarkCheck size={12} /> : <Bookmark size={12} />}
+          <Button variant="outline" size="sm" className="h-8 gap-1 text-[10px] px-2" onClick={onToggleSave}>
+            {isSaved ? <BookmarkCheck size={11} /> : <Bookmark size={11} />}
             {isSaved ? "Saved" : "Save"}
           </Button>
         </div>
-        <Button variant="ghost" size="sm" className="w-full h-7 text-[11px] text-muted-foreground"
+        <Button variant="ghost" size="sm" className="w-full h-6 text-[10px] text-muted-foreground"
           onClick={onOpenFull}>
-          Open Full Details →
+          Full Details →
         </Button>
       </div>
     </div>
