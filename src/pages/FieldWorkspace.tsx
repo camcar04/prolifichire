@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import AppShell from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -24,7 +25,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const tabs = [
+const growerTabs = [
   { id: "overview", label: "Overview", icon: Layers },
   { id: "jobs", label: "Jobs", icon: FileText },
   { id: "history", label: "History", icon: Clock },
@@ -34,9 +35,19 @@ const tabs = [
   { id: "permissions", label: "Permissions", icon: Shield },
 ];
 
+const operatorTabs = [
+  { id: "overview", label: "Overview", icon: Layers },
+  { id: "files", label: "Files & Packet", icon: Map },
+  { id: "jobs", label: "Job Details", icon: FileText },
+  { id: "messages", label: "Messages", icon: MessageSquare },
+  { id: "history", label: "History", icon: Clock },
+];
+
 export default function FieldWorkspace() {
   const { fieldId } = useParams();
+  const { activeMode } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const tabs = activeMode === "operator" ? operatorTabs : growerTabs;
 
   const field = getFieldById(fieldId || "fld-1") || fields[0];
   const stats = fieldStats[field.id];
@@ -148,9 +159,9 @@ export default function FieldWorkspace() {
         {activeTab === "jobs" && <JobsContent jobs={fieldJobs} />}
         {activeTab === "history" && <ActivityTimeline events={fieldAuditLogs} />}
         {activeTab === "files" && <FilesContent datasets={fieldDatasets} />}
-        {activeTab === "financials" && <FinancialsContent stats={stats} invoices={fieldInvoices} />}
+        {activeMode === "grower" && activeTab === "financials" && <FinancialsContent stats={stats} invoices={fieldInvoices} />}
         {activeTab === "messages" && <MessagesContent threads={fieldThreads} />}
-        {activeTab === "permissions" && <PermissionsContent permissions={fieldPermissions} />}
+        {activeMode === "grower" && activeTab === "permissions" && <PermissionsContent permissions={fieldPermissions} />}
       </div>
     </AppShell>
   );
