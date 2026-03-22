@@ -66,6 +66,7 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
   const searchRef = useRef<HTMLInputElement>(null);
   const { unreadCount } = useNotifications();
   const { activeMode, profile, signOut } = useAuth();
+  const isMobile = useIsMobile();
   const navItems = getNavItems(activeMode);
 
   const initials = profile
