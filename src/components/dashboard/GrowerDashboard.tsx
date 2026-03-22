@@ -78,7 +78,7 @@ export default function GrowerDashboard() {
         { label: "Approvals", value: String(pendingApprovals.length), sub: pendingApprovals.length > 0 ? "Action needed" : "Clear" },
         { label: "Fields", value: String(fields.length), sub: `${formatAcres(fields.reduce((a, f) => a + Number(f.acreage || 0), 0))}` },
         { label: "Spent YTD", value: formatCurrency(totalSpend), accent: true },
-      ]} className="rounded-lg border bg-card px-4 py-1" />
+      ]} className="rounded border bg-card px-3 py-1" />
 
       {/* Guidance rail */}
       {guidanceItems.length > 0 && (
@@ -88,8 +88,8 @@ export default function GrowerDashboard() {
       {/* Main work surface — dominant job table */}
       <div className="grid lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2.5 border-b bg-surface-2/50">
+           <div className="rounded border bg-card overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 border-b bg-surface-2/40">
               <h2 className="text-[13px] font-semibold tracking-tight">Active Jobs</h2>
               <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 px-2" asChild>
                 <Link to="/marketplace"><Plus size={10} /> New</Link>
@@ -152,8 +152,8 @@ export default function GrowerDashboard() {
           <ProfileScoreCard />
 
           {/* Alerts — minimal list */}
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <div className="flex items-center gap-2 px-3 py-2 border-b bg-surface-2/50">
+           <div className="rounded border bg-card overflow-hidden">
+            <div className="flex items-center gap-2 px-3 py-2 border-b bg-surface-2/40">
               <Bell size={12} className="text-muted-foreground" />
               <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Alerts</h3>
               {recentAlerts.length > 0 && (
@@ -173,7 +173,7 @@ export default function GrowerDashboard() {
           </div>
 
           {/* Financials — inline summary */}
-          <div className="rounded-lg border bg-card p-3">
+          <div className="rounded border bg-card p-3">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Financials</h3>
               <Button variant="ghost" size="sm" className="h-5 text-[10px] text-muted-foreground px-1.5" asChild>

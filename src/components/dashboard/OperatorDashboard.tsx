@@ -88,7 +88,7 @@ export default function OperatorDashboard() {
         { label: "To Quote", value: String(jobsToQuote.length), sub: "Available now" },
         { label: "Active", value: String(activeJobs.length) },
         { label: "Earned", value: formatCurrency(totalEarned), accent: true, sub: `${completedJobs.length} completed` },
-      ]} className="rounded-lg border bg-card px-4 py-1" />
+      ]} className="rounded border bg-card px-3 py-1" />
 
       {/* Guidance rail */}
       {guidanceItems.length > 0 && (
@@ -99,8 +99,8 @@ export default function OperatorDashboard() {
       <div className="grid lg:grid-cols-5 gap-4">
         {/* Left: Today's route + quick actions */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <div className="flex items-center justify-between px-3 py-2 border-b bg-surface-2/50">
+           <div className="rounded border bg-card overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 border-b bg-surface-2/40">
               <div className="flex items-center gap-1.5">
                 <Truck size={11} className="text-muted-foreground" />
                 <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Today's Route</h3>
@@ -148,8 +148,8 @@ export default function OperatorDashboard() {
         {/* Right: Available jobs table + earnings + alerts */}
         <div className="lg:col-span-3 space-y-4">
           {/* Available jobs — dense table, dominant */}
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2.5 border-b bg-surface-2/50">
+           <div className="rounded border bg-card overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 border-b bg-surface-2/40">
               <h2 className="text-[13px] font-semibold tracking-tight">Available Jobs</h2>
               <Button variant="outline" size="sm" className="h-6 text-[11px] px-2" asChild>
                 <Link to="/marketplace">Browse All</Link>
@@ -190,7 +190,7 @@ export default function OperatorDashboard() {
           </div>
 
           {/* Earnings — horizontal inline, not a card cluster */}
-          <div className="flex items-stretch gap-4 rounded-lg border bg-card p-3">
+          <div className="flex items-stretch gap-3 rounded border bg-card p-3">
             <div className="flex-1">
               <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Total Earned</p>
               <p className="text-xl font-bold tabular tracking-tight text-primary mt-0.5">{formatCurrency(totalEarned)}</p>
@@ -211,8 +211,8 @@ export default function OperatorDashboard() {
           </div>
 
           {/* Alerts — compact */}
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <div className="flex items-center gap-2 px-3 py-2 border-b bg-surface-2/50">
+           <div className="rounded border bg-card overflow-hidden">
+            <div className="flex items-center gap-2 px-3 py-2 border-b bg-surface-2/40">
               <Bell size={11} className="text-muted-foreground" />
               <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Alerts</h3>
               {matchAlerts.length > 0 && (
