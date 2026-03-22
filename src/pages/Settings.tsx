@@ -313,6 +313,56 @@ export default function Settings() {
   );
 }
 
+/* ── Auto-create operator profile if missing ── */
+function EnsureOperatorProfile() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [creating, setCreating] = useState(false);
+
+  const { data: opProfile, isLoading } = useQuery({
+    queryKey: ["operator-profile-settings", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("operator_profiles").select("id").eq("user_id", user!.id).single();
+      return data;
+    },
+  });
+
+  const handleCreate = useCallback(async () => {
+    if (!user || creating) return;
+    setCreating(true);
+    const { data: profile } = await supabase.from("profiles").select("organization_id").eq("user_id", user.id).single();
+    const orgId = profile?.organization_id;
+    if (!orgId) { setCreating(false); return; }
+    await supabase.from("operator_profiles").insert({
+      user_id: user.id,
+      organization_id: orgId,
+      business_name: "",
+      service_types: [],
+    });
+    queryClient.invalidateQueries({ queryKey: ["operator-profile-settings"] });
+    queryClient.invalidateQueries({ queryKey: ["profile-score"] });
+    setCreating(false);
+  }, [user, creating, queryClient]);
+
+  useEffect(() => {
+    if (!isLoading && !opProfile && user) {
+      handleCreate();
+    }
+  }, [isLoading, opProfile, user, handleCreate]);
+
+  if (isLoading || creating) {
+    return (
+      <div className="rounded-lg bg-card border p-5 flex items-center gap-3">
+        <Loader2 size={14} className="animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Setting up operator profile…</p>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 /* ── Operator Location Section ── */
 function OperatorLocationSection() {
   const { user } = useAuth();

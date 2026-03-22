@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAcceptJob } from "@/hooks/useAcceptJob";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+// Input not used — using raw input for stable typing behavior
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { LiabilityDisclaimer } from "@/components/shared/LiabilityDisclaimer";
