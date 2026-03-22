@@ -13,13 +13,13 @@ export default function HeroSection() {
     <section ref={ref} className="relative pt-14 overflow-hidden">
       <div className="absolute inset-0">
         <img src={heroImg} alt="" className="w-full h-full object-cover" loading="eager" />
-        <div className="absolute inset-0 bg-gradient-to-r from-foreground/92 via-foreground/80 to-foreground/40" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/88 via-black/75 to-black/30" />
       </div>
 
-      <div className="relative container py-16 md:py-24 lg:py-32">
+      <div className="relative container py-20 md:py-28 lg:py-36">
         <div className="max-w-lg">
           <h1
-            className="reveal text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] font-bold tracking-tight text-primary-foreground"
+            className="reveal text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] font-bold tracking-tight text-white"
             style={{ lineHeight: 1.12, transitionDelay: "80ms" }}
           >
             Run your farm work.{" "}
@@ -27,7 +27,7 @@ export default function HeroSection() {
           </h1>
 
           <p
-            className="reveal mt-4 text-[15px] md:text-base text-primary-foreground/65 max-w-md leading-relaxed"
+            className="reveal mt-4 text-[15px] md:text-base text-white/75 max-w-md leading-relaxed"
             style={{ transitionDelay: "160ms" }}
           >
             Manage farm work, coordinate operators, and run your entire network — growers, crews, and logistics — all in one platform.
@@ -43,7 +43,7 @@ export default function HeroSection() {
             <Button
               variant="hero-outline"
               size="default"
-              className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+              className="border-white/25 text-white hover:bg-white/10 hover:text-white"
               asChild
             >
               <Link to="/marketplace">Find Work</Link>
@@ -51,14 +51,14 @@ export default function HeroSection() {
             <Button
               variant="hero-outline"
               size="default"
-              className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+              className="border-white/25 text-white hover:bg-white/10 hover:text-white"
               asChild
             >
               <Link to="/enterprise">Start a Network</Link>
             </Button>
           </div>
 
-          <div className="reveal mt-8 flex flex-wrap gap-x-5 gap-y-1.5 text-[12px] text-primary-foreground/50" style={{ transitionDelay: "320ms" }}>
+          <div className="reveal mt-8 flex flex-wrap gap-x-5 gap-y-1.5 text-[12px] text-white/55" style={{ transitionDelay: "320ms" }}>
             <span>✓ Free for growers to post</span>
             <span>✓ GPS-guided operators</span>
             <span>✓ Split payments built in</span>

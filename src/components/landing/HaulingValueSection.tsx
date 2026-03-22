@@ -9,7 +9,7 @@ export default function HaulingValueSection() {
   useScrollRevealAll(ref);
 
   return (
-    <section ref={ref} className="py-16 md:py-24 bg-surface-2">
+    <section ref={ref} className="py-14 md:py-20 bg-primary/[0.04]">
       <div className="container max-w-3xl text-center">
         <Truck size={24} className="reveal text-primary mx-auto mb-3" />
         <h2 className="reveal text-2xl md:text-3xl font-bold tracking-tight" style={{ transitionDelay: "60ms" }}>

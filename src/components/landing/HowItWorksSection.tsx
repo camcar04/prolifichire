@@ -29,7 +29,7 @@ export default function HowItWorksSection() {
   useScrollRevealAll(ref);
 
   return (
-    <section ref={ref} id="how-it-works" className="py-20 md:py-28">
+    <section ref={ref} id="how-it-works" className="py-16 md:py-22">
       <div className="container">
         <div className="max-w-lg mx-auto text-center mb-12">
           <h2 className="reveal text-2xl md:text-3xl font-bold tracking-tight">

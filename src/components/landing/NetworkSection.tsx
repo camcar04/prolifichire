@@ -39,7 +39,7 @@ export default function NetworkSection() {
         </div>
 
         <div className="reveal mt-8 text-center" style={{ transitionDelay: "200ms" }}>
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="hero" size="sm" asChild>
             <Link to="/enterprise">
               Learn about Enterprise Networks
               <ArrowRight size={14} className="ml-1" />

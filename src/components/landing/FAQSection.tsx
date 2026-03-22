@@ -47,7 +47,7 @@ export default function FAQSection() {
   useScrollRevealAll(ref);
 
   return (
-    <section ref={ref} id="faq" className="py-20 md:py-28">
+    <section ref={ref} id="faq" className="py-16 md:py-22 bg-surface-2">
       <div className="container">
         <div className="max-w-lg mx-auto text-center mb-12">
           <h2 className="reveal text-2xl md:text-3xl font-bold tracking-tight">
