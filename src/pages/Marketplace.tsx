@@ -298,6 +298,13 @@ export default function Marketplace() {
                                 {job.urgency}
                               </span>
                             )}
+                            {(() => {
+                              const quality = validateJobQuality(job);
+                              const badges = deriveJobBadges({ ...job, _confirmed: true }, null);
+                              return badges.slice(0, 2).map(b => (
+                                <VerifiedJobBadge key={b} type={b} size="sm" />
+                              ));
+                            })()}
                           </div>
                           <p className="text-[10px] text-muted-foreground leading-none mt-0.5 truncate">
                             {formatOperationType(job.operation_type)}
