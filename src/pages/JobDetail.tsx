@@ -176,6 +176,11 @@ export default function JobDetail() {
 
           {/* Right column — sidebar */}
           <div className="space-y-5">
+            {/* Weather */}
+            {field && (
+              <WeatherPanel fieldId={field.id} lat={field.centroid?.lat} lng={field.centroid?.lng} operationType={job.operationType} />
+            )}
+
             {/* Route context for operators */}
             {activeMode === "operator" && operatorBase && fieldLocation && (
               <div className="rounded-xl bg-card shadow-card p-4">

@@ -179,9 +179,12 @@ function InfoBlock({ label, value, icon }: { label: string; value: React.ReactNo
   );
 }
 
-function OverviewContent({ field, stats, activeJob, packet, auditLogs }: any) {
+function OverviewContent({ field, stats, activeJob, packet, auditLogs, activeMode }: any) {
   return (
     <div className="grid md:grid-cols-2 gap-5">
+      <div className="md:col-span-2">
+        <WeatherPanel fieldId={field.id} lat={field.centroid?.lat} lng={field.centroid?.lng} operationType={activeJob?.operationType} />
+      </div>
       {activeJob && (
         <div className="rounded-xl bg-card shadow-card p-5">
           <h3 className="font-semibold mb-3">Active Job</h3>
