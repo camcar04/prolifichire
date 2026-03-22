@@ -92,7 +92,7 @@ export function QuoteComparisonTable({ jobId, onAccept }: QuoteComparisonTablePr
       // Reject others
       const otherIds = quotes.filter(q => q.id !== quoteId).map(q => q.id);
       if (otherIds.length > 0) {
-        await supabase.from("quotes").update({ status: "rejected" } as any).in("id", otherIds);
+        await supabase.from("quotes").update({ status: "declined" } as any).in("id", otherIds);
       }
     },
     onSuccess: () => {
