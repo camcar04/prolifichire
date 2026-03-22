@@ -535,7 +535,8 @@ function OperatorEquipmentSection() {
     return (
       <section className="rounded-lg bg-card border p-5">
         <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><Wrench size={14} /> Equipment</h2>
-        <p className="text-[13px] text-muted-foreground">Complete operator onboarding to manage equipment.</p>
+        <p className="text-[13px] text-muted-foreground">Operator profile is being created…</p>
+        <Loader2 size={14} className="animate-spin text-muted-foreground mt-2" />
       </section>
     );
   }
