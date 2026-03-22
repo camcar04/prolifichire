@@ -190,7 +190,7 @@ export default function OperatorDashboard() {
           </div>
 
           {/* Earnings — horizontal inline, not a card cluster */}
-          <div className="flex items-stretch gap-4 rounded-lg border bg-card p-3">
+          <div className="flex items-stretch gap-3 rounded border bg-card p-3">
             <div className="flex-1">
               <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Total Earned</p>
               <p className="text-xl font-bold tabular tracking-tight text-primary mt-0.5">{formatCurrency(totalEarned)}</p>
