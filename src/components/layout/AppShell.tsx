@@ -99,6 +99,8 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen bg-surface-2">
+      {/* Sidebar — hidden on mobile */}
+      {!isMobile && (
       {/* Sidebar */}
       <aside className={cn(
         "fixed top-0 left-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-[width] duration-200 z-40",
