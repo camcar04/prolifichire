@@ -162,8 +162,10 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
         </div>
       </aside>
 
+      )}
+
       {/* Main */}
-      <div className={cn("flex-1 transition-[margin-left] duration-200 flex flex-col", collapsed ? "ml-16" : "ml-56")}>
+      <div className={cn("flex-1 transition-[margin-left] duration-200 flex flex-col", !isMobile && (collapsed ? "ml-16" : "ml-56"))}>
         <OfflineBanner />
         <header className="h-14 bg-background border-b flex items-center justify-between px-6 sticky top-0 z-30">
           <div className="flex items-center gap-4">
