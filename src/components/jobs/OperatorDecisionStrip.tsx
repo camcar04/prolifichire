@@ -2,10 +2,12 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAcceptJob } from "@/hooks/useAcceptJob";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { LiabilityDisclaimer } from "@/components/shared/LiabilityDisclaimer";
 import { formatCurrency, formatAcres, formatOperationType } from "@/lib/format";
 import { JobEquipmentMatch } from "@/components/operators/JobEquipmentMatch";
 import { toast } from "sonner";
@@ -32,20 +34,11 @@ export function OperatorDecisionStrip({ job }: OperatorDecisionStripProps) {
   const isBidding = contractMode === "open_bidding";
   const isInvite = contractMode === "invite_only";
 
-  const acceptMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("jobs").update({
-        operator_id: user!.id,
-        status: "accepted",
-      }).eq("id", job.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Job accepted!");
-      queryClient.invalidateQueries({ queryKey: ["job", job.id] });
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
+  const acceptJobMutation = useAcceptJob();
+
+  const handleAccept = () => {
+    acceptJobMutation.mutate({ jobId: job.id, job });
+  };
 
   const submitQuoteMutation = useMutation({
     mutationFn: async () => {
@@ -163,7 +156,7 @@ export function OperatorDecisionStrip({ job }: OperatorDecisionStripProps) {
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
           {isFixed && job.status === "requested" && (
             <>
-              <Button size="sm" onClick={() => acceptMutation.mutate()} disabled={acceptMutation.isPending} className="gap-1">
+              <Button size="sm" onClick={handleAccept} disabled={acceptJobMutation.isPending} className="gap-1">
                 <Check size={13} /> Accept at {formatCurrency(Number(job.base_rate))}/ac
               </Button>
               <Button size="sm" variant="outline" onClick={() => setCounterQuoteOpen(true)} className="gap-1">
@@ -195,6 +188,11 @@ export function OperatorDecisionStrip({ job }: OperatorDecisionStripProps) {
             {saved ? "Saved" : "Save"}
           </Button>
         </div>
+      </div>
+
+      {/* Liability disclaimer */}
+      <div className="px-3 pb-2">
+        <LiabilityDisclaimer variant="compact" />
       </div>
     </div>
   );
