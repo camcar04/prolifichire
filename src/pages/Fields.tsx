@@ -15,9 +15,6 @@ export default function FieldsPage() {
   const isLoading = fieldsLoading || farmsLoading;
   const totalAcres = fields.reduce((a, f) => a + Number(f.acreage || 0), 0);
 
-  // Group fields by farm
-  const farmMap = new Map(farms.map(f => [f.id, f]));
-
   return (
     <AppShell title="Fields">
       <div className="animate-fade-in">
