@@ -144,8 +144,8 @@ export default function GrowerOnboarding() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Phone</Label>
-                  <Input value={form.phone} onChange={e => set("phone", e.target.value)} placeholder="(555) 555-0100" />
+                  <Label>Phone <span className="text-destructive">*</span></Label>
+                  <Input value={form.phone} onChange={e => set("phone", e.target.value)} placeholder="(555) 555-0100" required />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Your role</Label>
