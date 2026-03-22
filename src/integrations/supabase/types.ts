@@ -2563,15 +2563,18 @@ export type Database = {
           billing_contact_name: string | null
           created_at: string
           email: string
+          enabled_account_types: string[] | null
           first_name: string
           id: string
           last_name: string
           onboarding_completed: boolean | null
+          onboarding_progress: Json | null
           organization_id: string | null
           phone: string | null
           preferred_comm_method:
             | Database["public"]["Enums"]["comm_method"]
             | null
+          primary_account_type: string | null
           updated_at: string
           user_id: string
         }
@@ -2583,15 +2586,18 @@ export type Database = {
           billing_contact_name?: string | null
           created_at?: string
           email: string
+          enabled_account_types?: string[] | null
           first_name?: string
           id?: string
           last_name?: string
           onboarding_completed?: boolean | null
+          onboarding_progress?: Json | null
           organization_id?: string | null
           phone?: string | null
           preferred_comm_method?:
             | Database["public"]["Enums"]["comm_method"]
             | null
+          primary_account_type?: string | null
           updated_at?: string
           user_id: string
         }
@@ -2603,15 +2609,18 @@ export type Database = {
           billing_contact_name?: string | null
           created_at?: string
           email?: string
+          enabled_account_types?: string[] | null
           first_name?: string
           id?: string
           last_name?: string
           onboarding_completed?: boolean | null
+          onboarding_progress?: Json | null
           organization_id?: string | null
           phone?: string | null
           preferred_comm_method?:
             | Database["public"]["Enums"]["comm_method"]
             | null
+          primary_account_type?: string | null
           updated_at?: string
           user_id?: string
         }
