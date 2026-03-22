@@ -1,13 +1,27 @@
 import { useRef, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Map as MapIcon, Layers } from "lucide-react";
-import type { Field } from "@/types/domain";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
+/** Accepts real DB field data — not the mock domain type */
+interface FieldData {
+  id: string;
+  name: string;
+  acreage: number;
+  status: string;
+  centroid_lat?: number | null;
+  centroid_lng?: number | null;
+  bbox_north?: number | null;
+  bbox_south?: number | null;
+  bbox_east?: number | null;
+  bbox_west?: number | null;
+  boundary_geojson?: any;
+}
+
 interface FieldMapProps {
-  field?: Field;
-  fields?: Field[];
+  field?: FieldData;
+  fields?: FieldData[];
   className?: string;
   aspectRatio?: string;
   showControls?: boolean;
@@ -33,35 +47,51 @@ const SATELLITE_STYLE: maplibregl.StyleSpecification = {
   ],
 };
 
-function addFieldLayers(map: maplibregl.Map, allFields: Field[]) {
-  allFields.forEach((f) => {
-    const sourceId = `field-${f.id}`;
-    if (map.getSource(sourceId)) return; // already added
-
-    const bb = f.boundingBox;
-    const polygon: GeoJSON.Feature<GeoJSON.Polygon> = {
+function getFieldGeometry(f: FieldData): GeoJSON.Feature<GeoJSON.Polygon> | null {
+  // Prefer real boundary_geojson
+  if (f.boundary_geojson?.coordinates?.length) {
+    return {
+      type: "Feature",
+      properties: { name: f.name, acreage: f.acreage, status: f.status },
+      geometry: f.boundary_geojson,
+    };
+  }
+  // Fall back to bbox rectangle
+  if (f.bbox_north && f.bbox_south && f.bbox_east && f.bbox_west) {
+    return {
       type: "Feature",
       properties: { name: f.name, acreage: f.acreage, status: f.status },
       geometry: {
         type: "Polygon",
         coordinates: [[
-          [bb.west, bb.south],
-          [bb.east, bb.south],
-          [bb.east, bb.north],
-          [bb.west, bb.north],
-          [bb.west, bb.south],
+          [Number(f.bbox_west), Number(f.bbox_south)],
+          [Number(f.bbox_east), Number(f.bbox_south)],
+          [Number(f.bbox_east), Number(f.bbox_north)],
+          [Number(f.bbox_west), Number(f.bbox_north)],
+          [Number(f.bbox_west), Number(f.bbox_south)],
         ]],
       },
     };
+  }
+  return null;
+}
 
-    map.addSource(sourceId, { type: "geojson", data: polygon });
+function addFieldLayers(map: maplibregl.Map, allFields: FieldData[]) {
+  allFields.forEach((f) => {
+    const sourceId = `field-${f.id}`;
+    if (map.getSource(sourceId)) return;
+
+    const feature = getFieldGeometry(f);
+    if (!feature) return;
+
+    map.addSource(sourceId, { type: "geojson", data: feature });
 
     map.addLayer({
       id: `${sourceId}-fill`,
       type: "fill",
       source: sourceId,
       paint: {
-        "fill-color": f.status === "active" ? "hsl(152, 50%, 38%)" : "hsl(80, 30%, 55%)",
+        "fill-color": f.status === "active" ? "hsl(152, 50%, 38%)" : "hsl(152, 40%, 45%)",
         "fill-opacity": 0.25,
       },
     });
@@ -71,8 +101,8 @@ function addFieldLayers(map: maplibregl.Map, allFields: Field[]) {
       type: "line",
       source: sourceId,
       paint: {
-        "line-color": "hsl(152, 38%, 22%)",
-        "line-width": 2,
+        "line-color": "hsl(152, 55%, 40%)",
+        "line-width": 2.5,
       },
     });
 
@@ -81,7 +111,7 @@ function addFieldLayers(map: maplibregl.Map, allFields: Field[]) {
       type: "symbol",
       source: sourceId,
       layout: {
-        "text-field": `${f.name.split("—")[0].trim()}\n${f.acreage} ac`,
+        "text-field": `${f.name}\n${Number(f.acreage).toFixed(0)} ac`,
         "text-size": 11,
         "text-anchor": "center",
       },
@@ -99,11 +129,14 @@ export function FieldMap({ field, fields, className, aspectRatio = "16/10", show
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [isSatellite, setIsSatellite] = useState(satelliteDefault);
   const [loaded, setLoaded] = useState(false);
-  const fieldsRef = useRef<Field[]>([]);
+  const fieldsRef = useRef<FieldData[]>([]);
 
   const allFields = fields || (field ? [field] : []);
   fieldsRef.current = allFields;
-  const center = allFields.length > 0 ? allFields[0].centroid : { lat: 41.45, lng: -96.15 };
+
+  const center = allFields.length > 0 && allFields[0].centroid_lat
+    ? { lat: Number(allFields[0].centroid_lat), lng: Number(allFields[0].centroid_lng) }
+    : { lat: 41.45, lng: -96.15 };
 
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
@@ -120,22 +153,24 @@ export function FieldMap({ field, fields, className, aspectRatio = "16/10", show
       setLoaded(true);
       addFieldLayers(map, fieldsRef.current);
 
-      if (fieldsRef.current.length > 0) {
-        const bounds = new maplibregl.LngLatBounds();
-        fieldsRef.current.forEach(f => {
-          bounds.extend([f.boundingBox.west, f.boundingBox.south]);
-          bounds.extend([f.boundingBox.east, f.boundingBox.north]);
-        });
-        map.fitBounds(bounds, { padding: 40, maxZoom: 15 });
+      // Fit to all field geometries
+      const bounds = new maplibregl.LngLatBounds();
+      let hasBounds = false;
+      fieldsRef.current.forEach(f => {
+        const feat = getFieldGeometry(f);
+        if (feat) {
+          const coords = feat.geometry.coordinates[0];
+          coords.forEach(c => bounds.extend(c as [number, number]));
+          hasBounds = true;
+        }
+      });
+      if (hasBounds) {
+        map.fitBounds(bounds, { padding: 50, maxZoom: 16 });
       }
     });
 
     mapRef.current = map;
-
-    return () => {
-      map.remove();
-      mapRef.current = null;
-    };
+    return () => { map.remove(); mapRef.current = null; };
   }, []);
 
   const toggleStyle = () => {
@@ -144,7 +179,6 @@ export function FieldMap({ field, fields, className, aspectRatio = "16/10", show
     const newSat = !isSatellite;
     setIsSatellite(newSat);
     map.setStyle(newSat ? SATELLITE_STYLE : STREET_STYLE);
-    // Re-add field layers after style loads
     map.once("style.load", () => {
       addFieldLayers(map, fieldsRef.current);
     });

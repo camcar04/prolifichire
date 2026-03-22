@@ -84,18 +84,15 @@ export default function FieldWorkspace() {
             {field.centroid_lat ? (
               <FieldMap
                 field={{
-                  id: field.id, name: field.name, farmId: field.farm_id,
-                  county: field.county || "", state: field.state || "",
-                  cropYear: field.crop_year,
-                  centroid: { lat: Number(field.centroid_lat), lng: Number(field.centroid_lng) },
-                  boundingBox: {
-                    north: Number(field.bbox_north || field.centroid_lat),
-                    south: Number(field.bbox_south || field.centroid_lat),
-                    east: Number(field.bbox_east || field.centroid_lng),
-                    west: Number(field.bbox_west || field.centroid_lng),
-                  },
-                  acreage: Number(field.acreage), crop: field.crop, status: field.status,
-                  createdAt: field.created_at, updatedAt: field.updated_at,
+                  id: field.id, name: field.name,
+                  acreage: Number(field.acreage), status: field.status,
+                  centroid_lat: Number(field.centroid_lat),
+                  centroid_lng: Number(field.centroid_lng),
+                  bbox_north: field.bbox_north ? Number(field.bbox_north) : null,
+                  bbox_south: field.bbox_south ? Number(field.bbox_south) : null,
+                  bbox_east: field.bbox_east ? Number(field.bbox_east) : null,
+                  bbox_west: field.bbox_west ? Number(field.bbox_west) : null,
+                  boundary_geojson: field.boundary_geojson,
                 }}
                 aspectRatio="16/10"
               />

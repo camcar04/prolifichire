@@ -56,24 +56,17 @@ export default function JobDetail() {
   const isActive = ["accepted", "scheduled", "in_progress"].includes(job.status);
   const hasField = fieldData && fieldData.centroid_lat;
 
-  // Build field object for map
+  // Build field object for map — uses new FieldMap interface with real GeoJSON
   const mapField = hasField ? {
-    id: jf.field_id, name: fieldData.name, farmId: "", county: "", state: "",
-    cropYear: 2026,
-    centroid: { lat: Number(fieldData.centroid_lat), lng: Number(fieldData.centroid_lng) },
-    boundingBox: fieldData.bbox_north ? {
-      north: Number(fieldData.bbox_north || fieldData.centroid_lat) + 0.005,
-      south: Number(fieldData.bbox_south || fieldData.centroid_lat) - 0.005,
-      east: Number(fieldData.bbox_east || fieldData.centroid_lng) + 0.008,
-      west: Number(fieldData.bbox_west || fieldData.centroid_lng) - 0.008,
-    } : {
-      north: Number(fieldData.centroid_lat) + 0.005,
-      south: Number(fieldData.centroid_lat) - 0.005,
-      east: Number(fieldData.centroid_lng) + 0.008,
-      west: Number(fieldData.centroid_lng) - 0.008,
-    },
-    acreage: Number(fieldData.acreage), crop: fieldData.crop, status: "active" as const,
-    createdAt: "", updatedAt: "",
+    id: jf.field_id, name: fieldData.name,
+    acreage: Number(fieldData.acreage), status: "active" as string,
+    centroid_lat: Number(fieldData.centroid_lat),
+    centroid_lng: Number(fieldData.centroid_lng),
+    bbox_north: fieldData.bbox_north ? Number(fieldData.bbox_north) : null,
+    bbox_south: fieldData.bbox_south ? Number(fieldData.bbox_south) : null,
+    bbox_east: fieldData.bbox_east ? Number(fieldData.bbox_east) : null,
+    bbox_west: fieldData.bbox_west ? Number(fieldData.bbox_west) : null,
+    boundary_geojson: (fieldData as any).boundary_geojson || null,
   } : null;
 
   // For operator active jobs, use 3-zone mission control layout
