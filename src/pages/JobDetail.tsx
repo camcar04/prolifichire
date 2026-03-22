@@ -418,6 +418,10 @@ export default function JobDetail() {
           {job.urgency !== "normal" && (
             <span className="text-[10px] font-bold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded-full uppercase">{job.urgency}</span>
           )}
+          {(() => {
+            const badges = deriveJobBadges({ ...job, _confirmed: true }, null);
+            return badges.map(b => <VerifiedJobBadge key={b} type={b} size="md" />);
+          })()}
           <span className="text-[12px] text-muted-foreground ml-auto">
             {job.display_id} · {formatOperationType(job.operation_type)} · {formatAcres(Number(job.total_acres))} · {formatContractMode(contractMode)}
           </span>
