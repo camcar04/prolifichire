@@ -33,6 +33,7 @@ import OperatorProfile from "./pages/OperatorProfile";
 import Enterprise from "./pages/Enterprise";
 import CalendarView from "./pages/CalendarView";
 import BidQueue from "./pages/BidQueue";
+import LaborMarketplace from "./pages/LaborMarketplace";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ const App = () => (
             <Route path="/packets" element={<P><Packets /></P>} />
             <Route path="/templates" element={<P><Templates /></P>} />
             <Route path="/bid-queue" element={<P><BidQueue /></P>} />
+            <Route path="/labor" element={<P><LaborMarketplace /></P>} />
             <Route path="/notifications" element={<P><NotificationsPage /></P>} />
             <Route path="/payouts" element={<P><Payouts /></P>} />
             <Route path="/integrations" element={<P><Integrations /></P>} />

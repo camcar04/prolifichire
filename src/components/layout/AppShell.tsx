@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Map, Briefcase, Store, DollarSign,
   ChevronLeft, ChevronRight, Search, Bell, X,
   MessageSquare, Calendar, Package, LogOut, Bookmark,
-  Link2, Settings, Menu,
+  Link2, Settings, Menu, Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, type AppMode } from "@/contexts/AuthContext";
@@ -29,6 +29,7 @@ const growerNav: NavItem[] = [
   { icon: Briefcase, label: "Jobs", to: "/jobs" },
   { icon: Calendar, label: "Calendar", to: "/calendar" },
   { icon: Store, label: "Marketplace", to: "/marketplace" },
+  { icon: Users, label: "Labor", to: "/labor" },
   { icon: Bookmark, label: "Templates", to: "/templates" },
   { icon: DollarSign, label: "Financials", to: "/finance" },
   { icon: MessageSquare, label: "Messages", to: "/messages" },
@@ -42,6 +43,7 @@ const operatorNav: NavItem[] = [
   { icon: Calendar, label: "Calendar", to: "/calendar" },
   { icon: Package, label: "Field Packets", to: "/packets" },
   { icon: Store, label: "Marketplace", to: "/marketplace" },
+  { icon: Users, label: "Labor", to: "/labor" },
   { icon: Bookmark, label: "Bid Queue", to: "/bid-queue" },
   { icon: DollarSign, label: "Payouts", to: "/payouts" },
   { icon: MessageSquare, label: "Messages", to: "/messages" },
