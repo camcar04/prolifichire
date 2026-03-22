@@ -9,6 +9,7 @@ import { Eye, EyeOff, Loader2, Briefcase, Wrench } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { AppMode } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { canPerformAction } from "@/lib/security";
 
 export default function Signup() {
   const [firstName, setFirstName] = useState("");
