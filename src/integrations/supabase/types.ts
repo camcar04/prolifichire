@@ -1016,6 +1016,41 @@ export type Database = {
           },
         ]
       }
+      invited_operators: {
+        Row: {
+          id: string
+          invited_at: string
+          job_id: string
+          operator_id: string
+          responded_at: string | null
+          status: string
+        }
+        Insert: {
+          id?: string
+          invited_at?: string
+          job_id: string
+          operator_id: string
+          responded_at?: string | null
+          status?: string
+        }
+        Update: {
+          id?: string
+          invited_at?: string
+          job_id?: string
+          operator_id?: string
+          responded_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invited_operators_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_line_items: {
         Row: {
           description: string
@@ -1386,6 +1421,7 @@ export type Database = {
           approved_total: number | null
           base_rate: number
           change_order_count: number | null
+          contract_mode: string
           created_at: string
           deadline: string
           description: string | null
@@ -1404,6 +1440,7 @@ export type Database = {
           proof_submitted: boolean | null
           requested_by: string
           requirements: string | null
+          response_deadline: string | null
           scheduled_end: string | null
           scheduled_start: string | null
           split_payment: boolean | null
@@ -1421,6 +1458,7 @@ export type Database = {
           approved_total?: number | null
           base_rate?: number
           change_order_count?: number | null
+          contract_mode?: string
           created_at?: string
           deadline: string
           description?: string | null
@@ -1439,6 +1477,7 @@ export type Database = {
           proof_submitted?: boolean | null
           requested_by: string
           requirements?: string | null
+          response_deadline?: string | null
           scheduled_end?: string | null
           scheduled_start?: string | null
           split_payment?: boolean | null
@@ -1456,6 +1495,7 @@ export type Database = {
           approved_total?: number | null
           base_rate?: number
           change_order_count?: number | null
+          contract_mode?: string
           created_at?: string
           deadline?: string
           description?: string | null
@@ -1474,6 +1514,7 @@ export type Database = {
           proof_submitted?: boolean | null
           requested_by?: string
           requirements?: string | null
+          response_deadline?: string | null
           scheduled_end?: string | null
           scheduled_start?: string | null
           split_payment?: boolean | null
