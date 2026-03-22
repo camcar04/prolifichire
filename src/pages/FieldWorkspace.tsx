@@ -41,6 +41,7 @@ export default function FieldWorkspace() {
   const { fieldId } = useParams();
   const { activeMode } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [showFileUpload, setShowFileUpload] = useState(false);
   const tabs = activeMode === "operator" ? operatorTabs : growerTabs;
 
   const { data: field, isLoading: fieldLoading } = useField(fieldId);
