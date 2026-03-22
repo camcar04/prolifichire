@@ -79,16 +79,22 @@ export default function JobDetail() {
         <div className="grid lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2 space-y-5">
             {/* Map */}
-            {fieldData && (
+            {fieldData && fieldData.centroid_lat && (
               <div className="rounded-xl bg-card shadow-card overflow-hidden">
                 <FieldMap
                   field={{
                     id: jf.field_id,
                     name: fieldData.name,
-                    centroid: fieldData.centroid_lat ? { lat: Number(fieldData.centroid_lat), lng: Number(fieldData.centroid_lng) } : undefined,
+                    farmId: "",
+                    county: "",
+                    state: "",
+                    cropYear: 2026,
+                    centroid: { lat: Number(fieldData.centroid_lat), lng: Number(fieldData.centroid_lng) },
                     acreage: Number(fieldData.acreage),
                     crop: fieldData.crop,
                     status: "active",
+                    createdAt: "",
+                    updatedAt: "",
                   }}
                   aspectRatio="21/9"
                 />
