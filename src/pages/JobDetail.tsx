@@ -183,6 +183,14 @@ export default function JobDetail() {
                 </div>
               </div>
             )}
+
+            {/* Execution Panel */}
+            <JobExecutionPanel
+              jobId={job.id}
+              jobStatus={job.status}
+              isOperator={activeMode === "operator"}
+              isGrowerView={activeMode === "grower"}
+            />
           </div>
 
           {/* Sidebar */}
