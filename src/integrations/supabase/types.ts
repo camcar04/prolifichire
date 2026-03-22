@@ -1485,10 +1485,14 @@ export type Database = {
           insurance_verified: boolean | null
           is_verified: boolean | null
           machine_compatibility: string[] | null
+          max_drive_time: number | null
+          max_travel_distance: number | null
+          min_acres_for_distant: number | null
           onboarding_completed: boolean | null
           organization_id: string
           rating: number | null
           review_count: number | null
+          routing_preference: string | null
           service_radius: number | null
           service_types: Database["public"]["Enums"]["operation_type"][]
           stripe_account_id: string | null
@@ -1512,10 +1516,14 @@ export type Database = {
           insurance_verified?: boolean | null
           is_verified?: boolean | null
           machine_compatibility?: string[] | null
+          max_drive_time?: number | null
+          max_travel_distance?: number | null
+          min_acres_for_distant?: number | null
           onboarding_completed?: boolean | null
           organization_id: string
           rating?: number | null
           review_count?: number | null
+          routing_preference?: string | null
           service_radius?: number | null
           service_types?: Database["public"]["Enums"]["operation_type"][]
           stripe_account_id?: string | null
@@ -1539,10 +1547,14 @@ export type Database = {
           insurance_verified?: boolean | null
           is_verified?: boolean | null
           machine_compatibility?: string[] | null
+          max_drive_time?: number | null
+          max_travel_distance?: number | null
+          min_acres_for_distant?: number | null
           onboarding_completed?: boolean | null
           organization_id?: string
           rating?: number | null
           review_count?: number | null
+          routing_preference?: string | null
           service_radius?: number | null
           service_types?: Database["public"]["Enums"]["operation_type"][]
           stripe_account_id?: string | null
@@ -1742,6 +1754,81 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      pricing_estimates: {
+        Row: {
+          acreage: number
+          base_rate: number
+          clustering_discount: number | null
+          created_at: string
+          field_id: string | null
+          fill_likelihood: string | null
+          high_estimate: number
+          id: string
+          job_id: string | null
+          low_estimate: number
+          operation_type: Database["public"]["Enums"]["operation_type"]
+          price_drivers: Json
+          recommended_estimate: number
+          travel_cost: number | null
+          travel_distance: number | null
+          urgency: string
+          urgency_adjustment: number | null
+        }
+        Insert: {
+          acreage?: number
+          base_rate?: number
+          clustering_discount?: number | null
+          created_at?: string
+          field_id?: string | null
+          fill_likelihood?: string | null
+          high_estimate?: number
+          id?: string
+          job_id?: string | null
+          low_estimate?: number
+          operation_type: Database["public"]["Enums"]["operation_type"]
+          price_drivers?: Json
+          recommended_estimate?: number
+          travel_cost?: number | null
+          travel_distance?: number | null
+          urgency?: string
+          urgency_adjustment?: number | null
+        }
+        Update: {
+          acreage?: number
+          base_rate?: number
+          clustering_discount?: number | null
+          created_at?: string
+          field_id?: string | null
+          fill_likelihood?: string | null
+          high_estimate?: number
+          id?: string
+          job_id?: string | null
+          low_estimate?: number
+          operation_type?: Database["public"]["Enums"]["operation_type"]
+          price_drivers?: Json
+          recommended_estimate?: number
+          travel_cost?: number | null
+          travel_distance?: number | null
+          urgency?: string
+          urgency_adjustment?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_estimates_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "fields"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_estimates_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
