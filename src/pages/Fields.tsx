@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import AppShell from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { FieldMap } from "@/components/map/FieldMap";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ListSkeleton } from "@/components/shared/PageSkeleton";
 import { Map, Plus, ArrowRight, Upload } from "lucide-react";
