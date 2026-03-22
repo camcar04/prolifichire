@@ -213,7 +213,11 @@ export default function Marketplace() {
               <div className="divide-y">
                 {filtered.map(job => {
                   const jf = (job as any).job_fields?.[0];
-                  const fieldName = jf?.fields?.name || "—";
+                  const fieldData = jf?.fields;
+                  const fieldName = fieldData?.name || "—";
+                  const locationSummary = fieldData?.county && fieldData?.state
+                    ? `${fieldData.county}, ${fieldData.state}`
+                    : fieldData?.state || (fieldData?.centroid_lat ? "Located" : "No location");
                   const isSaved = savedJobIds.has(job.id);
                   const isSelected = effectiveSelected?.id === job.id;
                   const contractLabel = getContractLabel((job as any).contract_mode || "fixed_price");
