@@ -122,7 +122,7 @@ export default function OperatorDashboard() {
                   </thead>
                   <tbody className="divide-y">
                     {jobsToQuote.slice(0, 6).map(job => (
-                      <tr key={job.id} className="hover:bg-surface-2 transition-colors cursor-pointer" onClick={() => window.location.href = `/jobs/${job.id}`}>
+                      <tr key={job.id} className="hover:bg-surface-2 transition-colors cursor-pointer" onClick={() => { window.location.assign(`/jobs/${job.id}`); }}>
                         <td className="px-4 py-2">
                           <p className="font-medium truncate max-w-[160px]">{job.title}</p>
                           <p className="text-[11px] text-muted-foreground">{formatOperationType(job.operation_type)} · by {formatDateShort(job.deadline)}</p>

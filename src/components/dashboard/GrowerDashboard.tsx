@@ -104,7 +104,7 @@ export default function GrowerDashboard() {
                     {activeJobs.slice(0, 10).map(job => {
                       const jf = (job as any).job_fields?.[0];
                       return (
-                        <tr key={job.id} className="hover:bg-surface-2 transition-colors cursor-pointer" onClick={() => window.location.href = `/jobs/${job.id}`}>
+                        <tr key={job.id} className="hover:bg-surface-2 transition-colors cursor-pointer" onClick={() => { window.location.assign(`/jobs/${job.id}`); }}>
                           <td className="px-4 py-2">
                             <p className="font-medium truncate max-w-[140px]">{jf?.fields?.name || job.title}</p>
                             <p className="text-[11px] text-muted-foreground">{job.display_id}</p>
