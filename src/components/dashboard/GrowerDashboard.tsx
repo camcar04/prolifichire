@@ -3,7 +3,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { DashboardSkeleton } from "@/components/shared/PageSkeleton";
-import { Link } from "react-router-dom";
+// Hire Work Dashboard (Grower / Landowner)
 import { Map, Briefcase, DollarSign, TrendingUp, Plus, ArrowRight, AlertTriangle, Clock, CheckCircle2, Bell } from "lucide-react";
 import { useFields } from "@/hooks/useFields";
 import { useJobs } from "@/hooks/useJobs";
