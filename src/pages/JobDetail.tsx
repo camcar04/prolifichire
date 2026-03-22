@@ -6,9 +6,12 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { FieldMap } from "@/components/map/FieldMap";
 import { ActivityTimeline } from "@/components/shared/ActivityTimeline";
 import { FieldPacketCard } from "@/components/shared/FieldPacketCard";
+import { PricingSuggestionCard } from "@/components/intelligence/PricingSuggestionCard";
+import { RouteContextBadge } from "@/components/intelligence/RouteContext";
+import { usePricingEngine } from "@/hooks/useIntelligence";
 import {
   getJobById, getFieldById, getExceptionsByJob, getQuotesByJob,
-  getFieldPacketByJob, jobs, auditLogs,
+  getFieldPacketByJob, jobs, auditLogs, operators,
 } from "@/data/mock";
 import {
   formatCurrency, formatAcres, formatOperationType, formatDate,
@@ -16,8 +19,9 @@ import {
 } from "@/lib/format";
 import {
   ChevronRight, Calendar, DollarSign, User, MapPin, AlertTriangle,
-  Clock, FileText, Truck, CheckCircle2,
+  Clock, FileText, Truck, CheckCircle2, Sparkles,
 } from "lucide-react";
+import { useEffect } from "react";
 
 export default function JobDetail() {
   const { jobId } = useParams();
