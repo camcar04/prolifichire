@@ -130,6 +130,29 @@ export default function GrowerDashboard() {
             </div>
           </div>
 
+          {/* Activity Feed */}
+          <div className="rounded-xl bg-card shadow-card p-5">
+            <h2 className="font-semibold mb-3 flex items-center gap-2">
+              <Bell size={15} /> Recent Activity
+            </h2>
+            {recentAlerts.length > 0 ? (
+              <div className="space-y-2.5">
+                {recentAlerts.map(n => (
+                  <div key={n.id} className="rounded-lg bg-surface-2 p-2.5">
+                    <p className="text-sm font-medium leading-snug">{n.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">No new activity.</p>
+            )}
+            <Button variant="ghost" size="sm" className="w-full mt-3 text-muted-foreground" asChild>
+              <Link to="/notifications">View all notifications</Link>
+            </Button>
+          </div>
+
           {/* Fields Overview */}
           <div className="rounded-xl bg-card shadow-card p-5">
             <h2 className="font-semibold mb-3">Fields Overview</h2>

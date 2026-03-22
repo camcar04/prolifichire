@@ -27,6 +27,9 @@ const pendingPayout = myJobs.reduce((a, j) => a + (j.invoicedTotal || 0), 0) - t
 const todayRoute = activeJobs.filter(j => j.scheduledStart);
 
 export default function OperatorDashboard() {
+  const { notifications } = useNotifications();
+  const matchAlerts = notifications.filter(n => n.type === "job_match" && !n.read).slice(0, 3);
+  const recentActivity = notifications.slice(0, 5);
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Stat row */}
