@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { JobCredentialMatch } from "@/components/operators/JobCredentialMatch";
 import { QuoteComparisonTable } from "@/components/jobs/QuoteComparisonTable";
 import { OperatorDecisionStrip } from "@/components/jobs/OperatorDecisionStrip";
+import { JobExecutionPanel } from "@/components/jobs/JobExecutionPanel";
 import { formatContractMode } from "@/components/jobs/ContractModeSelector";
 import { useJob } from "@/hooks/useJobs";
 import {
