@@ -29,6 +29,7 @@ const growerNav: NavItem[] = [
   { icon: Briefcase, label: "Jobs", to: "/jobs" },
   { icon: Calendar, label: "Calendar", to: "/calendar" },
   { icon: Store, label: "Marketplace", to: "/marketplace" },
+  { icon: Users, label: "Labor", to: "/labor" },
   { icon: Bookmark, label: "Templates", to: "/templates" },
   { icon: DollarSign, label: "Financials", to: "/finance" },
   { icon: MessageSquare, label: "Messages", to: "/messages" },
