@@ -162,19 +162,30 @@
 
   /* Map container */
   .map-container {
-    @apply rounded-lg overflow-hidden border;
+    @apply rounded overflow-hidden border;
     aspect-ratio: 16/9;
   }
 
-  /* Interactive lift */
+  /* Interactive lift — subtle, operational */
   .lift {
-    @apply transition-all duration-200;
+    @apply transition-[box-shadow,transform] duration-150;
   }
   .lift:hover {
-    @apply shadow-card-hover;
-    transform: translateY(-1px);
+    box-shadow: 0 1px 4px 0 rgba(0,0,0,0.06);
+    transform: translateY(-0.5px);
   }
   .lift:active {
-    transform: translateY(0) scale(0.995);
+    transform: translateY(0) scale(0.98);
+  }
+
+  /* Section header — replaces card headers */
+  .section-header {
+    @apply text-[11px] font-semibold uppercase tracking-wider text-muted-foreground;
+    letter-spacing: 0.06em;
+  }
+
+  /* Flat panel — card alternative */
+  .flat-panel {
+    @apply border-b pb-3;
   }
 }
