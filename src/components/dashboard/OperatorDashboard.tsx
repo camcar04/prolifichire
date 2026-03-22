@@ -146,7 +146,7 @@ export default function OperatorDashboard() {
         </div>
 
         {/* Right: Available jobs table + earnings + alerts */}
-        <div className="lg:col-span-3 space-y-4">
+        <div className="lg:col-span-3 space-y-3">
           {/* Available jobs — dense table, dominant */}
            <div className="rounded border bg-card overflow-hidden">
             <div className="flex items-center justify-between px-3 py-2 border-b bg-surface-2/40">
