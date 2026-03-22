@@ -199,9 +199,11 @@ export default function FieldWorkspace() {
           />
         )}
         {activeTab === "jobs" && <JobsContent jobs={fieldJobs} isLoading={jobsLoading} />}
-        {activeTab === "files" && <FilesContent datasets={datasets} />}
+        {activeTab === "files" && <FilesContent datasets={datasets} fieldId={field.id} onUpload={() => setShowFileUpload(true)} />}
         {activeMode === "grower" && activeTab === "financials" && <FinancialsContent invoices={invoices} />}
       </div>
+
+      {field.id && <FieldFileUpload fieldId={field.id} open={showFileUpload} onOpenChange={setShowFileUpload} />}
     </AppShell>
   );
 }
