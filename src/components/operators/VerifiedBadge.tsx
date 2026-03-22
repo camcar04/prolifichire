@@ -44,13 +44,13 @@ export function VerifiedBadge({ type, size = "sm", showLabel = true }: VerifiedB
   return badge;
 }
 
-export function deriveBadges(credentials: Array<{ type: string; is_verified: boolean; status: string; expires_at?: string | null }>): BadgeType[] {
+export function deriveBadges(credentials: Array<{ type: string; is_verified: boolean; status: string; expires_at?: string | null; name?: string }>): BadgeType[] {
   const badges: BadgeType[] = [];
   const now = new Date();
 
   const verified = credentials.filter(c => c.is_verified && c.status === "verified" && (!c.expires_at || new Date(c.expires_at) > now));
 
-  if (verified.some(c => c.type === "license" && c.name?.toLowerCase().includes("cdl"))) badges.push("cdl_verified");
+  if (verified.some(c => c.name?.toLowerCase().includes("cdl"))) badges.push("cdl_verified");
   if (verified.some(c => c.type === "license")) badges.push("licensed_applicator");
   if (verified.some(c => c.type === "insurance")) badges.push("insurance_verified");
   if (badges.length >= 2) badges.unshift("fully_verified");

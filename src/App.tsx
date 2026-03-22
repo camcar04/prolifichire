@@ -61,6 +61,7 @@ const App = () => (
             <Route path="/files" element={<Dashboard />} />
             <Route path="/messages" element={<Dashboard />} />
             <Route path="/operators" element={<Dashboard />} />
+            <Route path="/operators/:operatorId" element={<OperatorProfile />} />
             <Route path="/compliance" element={<Dashboard />} />
             <Route path="/legal/privacy" element={<PrivacyPolicy />} />
             <Route path="/legal/terms" element={<TermsOfService />} />

@@ -44,7 +44,7 @@ export function CompliancePanel() {
           <p className="text-[11px] text-muted-foreground">Pending Review</p>
         </div>
         <div className="rounded-lg bg-card border p-3 text-center">
-          <p className="text-2xl font-bold tabular-nums text-amber-500">{expiringSoon.length}</p>
+          <p className="text-2xl font-bold tabular-nums text-amber-600">{expiringSoon.length}</p>
           <p className="text-[11px] text-muted-foreground">Expiring Soon</p>
         </div>
         <div className="rounded-lg bg-card border p-3 text-center">
