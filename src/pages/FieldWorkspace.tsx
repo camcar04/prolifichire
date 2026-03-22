@@ -8,6 +8,7 @@ import { FieldMap } from "@/components/map/FieldMap";
 import { ActivityTimeline } from "@/components/shared/ActivityTimeline";
 import { FileRow } from "@/components/shared/FileRow";
 import { FieldPacketCard } from "@/components/shared/FieldPacketCard";
+import { WeatherPanel } from "@/components/weather/WeatherPanel";
 import {
   getFieldById, getJobsByField, getDatasetsByField, getAuditLogsByField,
   getFieldRequirements, getFieldAccess, fieldStats, getInvoicesByField,
