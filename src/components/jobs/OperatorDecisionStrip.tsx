@@ -156,7 +156,7 @@ export function OperatorDecisionStrip({ job }: OperatorDecisionStripProps) {
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
           {isFixed && job.status === "requested" && (
             <>
-              <Button size="sm" onClick={() => acceptMutation.mutate()} disabled={acceptMutation.isPending} className="gap-1">
+              <Button size="sm" onClick={handleAccept} disabled={acceptJobMutation.isPending} className="gap-1">
                 <Check size={13} /> Accept at {formatCurrency(Number(job.base_rate))}/ac
               </Button>
               <Button size="sm" variant="outline" onClick={() => setCounterQuoteOpen(true)} className="gap-1">
@@ -188,6 +188,11 @@ export function OperatorDecisionStrip({ job }: OperatorDecisionStripProps) {
             {saved ? "Saved" : "Save"}
           </Button>
         </div>
+      </div>
+
+      {/* Liability disclaimer */}
+      <div className="px-3 pb-2">
+        <LiabilityDisclaimer variant="compact" />
       </div>
     </div>
   );
