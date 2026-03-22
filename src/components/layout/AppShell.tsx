@@ -41,6 +41,7 @@ const operatorNav: NavItem[] = [
   { icon: Store, label: "Marketplace", to: "/marketplace" },
   { icon: DollarSign, label: "Payouts", to: "/payouts" },
   { icon: MessageSquare, label: "Messages", to: "/messages" },
+  { icon: Link2, label: "Integrations", to: "/integrations" },
 ];
 
 function getNavItems(mode: AppMode): NavItem[] {
