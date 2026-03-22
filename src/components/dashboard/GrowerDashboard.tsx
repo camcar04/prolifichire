@@ -2,9 +2,11 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Map, Briefcase, DollarSign, TrendingUp, Plus, ArrowRight, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
+import { Map, Briefcase, DollarSign, TrendingUp, Plus, ArrowRight, AlertTriangle, Clock, CheckCircle2, Bell } from "lucide-react";
 import { jobs, fields, fieldStats } from "@/data/mock";
 import { formatCurrency, formatAcres, formatOperationType } from "@/lib/format";
+import { useNotifications } from "@/hooks/useNotifications";
+import { formatDistanceToNow } from "date-fns";
 
 const totalAcres = fields.reduce((a, f) => a + f.acreage, 0);
 const activeJobs = jobs.filter(j => ["requested", "quoted", "accepted", "scheduled", "in_progress"].includes(j.status));
