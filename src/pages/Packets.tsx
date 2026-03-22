@@ -155,7 +155,7 @@ export default function Packets() {
                 { label: "Incomplete", count: grouped.incomplete.length, color: "text-destructive" },
                 { label: "Awaiting", count: grouped.awaiting.length, color: "text-warning" },
               ].map(s => (
-                <div key={s.label} className="rounded-lg bg-card border p-3 text-center">
+                <div key={s.label} className="rounded bg-card border p-3 text-center">
                   <p className={cn("text-lg font-bold tabular-nums", s.color)}>{s.count}</p>
                   <p className="text-[10px] text-muted-foreground font-medium">{s.label}</p>
                 </div>
@@ -225,7 +225,7 @@ function PacketRow({ item, group, onGenerate, generating }: { item: any; group: 
 
   return (
     <div className={cn(
-      "flex items-center gap-3 rounded-lg bg-card border p-3 transition-colors",
+      "flex items-center gap-3 rounded bg-card border p-3 transition-colors",
       borderClass
     )}>
       <div className={cn("h-8 w-8 rounded-md flex items-center justify-center shrink-0", iconBg)}>

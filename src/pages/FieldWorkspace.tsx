@@ -80,7 +80,7 @@ export default function FieldWorkspace() {
 
         {/* Top: Map + Info */}
         <div className="grid lg:grid-cols-5 gap-4 mb-5">
-          <div className="lg:col-span-3 rounded-lg bg-card border overflow-hidden relative">
+          <div className="lg:col-span-3 rounded bg-card border overflow-hidden relative">
             {field.centroid_lat ? (
               <FieldMap
                 field={{
@@ -104,7 +104,7 @@ export default function FieldWorkspace() {
             <div className="absolute top-3 left-3"><StatusBadge status={field.status} /></div>
           </div>
 
-          <div className="lg:col-span-2 rounded-lg bg-card border p-4 flex flex-col gap-3">
+          <div className="lg:col-span-2 rounded bg-card border p-4 flex flex-col gap-3">
             <div>
               <h2 className="text-lg font-bold">{field.name}</h2>
               <p className="text-sm text-muted-foreground mt-0.5">
@@ -131,7 +131,7 @@ export default function FieldWorkspace() {
         {(requirements.length > 0 || accessInstructions) && (
           <div className="grid md:grid-cols-2 gap-4 mb-5">
             {requirements.length > 0 && (
-              <div className="rounded-lg bg-card border p-4">
+              <div className="rounded bg-card border p-4">
                 <h3 className="text-sm font-semibold mb-3">Field Requirements</h3>
                 <div className="space-y-2">
                   {requirements.map((r: any) => (
@@ -155,7 +155,7 @@ export default function FieldWorkspace() {
               </div>
             )}
             {accessInstructions && (
-              <div className="rounded-lg bg-card border p-4">
+              <div className="rounded bg-card border p-4">
                 <h3 className="text-sm font-semibold mb-3">Access Instructions</h3>
                 <p className="text-sm leading-relaxed">{accessInstructions.directions}</p>
                 {accessInstructions.gate_code && <p className="text-sm mt-2"><span className="font-medium">Gate Code:</span> {accessInstructions.gate_code}</p>}
@@ -226,7 +226,7 @@ function OverviewContent({ field, activeJob, jobCount, fileCount }: any) {
       )}
 
       {activeJob && (
-        <div className="rounded-lg bg-card border p-4">
+        <div className="rounded bg-card border p-4">
           <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5"><FileText size={14} /> Active Job</h3>
           <div className="space-y-2 text-[13px]">
             <div className="flex justify-between"><span className="text-muted-foreground">Job</span><span className="font-medium">{activeJob.display_id} · {formatOperationType(activeJob.operation_type)}</span></div>
@@ -241,7 +241,7 @@ function OverviewContent({ field, activeJob, jobCount, fileCount }: any) {
         </div>
       )}
 
-      <div className="rounded-lg bg-card border p-4">
+      <div className="rounded bg-card border p-4">
         <h3 className="text-sm font-semibold mb-3">Field Summary</h3>
         <div className="grid grid-cols-2 gap-3">
           <div className="text-center p-3 rounded-md bg-muted/50">
@@ -273,7 +273,7 @@ function JobsContent({ jobs, isLoading }: { jobs: any[]; isLoading: boolean }) {
   if (isLoading) return <div className="text-sm text-muted-foreground p-8 text-center">Loading jobs…</div>;
 
   return (
-    <div className="rounded-lg bg-card border">
+    <div className="rounded bg-card border">
       <div className="flex items-center justify-between px-4 py-2.5 border-b">
         <h3 className="text-sm font-semibold">All Jobs ({jobs.length})</h3>
       </div>
@@ -310,7 +310,7 @@ function FilesContent({ datasets, fieldId, onUpload }: { datasets: any[]; fieldI
   };
 
   return (
-    <div className="rounded-lg bg-card border">
+    <div className="rounded bg-card border">
       <div className="flex items-center justify-between px-4 py-2.5 border-b">
         <h3 className="text-sm font-semibold">Files & Maps ({datasets.length})</h3>
         <Button variant="outline" size="sm" className="h-7 text-xs" onClick={onUpload}><Upload size={12} className="mr-1" /> Upload</Button>
@@ -360,21 +360,21 @@ function FinancialsContent({ invoices }: { invoices: any[] }) {
   return (
     <div className="space-y-4">
       <div className="grid sm:grid-cols-3 gap-3">
-        <div className="rounded-lg bg-card border p-4 text-center">
+        <div className="rounded bg-card border p-4 text-center">
           <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Invoiced</p>
           <p className="text-xl font-bold tabular mt-1">{formatCurrency(totalInvoiced)}</p>
         </div>
-        <div className="rounded-lg bg-card border p-4 text-center">
+        <div className="rounded bg-card border p-4 text-center">
           <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Paid</p>
           <p className="text-xl font-bold tabular mt-1 text-success">{formatCurrency(totalPaid)}</p>
         </div>
-        <div className="rounded-lg bg-card border p-4 text-center">
+        <div className="rounded bg-card border p-4 text-center">
           <p className="text-xs text-muted-foreground uppercase tracking-wider">Outstanding</p>
           <p className="text-xl font-bold tabular mt-1 text-warning">{formatCurrency(outstanding)}</p>
         </div>
       </div>
 
-      <div className="rounded-lg bg-card border">
+      <div className="rounded bg-card border">
         <div className="px-4 py-2.5 border-b"><h3 className="text-sm font-semibold">Invoices</h3></div>
         {invoices.length === 0 ? (
           <div className="p-8 text-center text-sm text-muted-foreground">No invoices for this field yet.</div>

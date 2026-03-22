@@ -49,21 +49,21 @@ export default function PayoutsPage() {
         ) : (
           <>
             <div className="grid sm:grid-cols-3 gap-3 mb-5">
-              <div className="rounded-lg bg-card border p-4 text-center">
+              <div className="rounded bg-card border p-4 text-center">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Invoiced</p>
                 <p className="text-xl font-bold tabular mt-1">{formatCurrency(totalGross)}</p>
               </div>
-              <div className="rounded-lg bg-card border p-4 text-center">
+              <div className="rounded bg-card border p-4 text-center">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Paid</p>
                 <p className="text-xl font-bold tabular mt-1 text-success">{formatCurrency(totalPaid)}</p>
               </div>
-              <div className="rounded-lg bg-card border p-4 text-center">
+              <div className="rounded bg-card border p-4 text-center">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">{isHireWork ? "Platform Fees" : "Fees"}</p>
                 <p className="text-xl font-bold tabular mt-1 text-muted-foreground">{formatCurrency(totalFees)}</p>
               </div>
             </div>
 
-            <div className="rounded-lg bg-card border">
+            <div className="rounded bg-card border">
               <div className="px-4 py-2.5 border-b"><h3 className="text-sm font-semibold">Invoice History</h3></div>
               <div className="divide-y">
                 {invoices.map((inv: any) => {

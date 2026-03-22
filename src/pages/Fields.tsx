@@ -236,7 +236,7 @@ export default function FieldsPage() {
                     </button>
 
                     {!isCollapsed && (
-                      <div className="rounded-lg border bg-card divide-y ml-5">
+                      <div className="rounded border bg-card divide-y ml-5">
                         {farmFields.length === 0 ? (
                           <div className="px-4 py-6 text-center">
                             <p className="text-sm text-muted-foreground">No fields in this farm yet.</p>

@@ -118,7 +118,7 @@ export default function CalendarView() {
           /* Day / Agenda View */
           <div className="space-y-2">
             {dayJobs.length === 0 ? (
-              <div className="rounded-lg bg-card border p-8 text-center">
+              <div className="rounded bg-card border p-8 text-center">
                 <CalIcon size={20} className="mx-auto text-muted-foreground mb-2" />
                 <p className="text-sm text-muted-foreground">No work scheduled for this day</p>
               </div>
@@ -129,7 +129,7 @@ export default function CalendarView() {
                   <Link
                     key={j.id}
                     to={`/jobs/${j.id}`}
-                    className="flex items-center gap-3 rounded-lg bg-card border p-3 hover:bg-surface-2 transition-colors"
+                    className="flex items-center gap-3 rounded bg-card border p-3 hover:bg-surface-2 transition-colors"
                   >
                     <div className={cn("h-2 w-2 rounded-full shrink-0", j.status === "in_progress" ? "bg-success" : j.status === "cancelled" ? "bg-destructive" : "bg-primary")} />
                     <div className="flex-1 min-w-0">
@@ -156,7 +156,7 @@ export default function CalendarView() {
           </div>
         ) : (
           /* Month / Week grid */
-          <div className="rounded-lg bg-card border overflow-hidden">
+          <div className="rounded bg-card border overflow-hidden">
             <div className="grid grid-cols-7 border-b">
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
                 <div key={d} className="text-[10px] font-semibold text-muted-foreground text-center py-1.5 border-r last:border-r-0">{d}</div>
