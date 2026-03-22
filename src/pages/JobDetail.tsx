@@ -273,6 +273,9 @@ export default function JobDetail() {
                 </div>
               </div>
 
+              {/* Private Cost Calculator — only operator sees */}
+              <PrivateCostCalculator job={job} />
+
               {/* Credential match */}
               <div className="rounded-lg border bg-card p-3">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Qualifications</p>
