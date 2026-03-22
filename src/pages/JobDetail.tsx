@@ -13,6 +13,7 @@ import { OperatorDecisionStrip } from "@/components/jobs/OperatorDecisionStrip";
 import { JobExecutionPanel } from "@/components/jobs/JobExecutionPanel";
 import { CancelJobDialog } from "@/components/jobs/CancelJobDialog";
 import { PrivateCostCalculator } from "@/components/operators/PrivateCostCalculator";
+import { ProfitReviewPanel } from "@/components/operators/ProfitReviewPanel";
 import { formatContractMode } from "@/components/jobs/ContractModeSelector";
 import { canCancelJob, canEditJob } from "@/hooks/useJobActions";
 import { useJob } from "@/hooks/useJobs";
