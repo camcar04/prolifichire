@@ -39,26 +39,6 @@ export default function FieldsPage() {
           />
         ) : (
           <>
-            {fields.length > 0 && (
-              <div className="rounded-xl bg-card shadow-card mb-6 overflow-hidden">
-                <FieldMap
-                  fields={fields.map(f => ({
-                    id: f.id,
-                    name: f.name,
-                    centroid: f.centroid_lat && f.centroid_lng ? { lat: Number(f.centroid_lat), lng: Number(f.centroid_lng) } : undefined,
-                    boundingBox: f.bbox_north ? {
-                      north: Number(f.bbox_north), south: Number(f.bbox_south),
-                      east: Number(f.bbox_east), west: Number(f.bbox_west),
-                    } : undefined,
-                    acreage: Number(f.acreage),
-                    crop: f.crop,
-                    status: f.status,
-                  }))}
-                  aspectRatio="21/9"
-                />
-              </div>
-            )}
-
             {farms.map(farm => {
               const farmFields = fields.filter(f => f.farm_id === farm.id);
               if (farmFields.length === 0) return null;
