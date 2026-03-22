@@ -1,63 +1,63 @@
+import { Link } from "react-router-dom";
 import AppShell from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { FieldMap } from "@/components/map/FieldMap";
 import { Map, Plus, ArrowRight } from "lucide-react";
+import { fields, farms, fieldStats } from "@/data/mock";
+import { formatAcres, formatCropType, formatCurrency } from "@/lib/format";
 
-const fields = [
-  { id: "north-80", name: "North 80 — Section 14", acres: 78.4, crop: "Corn", year: 2026, jobs: 1, status: "Active" },
-  { id: "river-bottom", name: "River Bottom — East", acres: 124.2, crop: "Soybeans", year: 2026, jobs: 0, status: "Idle" },
-  { id: "hilltop", name: "Hilltop Quarter", acres: 156.8, crop: "Corn", year: 2026, jobs: 1, status: "Active" },
-  { id: "county-line", name: "County Line Strip", acres: 42.1, crop: "Wheat", year: 2026, jobs: 0, status: "Idle" },
-  { id: "west-bottoms", name: "West Bottoms", acres: 89.6, crop: "Soybeans", year: 2026, jobs: 0, status: "Idle" },
-];
+const totalAcres = fields.reduce((a, f) => a + f.acreage, 0);
 
 export default function FieldsPage() {
   return (
     <AppShell title="Fields">
       <div className="animate-fade-in">
         <div className="flex items-center justify-between mb-6">
-          <p className="text-sm text-muted-foreground">{fields.length} fields · {fields.reduce((a, f) => a + f.acres, 0).toFixed(1)} total acres</p>
+          <p className="text-sm text-muted-foreground">{fields.length} fields · {formatAcres(totalAcres)} total across {farms.length} farms</p>
           <Button size="sm"><Plus size={14} /> Add Field</Button>
         </div>
 
-        {/* Map placeholder */}
         <div className="rounded-xl bg-card shadow-card mb-6 overflow-hidden">
-          <div className="aspect-[21/9] bg-surface-3 flex items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <Map size={40} className="mx-auto mb-2 opacity-30" />
-              <p className="text-sm font-medium">All Fields Map</p>
-              <p className="text-xs">Connect a map provider to view all field boundaries</p>
-            </div>
-          </div>
+          <FieldMap fields={fields} aspectRatio="21/9" />
         </div>
 
-        {/* Fields list */}
-        <div className="rounded-xl bg-card shadow-card divide-y">
-          {fields.map((field) => (
-            <Link
-              key={field.id}
-              to={`/fields/${field.id}`}
-              className="flex items-center justify-between p-4 hover:bg-surface-2 transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-lg bg-primary/8 flex items-center justify-center">
-                  <Map size={18} className="text-primary" />
-                </div>
+        {farms.map(farm => {
+          const farmFields = fields.filter(f => f.farmId === farm.id);
+          return (
+            <div key={farm.id} className="mb-6">
+              <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="text-sm font-medium">{field.name}</p>
-                  <p className="text-xs text-muted-foreground">{field.crop} · {field.year} · {field.acres} ac</p>
+                  <h3 className="font-semibold">{farm.name}</h3>
+                  <p className="text-xs text-muted-foreground">{farm.county} County, {farm.state} · {formatAcres(farm.totalAcres)}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <span className={`text-xs font-medium ${field.status === "Active" ? "text-success" : "text-muted-foreground"}`}>
-                  {field.status}
-                </span>
-                <span className="text-xs text-muted-foreground tabular">{field.jobs} active job{field.jobs !== 1 ? "s" : ""}</span>
-                <ArrowRight size={16} className="text-muted-foreground" />
+              <div className="rounded-xl bg-card shadow-card divide-y">
+                {farmFields.map(field => {
+                  const stats = fieldStats[field.id];
+                  return (
+                    <Link key={field.id} to={`/fields/${field.id}`} className="flex items-center justify-between p-4 hover:bg-surface-2 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-lg bg-primary/8 flex items-center justify-center">
+                          <Map size={18} className="text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{field.name}</p>
+                          <p className="text-xs text-muted-foreground">{formatCropType(field.crop)} · {field.cropYear} · {formatAcres(field.acreage)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        {stats && <span className="text-xs text-muted-foreground tabular hidden sm:inline">{stats.totalJobs} jobs · {formatCurrency(stats.totalSpend)}</span>}
+                        <StatusBadge status={field.status} />
+                        <ArrowRight size={16} className="text-muted-foreground" />
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
-            </Link>
-          ))}
-        </div>
+            </div>
+          );
+        })}
       </div>
     </AppShell>
   );

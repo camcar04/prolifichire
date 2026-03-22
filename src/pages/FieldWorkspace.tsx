@@ -1,26 +1,28 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import AppShell from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
-import { StatusBadge, type Status } from "@/components/ui/status-badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { FieldMap } from "@/components/map/FieldMap";
+import { ActivityTimeline } from "@/components/shared/ActivityTimeline";
+import { FileRow } from "@/components/shared/FileRow";
+import { FieldPacketCard } from "@/components/shared/FieldPacketCard";
 import {
-  Map, FileText, DollarSign, MessageSquare, Shield, Clock,
+  getFieldById, getJobsByField, getDatasetsByField, getAuditLogsByField,
+  getFieldRequirements, getFieldAccess, fieldStats, getInvoicesByField,
+  getThreadsByField, getMessagesByThread, getPermissionsByField, fieldPackets,
+  fields,
+} from "@/data/mock";
+import {
+  formatCurrency, formatAcres, formatOperationType, formatCropType,
+  formatDate, formatPricingModel,
+} from "@/lib/format";
+import {
   ChevronRight, Download, Layers, User, Calendar, AlertTriangle,
+  FileText, DollarSign, MessageSquare, Shield, Clock, Map,
+  Send, Paperclip, Plus, Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// Demo field data
-const field = {
-  name: "North 80 — Section 14",
-  acreage: 78.4,
-  crop: "Corn",
-  cropYear: 2026,
-  status: "in_progress" as Status,
-  operator: "AgriPro Services",
-  travelDistance: "14.2 mi",
-  eta: "22 min",
-  centroid: { lat: 41.2565, lng: -95.9345 },
-};
 
 const tabs = [
   { id: "overview", label: "Overview", icon: Layers },
@@ -32,104 +34,123 @@ const tabs = [
   { id: "permissions", label: "Permissions", icon: Shield },
 ];
 
-const jobHistory = [
-  { date: "Mar 12, 2026", type: "Spraying", operator: "AgriPro Services", status: "in_progress" as Status, amount: "$3,136" },
-  { date: "Oct 28, 2025", type: "Harvest", operator: "Prairie Partners", status: "paid" as Status, amount: "$5,488" },
-  { date: "May 14, 2025", type: "Planting", operator: "Heartland Custom", status: "paid" as Status, amount: "$2,744" },
-  { date: "Apr 2, 2025", type: "Spraying", operator: "AgriPro Services", status: "paid" as Status, amount: "$1,960" },
-];
-
-const files = [
-  { name: "north-80-boundary.geojson", type: "GeoJSON", size: "24 KB", date: "Jan 15, 2026" },
-  { name: "spring-rx-map.zip", type: "Shapefile", size: "1.2 MB", date: "Mar 1, 2026" },
-  { name: "soil-sample-results.csv", type: "CSV", size: "48 KB", date: "Feb 20, 2026" },
-  { name: "planting-plan-2026.pdf", type: "PDF", size: "380 KB", date: "Apr 1, 2026" },
-];
-
 export default function FieldWorkspace() {
+  const { fieldId } = useParams();
   const [activeTab, setActiveTab] = useState("overview");
+
+  const field = getFieldById(fieldId || "fld-1") || fields[0];
+  const stats = fieldStats[field.id];
+  const requirements = getFieldRequirements(field.id);
+  const access = getFieldAccess(field.id);
+  const fieldJobs = getJobsByField(field.id);
+  const fieldDatasets = getDatasetsByField(field.id);
+  const fieldAuditLogs = getAuditLogsByField(field.id);
+  const fieldInvoices = getInvoicesByField(field.id);
+  const fieldThreads = getThreadsByField(field.id);
+  const fieldPermissions = getPermissionsByField(field.id);
+  const packet = fieldPackets.find(p => p.fieldId === field.id);
+  const activeJob = fieldJobs.find(j => ["in_progress", "scheduled", "accepted"].includes(j.status));
 
   return (
     <AppShell title="">
       <div className="animate-fade-in">
-        {/* Breadcrumb */}
         <div className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
           <Link to="/fields" className="hover:text-foreground transition-colors">Fields</Link>
           <ChevronRight size={14} />
           <span className="text-foreground font-medium">{field.name}</span>
         </div>
 
-        {/* Top Section — Map + Field Info */}
-        <div className="grid lg:grid-cols-5 gap-6 mb-6">
-          {/* Map */}
-          <div className="lg:col-span-3 rounded-xl bg-card shadow-card overflow-hidden">
-            <div className="aspect-[16/10] bg-surface-3 flex items-center justify-center relative">
-              <div className="text-center text-muted-foreground">
-                <Map size={40} className="mx-auto mb-2 opacity-30" />
-                <p className="text-sm font-medium">Field Boundary Map</p>
-                <p className="text-xs">Connect MapLibre or Mapbox to render boundaries</p>
-              </div>
-              {/* Status overlay */}
-              <div className="absolute top-3 left-3">
-                <StatusBadge status={field.status} />
-              </div>
-            </div>
+        {/* Top: Map + Info */}
+        <div className="grid lg:grid-cols-5 gap-5 mb-6">
+          <div className="lg:col-span-3 rounded-xl bg-card shadow-card overflow-hidden relative">
+            <FieldMap field={field} aspectRatio="16/10" />
+            <div className="absolute top-3 left-3"><StatusBadge status={field.status} /></div>
           </div>
 
-          {/* Field Info */}
-          <div className="lg:col-span-2 rounded-xl bg-card shadow-card p-5 flex flex-col gap-4">
+          <div className="lg:col-span-2 rounded-xl bg-card shadow-card p-5 flex flex-col gap-3">
             <div>
               <h2 className="text-xl font-bold">{field.name}</h2>
-              <p className="text-sm text-muted-foreground mt-0.5">{field.crop} · {field.cropYear}</p>
+              <p className="text-sm text-muted-foreground mt-0.5">{formatCropType(field.crop)} · {field.cropYear} · {field.county} County, {field.state}</p>
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <InfoBlock label="Acreage" value={`${field.acreage} ac`} />
+            <div className="grid grid-cols-2 gap-2.5">
+              <InfoBlock label="Acreage" value={formatAcres(field.acreage)} />
               <InfoBlock label="Status" value={<StatusBadge status={field.status} />} />
-              <InfoBlock label="Operator" value={field.operator} icon={<User size={14} />} />
-              <InfoBlock label="Travel / ETA" value={`${field.travelDistance} · ${field.eta}`} />
+              {activeJob && <InfoBlock label="Active Job" value={`${activeJob.displayId} · ${formatOperationType(activeJob.operationType)}`} />}
+              {activeJob?.operatorName && <InfoBlock label="Operator" value={activeJob.operatorName} icon={<User size={13} />} />}
+              {activeJob?.travelDistance && <InfoBlock label="Travel" value={`${activeJob.travelDistance} mi · ${activeJob.travelEta} min`} />}
+              {stats && <InfoBlock label="Avg Cost" value={`${formatCurrency(stats.avgCostPerAcre)}/ac`} />}
             </div>
-
             <div className="mt-auto pt-3 border-t flex gap-2">
-              <Button size="sm" className="flex-1">
-                <FileText size={14} /> View Field Packet
-              </Button>
-              <Button variant="outline" size="sm">
-                <Download size={14} />
-              </Button>
+              {packet && <Button size="sm" className="flex-1"><FileText size={14} /> Field Packet</Button>}
+              <Button variant="outline" size="sm"><Download size={14} /></Button>
             </div>
           </div>
         </div>
 
+        {/* Requirements + Access */}
+        {(requirements.length > 0 || access) && (
+          <div className="grid md:grid-cols-2 gap-4 mb-6">
+            {requirements.length > 0 && (
+              <div className="rounded-xl bg-card shadow-card p-4">
+                <h3 className="text-sm font-semibold mb-3">Field Requirements</h3>
+                <div className="space-y-2">
+                  {requirements.map(r => (
+                    <div key={r.id} className={cn("flex items-start gap-2 rounded-lg p-2.5 text-sm",
+                      r.severity === "critical" ? "bg-destructive/8" : r.severity === "warning" ? "bg-warning/8" : "bg-info/8"
+                    )}>
+                      <AlertTriangle size={14} className={cn("mt-0.5 shrink-0",
+                        r.severity === "critical" ? "text-destructive" : r.severity === "warning" ? "text-warning" : "text-info"
+                      )} />
+                      <div>
+                        <p className="font-medium">{r.description}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Applies to: {r.appliesTo.map(formatOperationType).join(", ")}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {access && (
+              <div className="rounded-xl bg-card shadow-card p-4">
+                <h3 className="text-sm font-semibold mb-3">Access Instructions</h3>
+                <p className="text-sm leading-relaxed">{access.directions}</p>
+                {access.gateCode && <p className="text-sm mt-2"><span className="font-medium">Gate Code:</span> {access.gateCode}</p>}
+                {access.hazards && <p className="text-sm mt-2 text-destructive"><span className="font-medium">Hazards:</span> {access.hazards}</p>}
+                {access.notes && <p className="text-sm mt-2 text-muted-foreground">{access.notes}</p>}
+                {access.contactName && <p className="text-xs text-muted-foreground mt-3">Contact: {access.contactName} · {access.contactPhone}</p>}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="border-b mb-6">
-          <div className="flex gap-0 overflow-x-auto">
+          <div className="flex gap-0 overflow-x-auto -mb-px">
             {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
-                  activeTab === tab.id
-                    ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
-                )}
-              >
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                className={cn("flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
+                  activeTab === tab.id ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                )}>
                 <tab.icon size={15} />
                 {tab.label}
+                {tab.id === "messages" && fieldThreads.some(t => t.unreadCount > 0) && (
+                  <span className="h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
+                    {fieldThreads.reduce((a, t) => a + t.unreadCount, 0)}
+                  </span>
+                )}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Tab Content */}
-        {activeTab === "overview" && <OverviewTab />}
-        {activeTab === "jobs" && <JobsTab />}
-        {activeTab === "files" && <FilesTab />}
-        {activeTab === "history" && <HistoryTab />}
-        {activeTab === "financials" && <FinancialsTab />}
-        {activeTab === "messages" && <EmptyTab label="Messages" desc="No messages for this field yet." />}
-        {activeTab === "permissions" && <EmptyTab label="Permissions" desc="Configure who can access, order, and approve work on this field." />}
+        {/* Content */}
+        {activeTab === "overview" && <OverviewContent field={field} stats={stats} activeJob={activeJob} packet={packet} auditLogs={fieldAuditLogs} />}
+        {activeTab === "jobs" && <JobsContent jobs={fieldJobs} />}
+        {activeTab === "history" && <ActivityTimeline events={fieldAuditLogs} />}
+        {activeTab === "files" && <FilesContent datasets={fieldDatasets} />}
+        {activeTab === "financials" && <FinancialsContent stats={stats} invoices={fieldInvoices} />}
+        {activeTab === "messages" && <MessagesContent threads={fieldThreads} />}
+        {activeTab === "permissions" && <PermissionsContent permissions={fieldPermissions} />}
       </div>
     </AppShell>
   );
@@ -137,222 +158,198 @@ export default function FieldWorkspace() {
 
 function InfoBlock({ label, value, icon }: { label: string; value: React.ReactNode; icon?: React.ReactNode }) {
   return (
-    <div className="rounded-lg bg-surface-2 p-3">
-      <p className="text-xs text-muted-foreground mb-1">{label}</p>
+    <div className="rounded-lg bg-surface-2 p-2.5">
+      <p className="text-[11px] text-muted-foreground mb-0.5">{label}</p>
       <div className="flex items-center gap-1.5 text-sm font-medium">
-        {icon}
-        {typeof value === "string" ? <span>{value}</span> : value}
+        {icon}{typeof value === "string" ? <span className="truncate">{value}</span> : value}
       </div>
     </div>
   );
 }
 
-function OverviewTab() {
+function OverviewContent({ field, stats, activeJob, packet, auditLogs }: any) {
   return (
-    <div className="grid md:grid-cols-2 gap-6">
-      <div className="rounded-xl bg-card shadow-card p-5">
-        <h3 className="font-semibold mb-4">Active Job</h3>
-        <div className="space-y-3">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Job</span>
-            <span className="font-medium">JOB-1847 · Spraying</span>
+    <div className="grid md:grid-cols-2 gap-5">
+      {activeJob && (
+        <div className="rounded-xl bg-card shadow-card p-5">
+          <h3 className="font-semibold mb-3">Active Job</h3>
+          <div className="space-y-2.5 text-sm">
+            <div className="flex justify-between"><span className="text-muted-foreground">Job</span><span className="font-medium">{activeJob.displayId} · {formatOperationType(activeJob.operationType)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Operator</span><span className="font-medium">{activeJob.operatorName}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Window</span><span className="font-medium">{activeJob.scheduledStart ? `${formatDate(activeJob.scheduledStart)} – ${formatDate(activeJob.scheduledEnd!)}` : "TBD"}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Rate</span><span className="font-medium tabular">{formatCurrency(activeJob.baseRate)}/{formatPricingModel(activeJob.pricingModel).toLowerCase().replace("per ", "")}</span></div>
+            <div className="flex justify-between border-t pt-2"><span className="text-muted-foreground">Estimated Total</span><span className="font-bold tabular">{formatCurrency(activeJob.estimatedTotal)}</span></div>
+            {activeJob.splitPayment && <div className="flex items-center gap-1 text-xs text-info"><DollarSign size={12} /> Split payment active</div>}
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Operator</span>
-            <span className="font-medium">AgriPro Services</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Scheduled</span>
-            <span className="font-medium">Mar 12–14, 2026</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Rate</span>
-            <span className="font-medium tabular">$40.00/ac</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Estimated Total</span>
-            <span className="font-bold tabular">$3,136.00</span>
+          <Button size="sm" variant="outline" className="w-full mt-4" asChild>
+            <Link to={`/jobs/${activeJob.id}`}>View Job Details</Link>
+          </Button>
+        </div>
+      )}
+
+      {packet && <FieldPacketCard packet={packet} />}
+
+      {stats && (
+        <div className="rounded-xl bg-card shadow-card p-5">
+          <h3 className="font-semibold mb-3">Season Summary</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="text-center p-3 rounded-lg bg-surface-2"><p className="text-xl font-bold tabular">{stats.totalJobs}</p><p className="text-xs text-muted-foreground mt-0.5">Total Jobs</p></div>
+            <div className="text-center p-3 rounded-lg bg-surface-2"><p className="text-xl font-bold tabular">{formatCurrency(stats.totalSpend)}</p><p className="text-xs text-muted-foreground mt-0.5">Total Spend</p></div>
+            <div className="text-center p-3 rounded-lg bg-surface-2"><p className="text-xl font-bold tabular">{stats.operatorsUsed}</p><p className="text-xs text-muted-foreground mt-0.5">Operators Used</p></div>
+            <div className="text-center p-3 rounded-lg bg-surface-2"><p className="text-xl font-bold tabular">{stats.filesUploaded}</p><p className="text-xs text-muted-foreground mt-0.5">Files Uploaded</p></div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="rounded-xl bg-card shadow-card p-5">
-        <h3 className="font-semibold mb-4">Alerts</h3>
-        <div className="space-y-3">
-          <div className="flex items-start gap-3 rounded-lg bg-warning/8 p-3">
-            <AlertTriangle size={16} className="text-warning mt-0.5 shrink-0" />
-            <div>
-              <p className="text-sm font-medium">Weather Advisory</p>
-              <p className="text-xs text-muted-foreground">Rain expected Mar 13. Spray window may shift.</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3 rounded-lg bg-info/8 p-3">
-            <Calendar size={16} className="text-info mt-0.5 shrink-0" />
-            <div>
-              <p className="text-sm font-medium">Field Packet Ready</p>
-              <p className="text-xs text-muted-foreground">Boundary, Rx map, and access notes are ready for download.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="md:col-span-2 rounded-xl bg-card shadow-card p-5">
-        <h3 className="font-semibold mb-4">Season Summary</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center p-3 rounded-lg bg-surface-2">
-            <p className="text-2xl font-bold tabular">4</p>
-            <p className="text-xs text-muted-foreground mt-1">Jobs this season</p>
-          </div>
-          <div className="text-center p-3 rounded-lg bg-surface-2">
-            <p className="text-2xl font-bold tabular">$13,328</p>
-            <p className="text-xs text-muted-foreground mt-1">Total spend</p>
-          </div>
-          <div className="text-center p-3 rounded-lg bg-surface-2">
-            <p className="text-2xl font-bold tabular">3</p>
-            <p className="text-xs text-muted-foreground mt-1">Operators used</p>
-          </div>
-          <div className="text-center p-3 rounded-lg bg-surface-2">
-            <p className="text-2xl font-bold tabular">12</p>
-            <p className="text-xs text-muted-foreground mt-1">Files uploaded</p>
-          </div>
-        </div>
+        <h3 className="font-semibold mb-3">Recent Activity</h3>
+        <ActivityTimeline events={auditLogs} maxItems={6} />
       </div>
     </div>
   );
 }
 
-function JobsTab() {
+function JobsContent({ jobs: fieldJobs }: { jobs: any[] }) {
   return (
     <div className="rounded-xl bg-card shadow-card">
-      <div className="flex items-center justify-between p-5 border-b">
-        <h3 className="font-semibold">Job History</h3>
-        <Button size="sm"><FileText size={14} /> Create Job</Button>
+      <div className="flex items-center justify-between p-4 border-b">
+        <h3 className="font-semibold">All Jobs ({fieldJobs.length})</h3>
+        <Button size="sm"><Plus size={14} /> Create Job</Button>
       </div>
       <div className="divide-y">
-        {jobHistory.map((job, i) => (
-          <div key={i} className="flex items-center justify-between p-4 hover:bg-surface-2 transition-colors">
+        {fieldJobs.map(job => (
+          <Link key={job.id} to={`/jobs/${job.id}`} className="flex items-center justify-between p-4 hover:bg-surface-2 transition-colors">
             <div>
-              <p className="text-sm font-medium">{job.type}</p>
-              <p className="text-xs text-muted-foreground">{job.operator} · {job.date}</p>
+              <p className="text-sm font-medium">{job.displayId} · {formatOperationType(job.operationType)}</p>
+              <p className="text-xs text-muted-foreground">{job.operatorName || "Unassigned"} · {job.scheduledStart ? formatDate(job.scheduledStart) : "Unscheduled"}</p>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium tabular">{job.amount}</span>
+            <div className="flex items-center gap-4 shrink-0">
+              {job.splitPayment && <span className="text-[10px] text-info font-medium bg-info/8 px-1.5 py-0.5 rounded">Split</span>}
+              <span className="text-sm font-medium tabular">{formatCurrency(job.estimatedTotal)}</span>
               <StatusBadge status={job.status} />
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
   );
 }
 
-function FilesTab() {
+function FilesContent({ datasets }: { datasets: any[] }) {
   return (
     <div className="rounded-xl bg-card shadow-card">
-      <div className="flex items-center justify-between p-5 border-b">
-        <h3 className="font-semibold">Files & Maps</h3>
-        <Button variant="outline" size="sm">Upload File</Button>
+      <div className="flex items-center justify-between p-4 border-b">
+        <h3 className="font-semibold">Files & Maps ({datasets.length})</h3>
+        <Button variant="outline" size="sm"><Upload size={14} /> Upload</Button>
       </div>
       <div className="divide-y">
-        {files.map((file, i) => (
-          <div key={i} className="flex items-center justify-between p-4 hover:bg-surface-2 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg bg-primary/8 flex items-center justify-center">
-                <FileText size={16} className="text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">{file.name}</p>
-                <p className="text-xs text-muted-foreground">{file.type} · {file.size} · {file.date}</p>
-              </div>
-            </div>
-            <Button variant="ghost" size="icon">
-              <Download size={16} />
-            </Button>
-          </div>
+        {datasets.map(ds => (
+          <FileRow key={ds.id} fileName={ds.fileName} category={ds.category} fileSize={ds.fileSize} version={ds.version} uploadedBy={ds.uploadedByName} cropYear={ds.cropYear} linkedJob={ds.jobId} date={ds.createdAt} />
         ))}
       </div>
     </div>
   );
 }
 
-function HistoryTab() {
-  return (
-    <div className="rounded-xl bg-card shadow-card p-5">
-      <h3 className="font-semibold mb-4">Field Timeline</h3>
-      <div className="space-y-0">
-        {[
-          { date: "Mar 12, 2026", event: "Spray job started by AgriPro Services", type: "job" },
-          { date: "Mar 10, 2026", event: "Field packet generated for JOB-1847", type: "system" },
-          { date: "Mar 8, 2026", event: "Spray job accepted by AgriPro Services", type: "job" },
-          { date: "Mar 5, 2026", event: "Rx map uploaded: spring-rx-map.zip", type: "file" },
-          { date: "Oct 28, 2025", event: "Harvest completed. 78.4 ac. Yield: 213 bu/ac", type: "job" },
-          { date: "Oct 15, 2025", event: "Harvest job started by Prairie Partners", type: "job" },
-        ].map((item, i) => (
-          <div key={i} className="flex gap-4 pb-6 relative">
-            {i < 5 && <div className="absolute left-[7px] top-6 bottom-0 w-px bg-border" />}
-            <div className="h-4 w-4 rounded-full bg-primary/15 border-2 border-primary shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm">{item.event}</p>
-              <p className="text-xs text-muted-foreground">{item.date}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function FinancialsTab() {
+function FinancialsContent({ stats, invoices }: { stats: any; invoices: any[] }) {
   return (
     <div className="space-y-4">
-      <div className="grid sm:grid-cols-3 gap-4">
-        <div className="rounded-xl bg-card shadow-card p-5 text-center">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Quoted</p>
-          <p className="text-2xl font-bold tabular mt-1">$14,928</p>
+      {stats && (
+        <div className="grid sm:grid-cols-3 gap-4">
+          <div className="rounded-xl bg-card shadow-card p-5 text-center"><p className="text-xs text-muted-foreground uppercase tracking-wider">Total Spend</p><p className="text-2xl font-bold tabular mt-1">{formatCurrency(stats.totalSpend)}</p></div>
+          <div className="rounded-xl bg-card shadow-card p-5 text-center"><p className="text-xs text-muted-foreground uppercase tracking-wider">Total Paid</p><p className="text-2xl font-bold tabular mt-1 text-success">{formatCurrency(stats.totalPaid)}</p></div>
+          <div className="rounded-xl bg-card shadow-card p-5 text-center"><p className="text-xs text-muted-foreground uppercase tracking-wider">Outstanding</p><p className="text-2xl font-bold tabular mt-1 text-warning">{formatCurrency(stats.totalOutstanding)}</p></div>
         </div>
-        <div className="rounded-xl bg-card shadow-card p-5 text-center">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Paid</p>
-          <p className="text-2xl font-bold tabular mt-1 text-success">$10,192</p>
-        </div>
-        <div className="rounded-xl bg-card shadow-card p-5 text-center">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">Outstanding</p>
-          <p className="text-2xl font-bold tabular mt-1 text-warning">$4,736</p>
-        </div>
-      </div>
+      )}
       <div className="rounded-xl bg-card shadow-card">
-        <div className="p-5 border-b">
-          <h3 className="font-semibold">Invoices</h3>
-        </div>
+        <div className="p-4 border-b"><h3 className="font-semibold">Invoices</h3></div>
         <div className="divide-y">
-          {[
-            { id: "INV-3021", job: "Spraying", amount: "$3,136.00", status: "invoiced" as Status, date: "Mar 14, 2026" },
-            { id: "INV-2984", job: "Harvest", amount: "$5,488.00", status: "paid" as Status, date: "Nov 2, 2025" },
-            { id: "INV-2901", job: "Planting", amount: "$2,744.00", status: "paid" as Status, date: "May 20, 2025" },
-          ].map((inv) => (
+          {invoices.map((inv: any) => (
             <div key={inv.id} className="flex items-center justify-between p-4">
-              <div>
-                <p className="text-sm font-medium">{inv.id} · {inv.job}</p>
-                <p className="text-xs text-muted-foreground">{inv.date}</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-semibold tabular">{inv.amount}</span>
-                <StatusBadge status={inv.status} />
-              </div>
+              <div><p className="text-sm font-medium">{inv.displayId}</p><p className="text-xs text-muted-foreground">{formatDate(inv.createdAt)} · Due {formatDate(inv.dueDate)}</p></div>
+              <div className="flex items-center gap-4"><span className="text-sm font-semibold tabular">{formatCurrency(inv.total)}</span><StatusBadge status={inv.status} /></div>
             </div>
           ))}
+          {invoices.length === 0 && <div className="p-8 text-center text-sm text-muted-foreground">No invoices for this field yet.</div>}
         </div>
       </div>
     </div>
   );
 }
 
-function EmptyTab({ label, desc }: { label: string; desc: string }) {
+function MessagesContent({ threads }: { threads: any[] }) {
+  const [selectedThread, setSelectedThread] = useState<string | null>(threads[0]?.id || null);
+  const thread = threads.find((t: any) => t.id === selectedThread);
+  const threadMessages = thread ? getMessagesByThread(thread.id) : [];
+
   return (
-    <div className="rounded-xl bg-card shadow-card p-12 text-center">
-      <Shield size={32} className="mx-auto mb-3 text-muted-foreground/30" />
-      <h3 className="font-semibold mb-1">{label}</h3>
-      <p className="text-sm text-muted-foreground max-w-sm mx-auto">{desc}</p>
-      <Button variant="outline" size="sm" className="mt-4">Configure</Button>
+    <div className="rounded-xl bg-card shadow-card overflow-hidden">
+      <div className="grid md:grid-cols-3 min-h-[400px]">
+        <div className="border-r divide-y">
+          {threads.map((t: any) => (
+            <button key={t.id} onClick={() => setSelectedThread(t.id)}
+              className={cn("w-full text-left p-3 hover:bg-surface-2 transition-colors", selectedThread === t.id && "bg-surface-2")}>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium truncate">{t.subject}</p>
+                {t.unreadCount > 0 && <span className="h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center shrink-0">{t.unreadCount}</span>}
+              </div>
+              <p className="text-xs text-muted-foreground truncate mt-0.5">{t.lastMessagePreview}</p>
+            </button>
+          ))}
+          {threads.length === 0 && <div className="p-6 text-center text-sm text-muted-foreground">No messages yet.</div>}
+        </div>
+        <div className="md:col-span-2 flex flex-col">
+          {thread ? (
+            <>
+              <div className="p-3 border-b"><h4 className="text-sm font-semibold">{thread.subject}</h4><p className="text-xs text-muted-foreground">{thread.participants.map((p: any) => p.userName).join(", ")}</p></div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {threadMessages.map((m: any) => (
+                  <div key={m.id} className={cn("max-w-[80%]", m.senderId === "usr-1" ? "ml-auto" : "")}>
+                    <div className={cn("rounded-lg p-3 text-sm", m.senderId === "usr-1" ? "bg-primary text-primary-foreground" : "bg-surface-2")}>
+                      {m.content}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-1">{m.senderName} · {formatDate(m.createdAt)}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="p-3 border-t flex gap-2">
+                <Button variant="ghost" size="icon" className="shrink-0"><Paperclip size={16} /></Button>
+                <input type="text" placeholder="Type a message…" className="flex-1 bg-surface-2 rounded-lg px-3 py-2 text-sm outline-none" />
+                <Button size="icon" className="shrink-0"><Send size={16} /></Button>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">Select a conversation</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PermissionsContent({ permissions }: { permissions: any[] }) {
+  const levelLabels: Record<string, string> = { view: "View", order_work: "Order Work", upload_files: "Upload Files", approve_payment: "Approve Payment", manage: "Manage", admin: "Admin" };
+
+  return (
+    <div className="rounded-xl bg-card shadow-card">
+      <div className="flex items-center justify-between p-4 border-b">
+        <h3 className="font-semibold">Access Grants ({permissions.length})</h3>
+        <Button variant="outline" size="sm"><Plus size={14} /> Grant Access</Button>
+      </div>
+      <div className="divide-y">
+        {permissions.map((p: any) => (
+          <div key={p.id} className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">{p.userName.split(" ").map((w: string) => w[0]).join("")}</div>
+              <div><p className="text-sm font-medium">{p.userName}</p><p className="text-xs text-muted-foreground capitalize">{p.userRole.replace("_", " ")} · Granted by {p.grantedByName}</p></div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-medium bg-primary/8 text-primary px-2 py-0.5 rounded-full">{levelLabels[p.level] || p.level}</span>
+              {p.expiresAt && <span className="text-xs text-muted-foreground">Expires {formatDate(p.expiresAt)}</span>}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

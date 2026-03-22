@@ -1,10 +1,12 @@
-import { Link, useLocation } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Map, Briefcase, Store, Users, DollarSign,
-  Shield, Settings, ChevronLeft, ChevronRight,
+  Shield, Settings, ChevronLeft, ChevronRight, Search, Bell, X,
 } from "lucide-react";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { getUnreadNotifications } from "@/data/mock";
+import { formatRelative } from "@/lib/format";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", to: "/dashboard" },
@@ -20,45 +22,68 @@ const navItems = [
 interface AppShellProps {
   children: React.ReactNode;
   title?: string;
+  actions?: React.ReactNode;
 }
 
-export default function AppShell({ children, title }: AppShellProps) {
+export default function AppShell({ children, title, actions }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [notifOpen, setNotifOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const notifications = getUnreadNotifications();
+
+  useEffect(() => {
+    if (searchOpen && searchRef.current) searchRef.current.focus();
+  }, [searchOpen]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+      if (e.key === "Escape") {
+        setSearchOpen(false);
+        setNotifOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-surface-2">
       {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed top-0 left-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-[width] duration-200 z-40",
-          collapsed ? "w-16" : "w-56"
-        )}
-      >
-        <div className="h-16 flex items-center gap-2 px-4 border-b border-sidebar-border shrink-0">
-          <div className="h-8 w-8 shrink-0 rounded-md bg-sidebar-primary flex items-center justify-center">
-            <span className="text-sidebar-primary-foreground font-bold text-xs">PH</span>
+      <aside className={cn(
+        "fixed top-0 left-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-[width] duration-200 z-40",
+        collapsed ? "w-16" : "w-56"
+      )}>
+        <Link to="/" className="h-14 flex items-center gap-2 px-4 border-b border-sidebar-border shrink-0">
+          <div className="h-7 w-7 shrink-0 rounded-md bg-sidebar-primary flex items-center justify-center">
+            <span className="text-sidebar-primary-foreground font-bold text-[10px]">PH</span>
           </div>
-          {!collapsed && (
-            <span className="font-bold text-sidebar-foreground tracking-tight text-sm">ProlificHire</span>
-          )}
-        </div>
+          {!collapsed && <span className="font-bold text-sidebar-foreground tracking-tight text-sm">ProlificHire</span>}
+        </Link>
 
-        <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => {
-            const active = location.pathname.startsWith(item.to);
+            const active = location.pathname === item.to || (item.to !== "/dashboard" && location.pathname.startsWith(item.to));
             return (
               <Link
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] transition-colors",
                   active
                     ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                    : "text-sidebar-foreground/65 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                 )}
+                title={collapsed ? item.label : undefined}
               >
-                <item.icon size={18} className="shrink-0" />
+                <item.icon size={17} className="shrink-0" />
                 {!collapsed && <span>{item.label}</span>}
               </Link>
             );
@@ -67,19 +92,123 @@ export default function AppShell({ children, title }: AppShellProps) {
 
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="h-12 flex items-center justify-center border-t border-sidebar-border text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors"
+          className="h-10 flex items-center justify-center border-t border-sidebar-border text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
         >
-          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
       </aside>
 
       {/* Main */}
-      <div className={cn("flex-1 transition-[margin-left] duration-200", collapsed ? "ml-16" : "ml-56")}>
-        <header className="h-16 bg-background border-b flex items-center px-6 sticky top-0 z-30">
-          {title && <h1 className="text-lg font-semibold">{title}</h1>}
+      <div className={cn("flex-1 transition-[margin-left] duration-200 flex flex-col", collapsed ? "ml-16" : "ml-56")}>
+        <header className="h-14 bg-background border-b flex items-center justify-between px-6 sticky top-0 z-30">
+          <div className="flex items-center gap-4">
+            {title && <h1 className="text-base font-semibold">{title}</h1>}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Search trigger */}
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="flex items-center gap-2 rounded-lg border bg-surface-2 px-3 py-1.5 text-sm text-muted-foreground hover:bg-surface-3 transition-colors"
+            >
+              <Search size={14} />
+              <span className="hidden sm:inline">Search…</span>
+              <kbd className="hidden sm:inline text-[10px] font-mono bg-background rounded px-1 py-0.5 border ml-4">⌘K</kbd>
+            </button>
+
+            {/* Notifications */}
+            <div className="relative">
+              <button
+                onClick={() => setNotifOpen(!notifOpen)}
+                className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-secondary transition-colors relative"
+              >
+                <Bell size={16} />
+                {notifications.length > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
+                    {notifications.length}
+                  </span>
+                )}
+              </button>
+              {notifOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
+                  <div className="absolute right-0 top-10 w-80 rounded-xl bg-card shadow-elevated border z-50 animate-scale-in">
+                    <div className="p-3 border-b flex items-center justify-between">
+                      <span className="text-sm font-semibold">Notifications</span>
+                      <span className="text-xs text-muted-foreground">{notifications.length} unread</span>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto divide-y">
+                      {notifications.map(n => (
+                        <button
+                          key={n.id}
+                          onClick={() => { if (n.actionUrl) navigate(n.actionUrl); setNotifOpen(false); }}
+                          className="w-full text-left p-3 hover:bg-surface-2 transition-colors"
+                        >
+                          <p className="text-sm font-medium leading-snug">{n.title}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">{formatRelative(n.createdAt)}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* User */}
+            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
+              RW
+            </div>
+
+            {actions}
+          </div>
         </header>
-        <main className="p-6">{children}</main>
+
+        <main className="flex-1 p-6">{children}</main>
       </div>
+
+      {/* Search Modal */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
+          <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm" onClick={() => setSearchOpen(false)} />
+          <div className="relative w-full max-w-lg rounded-xl bg-card shadow-elevated border animate-scale-in">
+            <div className="flex items-center gap-3 px-4 py-3 border-b">
+              <Search size={18} className="text-muted-foreground shrink-0" />
+              <input
+                ref={searchRef}
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search fields, jobs, files, invoices…"
+                className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              />
+              <button onClick={() => setSearchOpen(false)} className="text-muted-foreground hover:text-foreground">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              {searchQuery.length === 0 ? (
+                <div>
+                  <p>Type to search across all fields, jobs, files, and invoices</p>
+                  <div className="flex justify-center gap-2 mt-3">
+                    {["North 80", "JOB-1847", "Spraying", "INV-3021"].map(term => (
+                      <button
+                        key={term}
+                        onClick={() => setSearchQuery(term)}
+                        className="text-xs px-2 py-1 rounded-full bg-secondary hover:bg-secondary/80 text-secondary-foreground transition-colors"
+                      >
+                        {term}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p>Search results for "{searchQuery}" would appear here</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
