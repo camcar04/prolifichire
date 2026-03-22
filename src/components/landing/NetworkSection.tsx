@@ -18,7 +18,7 @@ export default function NetworkSection() {
   useScrollRevealAll(ref);
 
   return (
-    <section ref={ref} id="networks" className="py-16 md:py-24">
+    <section ref={ref} id="networks" className="py-16 md:py-22 bg-foreground text-primary-foreground">
       <div className="container">
         <div className="max-w-lg mx-auto text-center mb-10">
           <h2 className="reveal text-2xl md:text-3xl font-bold tracking-tight">
