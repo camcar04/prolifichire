@@ -12,15 +12,16 @@ import { WeatherPanel } from "@/components/weather/WeatherPanel";
 import { usePricingEngine } from "@/hooks/useIntelligence";
 import {
   getJobById, getFieldById, getExceptionsByJob, getQuotesByJob,
-  getFieldPacketByJob, jobs, auditLogs, operators,
+  getFieldPacketByJob, getInputsByJob, jobs, auditLogs, operators,
 } from "@/data/mock";
+import { MaterialInputsPanel, PickupRouteSummary } from "@/components/materials/MaterialInputsPanel";
 import {
   formatCurrency, formatAcres, formatOperationType, formatDate,
   formatPricingModel, formatDistance, formatCropType,
 } from "@/lib/format";
 import {
   ChevronRight, Calendar, DollarSign, User, MapPin, AlertTriangle,
-  Clock, FileText, Truck, CheckCircle2, Sparkles, Cloud,
+  Clock, FileText, Truck, CheckCircle2, Sparkles, Cloud, Package,
 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -32,6 +33,7 @@ export default function JobDetail() {
   const exceptions = getExceptionsByJob(job.id);
   const quotes = getQuotesByJob(job.id);
   const packet = getFieldPacketByJob(job.id);
+  const inputs = getInputsByJob(job.id);
   const jobEvents = auditLogs.filter(a => a.entityId === job.id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const { estimate, loading: pricingLoading, getEstimate } = usePricingEngine();
 
@@ -129,6 +131,11 @@ export default function JobDetail() {
               </div>
             </div>
 
+            {/* Materials & Inputs */}
+            {inputs.length > 0 && (
+              <MaterialInputsPanel inputs={inputs} showPickupDetails={activeMode === "operator"} />
+            )}
+
             {/* Exceptions */}
             {exceptions.length > 0 && (
               <div className="rounded-xl bg-card shadow-card">
@@ -187,6 +194,10 @@ export default function JobDetail() {
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><Truck size={15} /> Route Context</h3>
                 <RouteContextBadge operatorBase={operatorBase} fieldLocation={fieldLocation} />
               </div>
+            )}
+            {/* Pickup route for operators */}
+            {activeMode === "operator" && inputs.length > 0 && (
+              <PickupRouteSummary inputs={inputs} />
             )}
 
             {/* AI Pricing */}

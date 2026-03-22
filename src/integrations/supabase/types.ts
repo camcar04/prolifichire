@@ -1093,6 +1093,104 @@ export type Database = {
           },
         ]
       }
+      job_inputs: {
+        Row: {
+          brand: string | null
+          created_at: string
+          estimated_pickup_distance: number | null
+          estimated_pickup_time: number | null
+          handling_notes: string | null
+          id: string
+          job_id: string
+          pickup_address: string | null
+          pickup_city: string | null
+          pickup_contact: string | null
+          pickup_instructions: string | null
+          pickup_lat: number | null
+          pickup_lng: number | null
+          pickup_location_name: string | null
+          pickup_phone: string | null
+          pickup_required: boolean
+          pickup_state: string | null
+          pickup_zip: string | null
+          product_name: string
+          product_type: string
+          quantity: number | null
+          safety_notes: string | null
+          sequence: number
+          supplied_by: string
+          unit: string | null
+          updated_at: string
+          variant: string | null
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string
+          estimated_pickup_distance?: number | null
+          estimated_pickup_time?: number | null
+          handling_notes?: string | null
+          id?: string
+          job_id: string
+          pickup_address?: string | null
+          pickup_city?: string | null
+          pickup_contact?: string | null
+          pickup_instructions?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          pickup_location_name?: string | null
+          pickup_phone?: string | null
+          pickup_required?: boolean
+          pickup_state?: string | null
+          pickup_zip?: string | null
+          product_name: string
+          product_type?: string
+          quantity?: number | null
+          safety_notes?: string | null
+          sequence?: number
+          supplied_by?: string
+          unit?: string | null
+          updated_at?: string
+          variant?: string | null
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string
+          estimated_pickup_distance?: number | null
+          estimated_pickup_time?: number | null
+          handling_notes?: string | null
+          id?: string
+          job_id?: string
+          pickup_address?: string | null
+          pickup_city?: string | null
+          pickup_contact?: string | null
+          pickup_instructions?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          pickup_location_name?: string | null
+          pickup_phone?: string | null
+          pickup_required?: boolean
+          pickup_state?: string | null
+          pickup_zip?: string | null
+          product_name?: string
+          product_type?: string
+          quantity?: number | null
+          safety_notes?: string | null
+          sequence?: number
+          supplied_by?: string
+          unit?: string | null
+          updated_at?: string
+          variant?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_inputs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_templates: {
         Row: {
           base_rate: number | null

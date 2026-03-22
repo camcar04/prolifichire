@@ -292,8 +292,40 @@ export interface Job {
   proofApproved: boolean;
   changeOrderCount: number;
   exceptionCount: number;
+  inputs?: JobInput[];
   createdAt: string;
   updatedAt: string;
+}
+
+export type ProductType = "seed" | "fertilizer" | "chemical" | "adjuvant" | "other";
+export type SuppliedBy = "grower" | "operator";
+
+export interface JobInput {
+  id: string;
+  jobId: string;
+  productName: string;
+  productType: ProductType;
+  brand?: string;
+  variant?: string;
+  quantity?: number;
+  unit?: string;
+  suppliedBy: SuppliedBy;
+  pickupRequired: boolean;
+  pickupLocationName?: string;
+  pickupAddress?: string;
+  pickupCity?: string;
+  pickupState?: string;
+  pickupZip?: string;
+  pickupLat?: number;
+  pickupLng?: number;
+  pickupContact?: string;
+  pickupPhone?: string;
+  pickupInstructions?: string;
+  handlingNotes?: string;
+  safetyNotes?: string;
+  estimatedPickupDistance?: number;
+  estimatedPickupTime?: number;
+  sequence: number;
 }
 
 export interface JobField {

@@ -5,6 +5,7 @@ import type {
   DatasetAsset, Invoice, InvoiceLineItem, Payment, SplitRule, Payout,
   Dispute, Review, MessageThread, Message, AuditLog, Notification,
   PermissionGrant, ChangeOrder, JobException, ProofOfWork, JobEvent,
+  JobInput,
 } from "@/types/domain";
 
 // ═══════════════════════════════════════════════════════
@@ -290,6 +291,105 @@ export const jobs: Job[] = [
     createdAt: "2025-10-01T10:00:00Z", updatedAt: "2025-11-10T09:00:00Z",
   },
 ];
+
+// ═══════════════════════════════════════════════════════
+// JOB INPUTS / MATERIALS
+// ═══════════════════════════════════════════════════════
+
+export const jobInputs: JobInput[] = [
+  {
+    id: "ji-1", jobId: "job-1", productName: "Dual II Magnum", productType: "chemical",
+    brand: "Syngenta", variant: "7.64 EC",
+    quantity: 12, unit: "gallons",
+    suppliedBy: "grower", pickupRequired: true,
+    pickupLocationName: "Central Valley Co-op",
+    pickupAddress: "1200 E Highway 30", pickupCity: "Fremont", pickupState: "NE", pickupZip: "68025",
+    pickupLat: 41.4395, pickupLng: -96.4912,
+    pickupContact: "Greg Tanner", pickupPhone: "(402) 555-0340",
+    pickupInstructions: "Prepaid order under Westfield Farms. Ask for pesticide dock, back of building.",
+    handlingNotes: "Keep sealed until ready to mix. Do not pre-mix more than 4 hours before application.",
+    safetyNotes: "Restricted-use pesticide — certified applicator required",
+    estimatedPickupDistance: 8.2, estimatedPickupTime: 14,
+    sequence: 1,
+  },
+  {
+    id: "ji-2", jobId: "job-1", productName: "Atrazine 4L", productType: "chemical",
+    brand: "AATREX", variant: "4L liquid",
+    quantity: 8, unit: "gallons",
+    suppliedBy: "grower", pickupRequired: true,
+    pickupLocationName: "Central Valley Co-op",
+    pickupAddress: "1200 E Highway 30", pickupCity: "Fremont", pickupState: "NE", pickupZip: "68025",
+    pickupLat: 41.4395, pickupLng: -96.4912,
+    pickupContact: "Greg Tanner", pickupPhone: "(402) 555-0340",
+    pickupInstructions: "Same order as Dual II Magnum — both on ticket #WF-4521.",
+    safetyNotes: "Restricted-use pesticide — keep away from water sources",
+    estimatedPickupDistance: 8.2, estimatedPickupTime: 0,
+    sequence: 2,
+  },
+  {
+    id: "ji-3", jobId: "job-1", productName: "Crop Oil Concentrate", productType: "adjuvant",
+    brand: "Winfield", variant: "COC Plus",
+    quantity: 4, unit: "gallons",
+    suppliedBy: "operator", pickupRequired: false,
+    sequence: 3,
+  },
+  {
+    id: "ji-4", jobId: "job-2", productName: "DeKalb DKC62-53", productType: "seed",
+    brand: "DeKalb (Bayer)", variant: "VT2P RIB — TreatSeed applied",
+    quantity: 56, unit: "bags",
+    suppliedBy: "grower", pickupRequired: true,
+    pickupLocationName: "Bayer Seed Dealer — Dodge City Ag",
+    pickupAddress: "3400 N Broad St", pickupCity: "Fremont", pickupState: "NE", pickupZip: "68025",
+    pickupLat: 41.4550, pickupLng: -96.5010,
+    pickupContact: "Mark Schultz", pickupPhone: "(402) 555-0488",
+    pickupInstructions: "Seed staged on pallets near loading dock. Order #DC-2026-0891. Bring own forklift or call ahead.",
+    handlingNotes: "Do not stack more than 3 pallets high. Keep dry — treated seed.",
+    estimatedPickupDistance: 12.4, estimatedPickupTime: 18,
+    sequence: 1,
+  },
+  {
+    id: "ji-5", jobId: "job-2", productName: "10-34-0 Starter Fertilizer", productType: "fertilizer",
+    brand: "Generic", variant: "Liquid in-furrow",
+    quantity: 300, unit: "gallons",
+    suppliedBy: "operator", pickupRequired: false,
+    handlingNotes: "Operator mixes and supplies at standard rate of $0.45/gal pass-through.",
+    sequence: 2,
+  },
+  {
+    id: "ji-6", jobId: "job-6", productName: "Roundup PowerMax 3", productType: "chemical",
+    brand: "Bayer", variant: "5.5 lb ae/gal",
+    quantity: 24, unit: "gallons",
+    suppliedBy: "grower", pickupRequired: true,
+    pickupLocationName: "Farmer's Alliance Co-op",
+    pickupAddress: "600 Railroad Ave", pickupCity: "North Bend", pickupState: "NE", pickupZip: "68649",
+    pickupLat: 41.4620, pickupLng: -96.7810,
+    pickupContact: "Jenny Sims", pickupPhone: "(402) 555-0622",
+    pickupInstructions: "Order under Tom Kessler / Westfield South. Present farm ID.",
+    estimatedPickupDistance: 15.8, estimatedPickupTime: 22,
+    sequence: 1,
+  },
+  {
+    id: "ji-7", jobId: "job-6", productName: "2,4-D LV6", productType: "chemical",
+    brand: "Corteva", variant: "Low-volatile ester",
+    quantity: 6, unit: "gallons",
+    suppliedBy: "grower", pickupRequired: true,
+    pickupLocationName: "Farmer's Alliance Co-op",
+    pickupAddress: "600 Railroad Ave", pickupCity: "North Bend", pickupState: "NE", pickupZip: "68649",
+    pickupLat: 41.4620, pickupLng: -96.7810,
+    estimatedPickupDistance: 15.8, estimatedPickupTime: 0,
+    sequence: 2,
+  },
+  {
+    id: "ji-8", jobId: "job-6", productName: "NIS Surfactant", productType: "adjuvant",
+    quantity: 2, unit: "gallons",
+    suppliedBy: "operator", pickupRequired: false,
+    sequence: 3,
+  },
+];
+
+export function getInputsByJob(jobId: string): JobInput[] {
+  return jobInputs.filter(i => i.jobId === jobId).sort((a, b) => a.sequence - b.sequence);
+}
 
 // ═══════════════════════════════════════════════════════
 // QUOTES

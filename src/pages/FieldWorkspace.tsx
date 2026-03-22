@@ -13,8 +13,9 @@ import {
   getFieldById, getJobsByField, getDatasetsByField, getAuditLogsByField,
   getFieldRequirements, getFieldAccess, fieldStats, getInvoicesByField,
   getThreadsByField, getMessagesByThread, getPermissionsByField, fieldPackets,
-  fields,
+  fields, getInputsByJob,
 } from "@/data/mock";
+import { MaterialsSummaryBadge } from "@/components/materials/MaterialInputsPanel";
 import {
   formatCurrency, formatAcres, formatOperationType, formatCropType,
   formatDate, formatPricingModel,
@@ -236,7 +237,10 @@ function JobsContent({ jobs: fieldJobs }: { jobs: any[] }) {
           <Link key={job.id} to={`/jobs/${job.id}`} className="flex items-center justify-between p-4 hover:bg-surface-2 transition-colors">
             <div>
               <p className="text-sm font-medium">{job.displayId} · {formatOperationType(job.operationType)}</p>
-              <p className="text-xs text-muted-foreground">{job.operatorName || "Unassigned"} · {job.scheduledStart ? formatDate(job.scheduledStart) : "Unscheduled"}</p>
+              <div className="flex items-center gap-3">
+                <p className="text-xs text-muted-foreground">{job.operatorName || "Unassigned"} · {job.scheduledStart ? formatDate(job.scheduledStart) : "Unscheduled"}</p>
+                <MaterialsSummaryBadge inputs={getInputsByJob(job.id)} />
+              </div>
             </div>
             <div className="flex items-center gap-4 shrink-0">
               {job.splitPayment && <span className="text-[10px] text-info font-medium bg-info/8 px-1.5 py-0.5 rounded">Split</span>}
