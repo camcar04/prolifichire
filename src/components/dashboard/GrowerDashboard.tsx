@@ -2,9 +2,11 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Map, Briefcase, DollarSign, TrendingUp, Plus, ArrowRight, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
+import { Map, Briefcase, DollarSign, TrendingUp, Plus, ArrowRight, AlertTriangle, Clock, CheckCircle2, Bell } from "lucide-react";
 import { jobs, fields, fieldStats } from "@/data/mock";
 import { formatCurrency, formatAcres, formatOperationType } from "@/lib/format";
+import { useNotifications } from "@/hooks/useNotifications";
+import { formatDistanceToNow } from "date-fns";
 
 const totalAcres = fields.reduce((a, f) => a + f.acreage, 0);
 const activeJobs = jobs.filter(j => ["requested", "quoted", "accepted", "scheduled", "in_progress"].includes(j.status));
@@ -15,6 +17,8 @@ const upcomingJobs = jobs.filter(j => j.scheduledStart && ["scheduled", "accepte
 const recentJobs = jobs.slice(0, 6);
 
 export default function GrowerDashboard() {
+  const { notifications, markRead } = useNotifications();
+  const recentAlerts = notifications.filter(n => !n.read).slice(0, 5);
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Stat row */}
@@ -124,6 +128,29 @@ export default function GrowerDashboard() {
                 <Link to="/marketplace"><TrendingUp size={14} /> Browse Marketplace</Link>
               </Button>
             </div>
+          </div>
+
+          {/* Activity Feed */}
+          <div className="rounded-xl bg-card shadow-card p-5">
+            <h2 className="font-semibold mb-3 flex items-center gap-2">
+              <Bell size={15} /> Recent Activity
+            </h2>
+            {recentAlerts.length > 0 ? (
+              <div className="space-y-2.5">
+                {recentAlerts.map(n => (
+                  <div key={n.id} className="rounded-lg bg-surface-2 p-2.5">
+                    <p className="text-sm font-medium leading-snug">{n.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">No new activity.</p>
+            )}
+            <Button variant="ghost" size="sm" className="w-full mt-3 text-muted-foreground" asChild>
+              <Link to="/notifications">View all notifications</Link>
+            </Button>
           </div>
 
           {/* Fields Overview */}

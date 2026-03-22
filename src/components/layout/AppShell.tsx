@@ -6,10 +6,10 @@ import {
   MessageSquare, Calendar, Package, LogOut, Truck, Bookmark,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getUnreadNotifications } from "@/data/mock";
-import { formatRelative } from "@/lib/format";
 import { useAuth, type AppMode } from "@/contexts/AuthContext";
 import { RoleModeSwitcher } from "@/components/layout/RoleModeSwitcher";
+import { useNotifications } from "@/hooks/useNotifications";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { getInitials } from "@/lib/format";
 
 interface NavItem {
@@ -58,7 +58,7 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
-  const notifications = getUnreadNotifications();
+  const { unreadCount } = useNotifications();
   const { activeMode, profile, signOut } = useAuth();
   const navItems = getNavItems(activeMode);
 
@@ -178,36 +178,13 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
                 className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-secondary transition-colors relative"
               >
                 <Bell size={16} />
-                {notifications.length > 0 && (
+                {unreadCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
-                    {notifications.length}
+                    {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
               </button>
-              {notifOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
-                  <div className="absolute right-0 top-10 w-80 rounded-xl bg-card shadow-elevated border z-50 animate-scale-in">
-                    <div className="p-3 border-b flex items-center justify-between">
-                      <span className="text-sm font-semibold">Notifications</span>
-                      <span className="text-xs text-muted-foreground">{notifications.length} unread</span>
-                    </div>
-                    <div className="max-h-80 overflow-y-auto divide-y">
-                      {notifications.map(n => (
-                        <button
-                          key={n.id}
-                          onClick={() => { if (n.actionUrl) navigate(n.actionUrl); setNotifOpen(false); }}
-                          className="w-full text-left p-3 hover:bg-surface-2 transition-colors"
-                        >
-                          <p className="text-sm font-medium leading-snug">{n.title}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
-                          <p className="text-[10px] text-muted-foreground mt-1">{formatRelative(n.createdAt)}</p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
+              <NotificationCenter open={notifOpen} onClose={() => setNotifOpen(false)} />
             </div>
 
             {/* User */}

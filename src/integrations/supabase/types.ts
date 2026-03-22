@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      alert_rules: {
+        Row: {
+          channels: string[]
+          conditions: Json
+          created_at: string
+          frequency: string
+          id: string
+          is_active: boolean
+          rule_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channels?: string[]
+          conditions?: Json
+          created_at?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          rule_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channels?: string[]
+          conditions?: Json
+          created_at?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          rule_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -1382,6 +1418,53 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: true
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operator_capabilities: {
+        Row: {
+          created_at: string
+          equipment_capabilities: string[]
+          id: string
+          max_job_acres: number | null
+          min_job_acres: number | null
+          operator_profile_id: string
+          preferred_job_types: string[]
+          sub_capabilities: string[]
+          supported_crops: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          equipment_capabilities?: string[]
+          id?: string
+          max_job_acres?: number | null
+          min_job_acres?: number | null
+          operator_profile_id: string
+          preferred_job_types?: string[]
+          sub_capabilities?: string[]
+          supported_crops?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          equipment_capabilities?: string[]
+          id?: string
+          max_job_acres?: number | null
+          min_job_acres?: number | null
+          operator_profile_id?: string
+          preferred_job_types?: string[]
+          sub_capabilities?: string[]
+          supported_crops?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_capabilities_operator_profile_id_fkey"
+            columns: ["operator_profile_id"]
+            isOneToOne: true
+            referencedRelation: "operator_profiles"
             referencedColumns: ["id"]
           },
         ]

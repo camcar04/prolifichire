@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import GrowerOnboarding from "./pages/onboarding/GrowerOnboarding";
 import OperatorOnboarding from "./pages/onboarding/OperatorOnboarding";
 import Templates from "./pages/Templates";
+import NotificationsPage from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/schedule" element={<Schedule />} />
             <Route path="/packets" element={<Packets />} />
             <Route path="/templates" element={<Templates />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/payouts" element={<Payouts />} />
             <Route path="/finance" element={<Dashboard />} />
             <Route path="/files" element={<Dashboard />} />
