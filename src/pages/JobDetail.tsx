@@ -185,6 +185,14 @@ export default function JobDetail() {
 
           {/* Sidebar */}
           <div className="space-y-5">
+            {/* Credential match - operator view */}
+            {activeMode === "operator" && (
+              <div className="rounded-xl bg-card shadow-card p-4">
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><ShieldCheck size={15} /> Credential Requirements</h3>
+                <JobCredentialMatch operationType={job.operation_type} />
+              </div>
+            )}
+
             {/* Proof of work */}
             <div className="rounded-xl bg-card shadow-card p-4">
               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><CheckCircle2 size={15} /> Proof of Work</h3>
