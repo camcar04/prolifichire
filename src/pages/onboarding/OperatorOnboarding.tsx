@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { StateSelect } from "@/components/ui/state-select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, ChevronRight, ChevronLeft, Check, Truck, User, Wrench, MapPin, Shield } from "lucide-react";
@@ -47,7 +48,7 @@ export default function OperatorOnboarding() {
   const [form, setForm] = useState({
     firstName: "", lastName: "", phone: "", preferredComm: "in_app",
     businessName: "", contractSignerName: "", contractSignerEmail: "",
-    address: "", city: "", state: "", zip: "",
+    address: "", city: "", state: "", zip: "", county: "",
     serviceRadius: "50", crewCount: "1",
     equipmentMake: "", equipmentModel: "", equipmentType: "", equipmentYear: "",
     hasInsurance: false, hasLicense: false,
@@ -63,7 +64,6 @@ export default function OperatorOnboarding() {
     if (!user) return;
     setSaving(true);
     try {
-      // Create org
       const { data: org, error: orgErr } = await supabase.from("organizations").insert({
         name: form.businessName || `${form.lastName} Custom Services`,
         type: "operator",
@@ -71,17 +71,19 @@ export default function OperatorOnboarding() {
       }).select("id").single();
       if (orgErr) throw orgErr;
 
-      // Update profile
       await supabase.from("profiles").update({
         first_name: form.firstName, last_name: form.lastName, phone: form.phone,
         organization_id: org.id, onboarding_completed: true,
         preferred_comm_method: form.preferredComm as any,
       }).eq("user_id", user.id);
 
-      // Add operator role
       await supabase.from("user_roles").insert({ user_id: user.id, role: "operator" as any });
 
-      // Create operator profile
+      // Create org membership
+      await supabase.from("organization_members").insert({
+        organization_id: org.id, user_id: user.id, org_role: "owner",
+      });
+
       const { data: opProfile } = await supabase.from("operator_profiles").insert({
         user_id: user.id, organization_id: org.id,
         business_name: form.businessName,
@@ -94,7 +96,6 @@ export default function OperatorOnboarding() {
         onboarding_completed: true,
       }).select("id").single();
 
-      // Create location
       if (form.address) {
         await supabase.from("locations").insert({
           organization_id: org.id, type: "headquarters", label: "Shop / Yard",
@@ -103,7 +104,6 @@ export default function OperatorOnboarding() {
         });
       }
 
-      // Add equipment if provided
       if (form.equipmentMake && opProfile) {
         await supabase.from("equipment").insert({
           operator_id: opProfile.id,
@@ -114,7 +114,6 @@ export default function OperatorOnboarding() {
         });
       }
 
-      // Comm preferences
       await supabase.from("communication_preferences").insert({
         user_id: user.id, preferred_method: form.preferredComm as any,
       });
@@ -131,8 +130,26 @@ export default function OperatorOnboarding() {
     if (step === 0) return form.firstName.trim() && form.lastName.trim() && form.phone.trim();
     if (step === 1) return form.businessName.trim();
     if (step === 2) return services.length > 0;
-    if (step === 3) return form.address.trim() && form.city.trim() && form.state.trim() && form.zip.trim();
+    if (step === 3) return form.address.trim() && form.city.trim() && form.state.trim() && form.zip.trim() && form.county.trim();
     return true;
+  };
+
+  const validationMessage = () => {
+    if (step === 0) {
+      if (!form.firstName.trim()) return "First name is required";
+      if (!form.lastName.trim()) return "Last name is required";
+      if (!form.phone.trim()) return "Phone number is required";
+    }
+    if (step === 1 && !form.businessName.trim()) return "Business name is required";
+    if (step === 2 && services.length === 0) return "Select at least one service you offer";
+    if (step === 3) {
+      if (!form.address.trim()) return "Shop/yard address is required";
+      if (!form.city.trim()) return "City is required";
+      if (!form.state) return "State is required";
+      if (!form.zip.trim()) return "ZIP code is required";
+      if (!form.county.trim()) return "County is required for job matching and routing";
+    }
+    return null;
   };
 
   return (
@@ -147,7 +164,6 @@ export default function OperatorOnboarding() {
 
       <div className="flex-1 flex items-start justify-center pt-12 px-4">
         <div className="w-full max-w-xl">
-          {/* Step indicator */}
           <div className="flex items-center gap-1 mb-8">
             {STEPS.map((s, i) => (
               <div key={s.id} className="flex items-center flex-1">
@@ -172,7 +188,7 @@ export default function OperatorOnboarding() {
               {step === 0 && "Your contact information."}
               {step === 1 && "Tell us about your business."}
               {step === 2 && "What services do you offer?"}
-              {step === 3 && "Where do you operate from?"}
+              {step === 3 && "Where do you operate from? County is required for job matching."}
               {step === 4 && "Insurance and certifications."}
             </p>
 
@@ -181,16 +197,16 @@ export default function OperatorOnboarding() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label>First name <span className="text-destructive">*</span></Label>
-                    <Input value={form.firstName} onChange={e => set("firstName", e.target.value)} required />
+                    <Input value={form.firstName} onChange={e => set("firstName", e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Last name <span className="text-destructive">*</span></Label>
-                    <Input value={form.lastName} onChange={e => set("lastName", e.target.value)} required />
+                    <Input value={form.lastName} onChange={e => set("lastName", e.target.value)} />
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label>Phone <span className="text-destructive">*</span></Label>
-                  <Input value={form.phone} onChange={e => set("phone", e.target.value)} required />
+                  <Input value={form.phone} onChange={e => set("phone", e.target.value)} />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Preferred communication</Label>
@@ -211,7 +227,7 @@ export default function OperatorOnboarding() {
               <div className="space-y-4">
                 <div className="space-y-1.5">
                   <Label>Business name <span className="text-destructive">*</span></Label>
-                  <Input value={form.businessName} onChange={e => set("businessName", e.target.value)} placeholder="e.g. AgriPro Custom Services" required />
+                  <Input value={form.businessName} onChange={e => set("businessName", e.target.value)} placeholder="e.g. AgriPro Custom Services" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
@@ -233,7 +249,7 @@ export default function OperatorOnboarding() {
             {step === 2 && (
               <div className="space-y-5">
                 <div>
-                  <Label className="mb-3 block">Services offered</Label>
+                  <Label className="mb-3 block">Services offered <span className="text-destructive">*</span></Label>
                   <div className="grid grid-cols-2 gap-2">
                     {SERVICE_TYPES.map(s => (
                       <label key={s.value} className={cn(
@@ -262,21 +278,26 @@ export default function OperatorOnboarding() {
               <div className="space-y-4">
                 <div className="space-y-1.5">
                   <Label>Shop / yard address <span className="text-destructive">*</span></Label>
-                  <Input value={form.address} onChange={e => set("address", e.target.value)} required />
+                  <Input value={form.address} onChange={e => set("address", e.target.value)} />
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1.5">
                     <Label>City <span className="text-destructive">*</span></Label>
-                    <Input value={form.city} onChange={e => set("city", e.target.value)} required />
+                    <Input value={form.city} onChange={e => set("city", e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>State <span className="text-destructive">*</span></Label>
-                    <Input value={form.state} onChange={e => set("state", e.target.value)} required />
+                    <StateSelect value={form.state} onValueChange={v => set("state", v)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>ZIP <span className="text-destructive">*</span></Label>
-                    <Input value={form.zip} onChange={e => set("zip", e.target.value)} required />
+                    <Input value={form.zip} onChange={e => set("zip", e.target.value)} />
                   </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>County <span className="text-destructive">*</span></Label>
+                  <Input value={form.county} onChange={e => set("county", e.target.value)} placeholder="e.g. Lancaster" />
+                  <p className="text-[11px] text-muted-foreground">Required — used for job matching and distance calculations.</p>
                 </div>
                 <div className="space-y-1.5">
                   <Label>Service radius (miles)</Label>
@@ -307,6 +328,10 @@ export default function OperatorOnboarding() {
               </div>
             )}
 
+            {!canNext() && validationMessage() && (
+              <p className="text-xs text-destructive mt-3">{validationMessage()}</p>
+            )}
+
             <div className="flex items-center justify-between mt-8 pt-4 border-t">
               <Button variant="ghost" onClick={() => setStep(s => s - 1)} disabled={step === 0}>
                 <ChevronLeft size={16} className="mr-1" /> Back
@@ -323,10 +348,6 @@ export default function OperatorOnboarding() {
               )}
             </div>
           </div>
-
-          <p className="text-center text-xs text-muted-foreground mt-4">
-            <button onClick={() => navigate("/dashboard")} className="hover:underline">Skip for now</button>
-          </p>
         </div>
       </div>
     </div>
