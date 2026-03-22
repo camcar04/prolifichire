@@ -7,10 +7,11 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Users, Briefcase, DollarSign, Map, AlertTriangle,
-  ArrowRight, Activity, Shield, TrendingUp, BarChart3,
+  ArrowRight, Activity, Shield, TrendingUp, BarChart3, ShieldCheck,
 } from "lucide-react";
 import { formatCurrency, formatOperationType, formatDate, formatRelative } from "@/lib/format";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { CompliancePanel } from "@/components/admin/CompliancePanel";
 
 const STATUS_COLORS: Record<string, string> = {
   requested: "hsl(38, 92%, 50%)",
@@ -236,6 +237,15 @@ export default function AdminDashboard() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Compliance */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <ShieldCheck size={14} className="text-primary" />
+          <h3 className="text-[13px] font-semibold">Compliance & Credentials</h3>
+        </div>
+        <CompliancePanel />
       </div>
     </div>
   );

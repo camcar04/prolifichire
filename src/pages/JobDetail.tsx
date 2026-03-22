@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { FieldMap } from "@/components/map/FieldMap";
 import { DetailSkeleton } from "@/components/shared/PageSkeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { JobCredentialMatch } from "@/components/operators/JobCredentialMatch";
 import { useJob } from "@/hooks/useJobs";
 import {
   formatCurrency, formatAcres, formatOperationType, formatDate,
@@ -13,7 +14,7 @@ import {
 } from "@/lib/format";
 import {
   ChevronRight, Calendar, DollarSign, User, MapPin, AlertTriangle,
-  Clock, FileText, Truck, CheckCircle2, Package,
+  Clock, FileText, Truck, CheckCircle2, Package, ShieldCheck,
 } from "lucide-react";
 
 export default function JobDetail() {
@@ -184,6 +185,14 @@ export default function JobDetail() {
 
           {/* Sidebar */}
           <div className="space-y-5">
+            {/* Credential match - operator view */}
+            {activeMode === "operator" && (
+              <div className="rounded-xl bg-card shadow-card p-4">
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><ShieldCheck size={15} /> Credential Requirements</h3>
+                <JobCredentialMatch operationType={job.operation_type} />
+              </div>
+            )}
+
             {/* Proof of work */}
             <div className="rounded-xl bg-card shadow-card p-4">
               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><CheckCircle2 size={15} /> Proof of Work</h3>

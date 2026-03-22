@@ -28,6 +28,7 @@ import CookiePolicy from "./pages/legal/CookiePolicy";
 import AcceptableUse from "./pages/legal/AcceptableUse";
 import CookieConsent from "./components/legal/CookieConsent";
 import { AIAssistant } from "./components/ai/AIAssistant";
+import OperatorProfile from "./pages/OperatorProfile";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="/files" element={<Dashboard />} />
             <Route path="/messages" element={<Dashboard />} />
             <Route path="/operators" element={<Dashboard />} />
+            <Route path="/operators/:operatorId" element={<OperatorProfile />} />
             <Route path="/compliance" element={<Dashboard />} />
             <Route path="/legal/privacy" element={<PrivacyPolicy />} />
             <Route path="/legal/terms" element={<TermsOfService />} />
