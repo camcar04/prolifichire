@@ -2291,6 +2291,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       comm_method: "in_app" | "email" | "sms" | "phone"
@@ -2399,6 +2400,7 @@ export type Database = {
         | "fertilizing"
         | "seeding"
         | "mowing"
+        | "baling"
         | "drainage"
         | "other"
       packet_status:
@@ -2672,6 +2674,7 @@ export const Constants = {
         "fertilizing",
         "seeding",
         "mowing",
+        "baling",
         "drainage",
         "other",
       ],

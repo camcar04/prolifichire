@@ -21,7 +21,8 @@ const OPERATION_TYPES: { value: OperationType; label: string }[] = [
   { value: "scouting", label: "Scouting" },
   { value: "soil_sampling", label: "Soil Sampling" },
   { value: "seeding", label: "Seeding" },
-  { value: "mowing", label: "Mowing" },
+  { value: "mowing", label: "Mowing / Hay Cutting" },
+  { value: "baling", label: "Baling" },
   { value: "drainage", label: "Drainage" },
 ];
 

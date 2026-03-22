@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { OperationType } from "@/types/domain";
 import { cn } from "@/lib/utils";
 
-const operationFilters: (OperationType | "all")[] = ["all", "spraying", "planting", "harvest", "tillage", "hauling", "soil_sampling", "fertilizing"];
+const operationFilters: (OperationType | "all")[] = ["all", "spraying", "planting", "harvest", "tillage", "hauling", "soil_sampling", "fertilizing", "mowing", "baling"];
 
 export default function Marketplace() {
   const { activeMode } = useAuth();
