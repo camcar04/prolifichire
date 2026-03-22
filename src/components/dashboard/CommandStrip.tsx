@@ -14,15 +14,15 @@ interface CommandStripProps {
 }
 
 const urgencyStyles = {
-  action: "border-l-warning bg-warning/4",
+  action: "border-l-warning bg-warning/5",
   info: "border-l-primary bg-primary/3",
-  neutral: "border-l-border bg-card",
+  neutral: "border-l-border bg-surface-2/50",
 };
 
 export function CommandStrip({ icon, label, detail, cta, to, urgency = "neutral", secondary }: CommandStripProps) {
   return (
     <div className={cn(
-      "flex items-center gap-3 px-4 py-2.5 border-l-[3px] rounded-r-lg transition-colors",
+      "flex items-center gap-3 px-3 py-2 border-l-[3px] rounded-r transition-colors",
       urgencyStyles[urgency]
     )}>
       <span className="text-muted-foreground shrink-0">{icon}</span>
