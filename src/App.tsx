@@ -73,6 +73,7 @@ const App = () => (
             <Route path="/calendar" element={<P><CalendarView /></P>} />
             <Route path="/packets" element={<P><Packets /></P>} />
             <Route path="/templates" element={<P><Templates /></P>} />
+            <Route path="/bid-queue" element={<P><BidQueue /></P>} />
             <Route path="/notifications" element={<P><NotificationsPage /></P>} />
             <Route path="/payouts" element={<P><Payouts /></P>} />
             <Route path="/integrations" element={<P><Integrations /></P>} />
