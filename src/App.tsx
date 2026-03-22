@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import GrowerOnboarding from "./pages/onboarding/GrowerOnboarding";
 import OperatorOnboarding from "./pages/onboarding/OperatorOnboarding";
 import Templates from "./pages/Templates";
+import NotificationsPage from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
