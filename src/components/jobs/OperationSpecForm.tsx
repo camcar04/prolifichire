@@ -235,6 +235,207 @@ function HarvestSpecForm({ value, onChange }: { value: Partial<HarvestSpec>; onC
   );
 }
 
+function MowingSpecForm({ value, onChange }: { value: Partial<MowingSpec>; onChange: (v: Partial<MowingSpec>) => void }) {
+  const set = (k: keyof MowingSpec, v: any) => onChange({ ...value, [k]: v });
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        Mowing / Hay Cutting Specifications
+      </h3>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Cutting</Label>
+          <Select value={value.cuttingType || "first_cutting"} onValueChange={v => set("cuttingType", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {["first_cutting", "second_cutting", "third_cutting", "fourth_cutting", "other"].map(c => (
+                <SelectItem key={c} value={c}>{c.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Crop / Forage type</Label>
+          <Select value={value.cropType || "alfalfa"} onValueChange={v => set("cropType", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {["alfalfa", "grass_hay", "mixed_hay", "clover", "timothy", "orchard_grass", "other"].map(c => (
+                <SelectItem key={c} value={c}>{c.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Cutting height</Label>
+          <Input value={value.cuttingHeight || ""} onChange={e => set("cuttingHeight", e.target.value)} placeholder="e.g. 3 inches" />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Swath width</Label>
+          <Input value={value.swathWidth || ""} onChange={e => set("swathWidth", e.target.value)} placeholder="e.g. 14 ft" />
+        </div>
+      </div>
+      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Conditioner required</p>
+          <p className="text-xs text-muted-foreground">Crimps/crushes stems for faster drying</p>
+        </div>
+        <Switch checked={value.conditionerRequired || false} onCheckedChange={v => set("conditionerRequired", v)} />
+      </div>
+      {value.conditionerRequired && (
+        <div className="space-y-1.5">
+          <Label>Conditioner type</Label>
+          <Input value={value.conditionerType || ""} onChange={e => set("conditionerType", e.target.value)} placeholder="e.g. Roller, Impeller" />
+        </div>
+      )}
+      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Tedding required</p>
+          <p className="text-xs text-muted-foreground">Spread and flip for even drying</p>
+        </div>
+        <Switch checked={value.teddingRequired || false} onCheckedChange={v => set("teddingRequired", v)} />
+      </div>
+      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Raking required</p>
+          <p className="text-xs text-muted-foreground">Windrow before baling</p>
+        </div>
+        <Switch checked={value.rakingRequired || false} onCheckedChange={v => set("rakingRequired", v)} />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Estimated dry time</Label>
+        <Input value={value.estimatedDryTime || ""} onChange={e => set("estimatedDryTime", e.target.value)} placeholder="e.g. 2–3 days weather permitting" />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Field condition notes</Label>
+        <Textarea value={value.fieldConditionNotes || ""} onChange={e => set("fieldConditionNotes", e.target.value)} placeholder="e.g. Gopher mounds on east side, wet spot NW corner" rows={2} />
+      </div>
+      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Boundary file attached</p>
+        </div>
+        <Switch checked={value.boundaryFileAttached || false} onCheckedChange={v => set("boundaryFileAttached", v)} />
+      </div>
+    </div>
+  );
+}
+
+function BalingSpecForm({ value, onChange }: { value: Partial<BalingSpec>; onChange: (v: Partial<BalingSpec>) => void }) {
+  const set = (k: keyof BalingSpec, v: any) => onChange({ ...value, [k]: v });
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+        Baling Specifications
+      </h3>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Bale type</Label>
+          <Select value={value.baleType || "large_round"} onValueChange={v => set("baleType", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="small_square">Small Square</SelectItem>
+              <SelectItem value="large_square">Large Square (3x3, 3x4)</SelectItem>
+              <SelectItem value="large_round">Large Round</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Twine / Wrap type</Label>
+          <Select value={value.twineOrWrapType || "net_wrap"} onValueChange={v => set("twineOrWrapType", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="twine">Twine</SelectItem>
+              <SelectItem value="net_wrap">Net Wrap</SelectItem>
+              <SelectItem value="plastic_wrap">Plastic Wrap (Silage)</SelectItem>
+              <SelectItem value="sisal">Sisal</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Bale size</Label>
+          <Input value={value.baleSize || ""} onChange={e => set("baleSize", e.target.value)} placeholder='e.g. 4x5, 3x3x8' />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Target bale weight</Label>
+          <Input value={value.baleWeight || ""} onChange={e => set("baleWeight", e.target.value)} placeholder="e.g. 1,200 lbs" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Estimated bale count</Label>
+          <Input type="number" value={value.estimatedBaleCount || ""} onChange={e => set("estimatedBaleCount", parseInt(e.target.value) || 0)} placeholder="e.g. 85" />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Target moisture (%)</Label>
+          <Input value={value.moistureTarget || ""} onChange={e => set("moistureTarget", e.target.value)} placeholder="e.g. 12–15%" />
+        </div>
+      </div>
+      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Preservative required</p>
+          <p className="text-xs text-muted-foreground">Propionic acid or similar for high-moisture baling</p>
+        </div>
+        <Switch checked={value.preservativeRequired || false} onCheckedChange={v => set("preservativeRequired", v)} />
+      </div>
+      {value.preservativeRequired && (
+        <div className="space-y-1.5">
+          <Label>Preservative type</Label>
+          <Input value={value.preservativeType || ""} onChange={e => set("preservativeType", e.target.value)} placeholder="e.g. Harvest Tec propionic acid" />
+        </div>
+      )}
+      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Stacking required</p>
+          <p className="text-xs text-muted-foreground">Operator stacks bales after baling</p>
+        </div>
+        <Switch checked={value.stackingRequired || false} onCheckedChange={v => set("stackingRequired", v)} />
+      </div>
+      {value.stackingRequired && (
+        <div className="space-y-1.5">
+          <Label>Stacking location</Label>
+          <Input value={value.stackingLocation || ""} onChange={e => set("stackingLocation", e.target.value)} placeholder="e.g. NE corner of field, by barn" />
+        </div>
+      )}
+      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Loading required</p>
+          <p className="text-xs text-muted-foreground">Operator loads bales onto trailer</p>
+        </div>
+        <Switch checked={value.loadingRequired || false} onCheckedChange={v => set("loadingRequired", v)} />
+      </div>
+      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Hauling required</p>
+          <p className="text-xs text-muted-foreground">Transport bales to destination</p>
+        </div>
+        <Switch checked={value.haulingRequired || false} onCheckedChange={v => set("haulingRequired", v)} />
+      </div>
+      {value.haulingRequired && (
+        <div className="space-y-1.5">
+          <Label>Hauling destination</Label>
+          <Input value={value.haulingDestination || ""} onChange={e => set("haulingDestination", e.target.value)} placeholder="e.g. Barn 2 miles north on CR 400" />
+        </div>
+      )}
+      <div className="space-y-1.5">
+        <Label>Field condition notes</Label>
+        <Textarea value={value.fieldConditionNotes || ""} onChange={e => set("fieldConditionNotes", e.target.value)} placeholder="e.g. Windrows ready, avoid wet area south side" rows={2} />
+      </div>
+      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Boundary file attached</p>
+        </div>
+        <Switch checked={value.boundaryFileAttached || false} onCheckedChange={v => set("boundaryFileAttached", v)} />
+      </div>
+    </div>
+  );
+}
+
 export function OperationSpecForm({ operationType, value, onChange }: OperationSpecFormProps) {
   if (operationType === "planting" || operationType === "seeding") {
     return <PlantingSpecForm value={value} onChange={onChange} />;
@@ -244,6 +445,12 @@ export function OperationSpecForm({ operationType, value, onChange }: OperationS
   }
   if (operationType === "harvest") {
     return <HarvestSpecForm value={value} onChange={onChange} />;
+  }
+  if (operationType === "mowing") {
+    return <MowingSpecForm value={value} onChange={onChange} />;
+  }
+  if (operationType === "baling") {
+    return <BalingSpecForm value={value} onChange={onChange} />;
   }
 
   return (

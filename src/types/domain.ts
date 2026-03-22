@@ -710,7 +710,39 @@ export interface HarvestSpec {
   machineDataRequired: boolean;
 }
 
-export type OperationSpecData = PlantingSpec | ApplicationSpec | HarvestSpec;
+export interface MowingSpec {
+  cuttingType: "first_cutting" | "second_cutting" | "third_cutting" | "fourth_cutting" | "other";
+  cropType: "alfalfa" | "grass_hay" | "mixed_hay" | "clover" | "timothy" | "orchard_grass" | "other";
+  conditionerRequired: boolean;
+  conditionerType: string;
+  cuttingHeight: string;
+  swathWidth: string;
+  teddingRequired: boolean;
+  rakingRequired: boolean;
+  estimatedDryTime: string;
+  fieldConditionNotes: string;
+  boundaryFileAttached: boolean;
+}
+
+export interface BalingSpec {
+  baleType: "small_square" | "large_square" | "large_round" | "other";
+  baleSize: string;
+  baleWeight: string;
+  estimatedBaleCount: number;
+  twineOrWrapType: "twine" | "net_wrap" | "plastic_wrap" | "sisal";
+  moistureTarget: string;
+  stackingRequired: boolean;
+  stackingLocation: string;
+  loadingRequired: boolean;
+  haulingRequired: boolean;
+  haulingDestination: string;
+  preservativeRequired: boolean;
+  preservativeType: string;
+  fieldConditionNotes: string;
+  boundaryFileAttached: boolean;
+}
+
+export type OperationSpecData = PlantingSpec | ApplicationSpec | HarvestSpec | MowingSpec | BalingSpec;
 
 export interface OperationSpec {
   id: string;
