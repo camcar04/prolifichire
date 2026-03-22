@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const tabs = [
+const growerTabs = [
   { id: "overview", label: "Overview", icon: Layers },
   { id: "jobs", label: "Jobs", icon: FileText },
   { id: "history", label: "History", icon: Clock },
@@ -33,6 +33,14 @@ const tabs = [
   { id: "financials", label: "Financials", icon: DollarSign },
   { id: "messages", label: "Messages", icon: MessageSquare },
   { id: "permissions", label: "Permissions", icon: Shield },
+];
+
+const operatorTabs = [
+  { id: "overview", label: "Overview", icon: Layers },
+  { id: "files", label: "Files & Packet", icon: Map },
+  { id: "jobs", label: "Job Details", icon: FileText },
+  { id: "messages", label: "Messages", icon: MessageSquare },
+  { id: "history", label: "History", icon: Clock },
 ];
 
 export default function FieldWorkspace() {
