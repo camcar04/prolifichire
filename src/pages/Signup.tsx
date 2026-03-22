@@ -5,11 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Briefcase, Wrench } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { AppMode } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { Tractor, Wheat } from "lucide-react";
 
 export default function Signup() {
   const [firstName, setFirstName] = useState("");
@@ -55,38 +54,44 @@ export default function Signup() {
 
         <div className="rounded-xl bg-card shadow-card p-6">
           <h1 className="text-lg font-semibold mb-1">Create your account</h1>
-          <p className="text-sm text-muted-foreground mb-5">Choose how you'll use ProlificHire.</p>
+          <p className="text-sm text-muted-foreground mb-5">What are you here to do?</p>
 
-          {/* Role picker */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <button
-              type="button"
-              onClick={() => setSelectedRole("grower")}
-              className={cn(
-                "rounded-xl border-2 p-4 text-left transition-all active:scale-[0.97]",
-                selectedRole === "grower"
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-muted-foreground/30"
-              )}
-            >
-              <Wheat size={20} className={cn("mb-2", selectedRole === "grower" ? "text-primary" : "text-muted-foreground")} />
-              <p className="text-sm font-semibold">Grower</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Hire work for your fields</p>
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedRole("operator")}
-              className={cn(
-                "rounded-xl border-2 p-4 text-left transition-all active:scale-[0.97]",
-                selectedRole === "operator"
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-muted-foreground/30"
-              )}
-            >
-              <Tractor size={20} className={cn("mb-2", selectedRole === "operator" ? "text-primary" : "text-muted-foreground")} />
-              <p className="text-sm font-semibold">Operator</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Perform custom work</p>
-            </button>
+          {/* Role picker — prominent segmented */}
+          <div className="rounded-xl border-2 border-border bg-surface-2 p-1.5 mb-6">
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                type="button"
+                onClick={() => setSelectedRole("grower")}
+                className={cn(
+                  "rounded-lg px-4 py-3.5 text-left transition-all active:scale-[0.97]",
+                  selectedRole === "grower"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-transparent hover:bg-background"
+                )}
+              >
+                <Briefcase size={18} className="mb-1.5" />
+                <p className="text-sm font-bold">Hire Work</p>
+                <p className={cn("text-[11px] mt-0.5", selectedRole === "grower" ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                  I need work done on my fields
+                </p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedRole("operator")}
+                className={cn(
+                  "rounded-lg px-4 py-3.5 text-left transition-all active:scale-[0.97]",
+                  selectedRole === "operator"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-transparent hover:bg-background"
+                )}
+              >
+                <Wrench size={18} className="mb-1.5" />
+                <p className="text-sm font-bold">Do Work</p>
+                <p className={cn("text-[11px] mt-0.5", selectedRole === "operator" ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                  I perform custom work for hire
+                </p>
+              </button>
+            </div>
           </div>
 
           <form onSubmit={handleSignup} className="space-y-4">
