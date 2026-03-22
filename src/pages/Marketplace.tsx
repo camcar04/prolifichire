@@ -11,6 +11,10 @@ import { FieldMap } from "@/components/map/FieldMap";
 import { PrivateCostCalculator } from "@/components/operators/PrivateCostCalculator";
 import { JobEquipmentMatch } from "@/components/operators/JobEquipmentMatch";
 import { JobCredentialMatch } from "@/components/operators/JobCredentialMatch";
+import { VerifiedJobBadge, deriveJobBadges } from "@/components/trust/VerifiedJobBadge";
+import { PosterStatsCard } from "@/components/trust/PosterStatsCard";
+import { ReportJobDialog } from "@/components/trust/ReportJobDialog";
+import { validateJobQuality } from "@/hooks/useTrustSystem";
 import {
   MapPin, Clock, DollarSign, Search, Bookmark, BookmarkCheck,
   X, ChevronRight, Wheat, Navigation, FileText,
