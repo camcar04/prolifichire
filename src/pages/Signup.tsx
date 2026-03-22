@@ -9,6 +9,7 @@ import { Eye, EyeOff, Loader2, Briefcase, Wrench } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { AppMode } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { canPerformAction } from "@/lib/security";
 
 export default function Signup() {
   const [firstName, setFirstName] = useState("");
@@ -23,18 +24,45 @@ export default function Signup() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!canPerformAction("signup", 3000)) {
+      toast.error("Please wait before trying again.");
+      return;
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedFirst = firstName.trim();
+    const trimmedLast = lastName.trim();
+
+    if (!trimmedFirst || trimmedFirst.length > 100) {
+      toast.error("Please enter a valid first name.");
+      return;
+    }
+    if (!trimmedLast || trimmedLast.length > 100) {
+      toast.error("Please enter a valid last name.");
+      return;
+    }
+    if (!trimmedEmail || trimmedEmail.length > 255) {
+      toast.error("Please enter a valid email.");
+      return;
+    }
+    if (password.length < 6 || password.length > 128) {
+      toast.error("Password must be 6-128 characters.");
+      return;
+    }
+
     setLoading(true);
     const { error } = await supabase.auth.signUp({
-      email,
+      email: trimmedEmail,
       password,
       options: {
-        data: { first_name: firstName, last_name: lastName },
+        data: { first_name: trimmedFirst, last_name: trimmedLast },
         emailRedirectTo: window.location.origin,
       },
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      toast.error("Could not create account. Please try again.");
     } else {
       localStorage.setItem("ph_active_mode", selectedRole);
       toast.success("Account created! Setting up your workspace...");
@@ -95,24 +123,24 @@ export default function Signup() {
           </div>
 
           <form onSubmit={handleSignup} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="firstName">First name</Label>
-                <Input id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="lastName">Last name</Label>
-                <Input id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} required />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="firstName">First name</Label>
+                  <Input id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} required maxLength={100} autoComplete="given-name" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="lastName">Last name</Label>
+                  <Input id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} required maxLength={100} autoComplete="family-name" />
               </div>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
+              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required maxLength={255} autoComplete="email" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
-                <Input id="password" type={showPass ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 6 characters" required minLength={6} />
+                <Input id="password" type={showPass ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 6 characters" required minLength={6} maxLength={128} autoComplete="new-password" />
                 <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
