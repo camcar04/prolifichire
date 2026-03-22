@@ -92,10 +92,12 @@ export function useMarketplaceJobs() {
           farms(name)
         `)
         .in("status", ["requested", "quoted", "scheduled"])
-        .neq("requested_by", user!.id)
+        .in("visibility", ["public", "network_only"])
+        .neq("contract_mode", "invite_only")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data || [];
+      // Filter out own jobs client-side (RLS already shows them)
+      return (data || []).filter(j => j.requested_by !== user!.id);
     },
   });
 }
