@@ -45,7 +45,9 @@ const operatorTabs = [
 
 export default function FieldWorkspace() {
   const { fieldId } = useParams();
+  const { activeMode } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const tabs = activeMode === "operator" ? operatorTabs : growerTabs;
 
   const field = getFieldById(fieldId || "fld-1") || fields[0];
   const stats = fieldStats[field.id];
