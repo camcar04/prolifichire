@@ -373,9 +373,12 @@ export default function JobDetail() {
           )}
         </div>
 
-        {/* Operator decision strip */}
+        {/* Operator decision strip + private costing for marketplace/quoted jobs */}
         {isOperatorView && ["requested", "quoted"].includes(job.status) && (
-          <div className="mb-4"><OperatorDecisionStrip job={job} /></div>
+          <div className="mb-4 space-y-3">
+            <OperatorDecisionStrip job={job} />
+            <PrivateCostCalculator job={job} />
+          </div>
         )}
 
         <div className="grid lg:grid-cols-3 gap-4">

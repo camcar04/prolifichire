@@ -249,6 +249,7 @@ export default function Settings() {
             <TabsContent value="dowork" className="space-y-5">
               <OperatorLocationSection />
               <OperatorServicesSection />
+              <OperatorPricingSection />
               <OperatorEquipmentSection />
               <OperatorCredentialsSection />
             </TabsContent>
