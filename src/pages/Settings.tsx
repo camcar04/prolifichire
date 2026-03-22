@@ -33,6 +33,25 @@ const SERVICE_TYPE_OPTIONS: OperationType[] = [
   "tillage", "hauling", "soil_sampling", "mowing", "baling", "rock_picking",
 ];
 
+const MISSING_ITEM_MAP: Record<string, { blocked: string; reason: string; link: string; cta: string }> = {
+  "Farm created": { blocked: "Post a job", reason: "Create a farm first", link: "/fields", cta: "Create Farm" },
+  "At least one field": { blocked: "Post a job", reason: "Add at least one field", link: "/fields", cta: "Add Field" },
+  "Field boundary": { blocked: "Generate accurate packets", reason: "Add a field boundary", link: "/fields", cta: "Set Boundary" },
+  "Field location": { blocked: "Operator routing", reason: "Set field location data", link: "/fields", cta: "Set Location" },
+  "Farm state": { blocked: "Post a job", reason: "Add your farm state", link: "/fields", cta: "Update Farm" },
+  "Farm county": { blocked: "Post a job", reason: "Add your farm county", link: "/fields", cta: "Update Farm" },
+  "Full name": { blocked: "Use platform", reason: "Add your name", link: "/settings?tab=profile", cta: "Add Name" },
+  "Base location": { blocked: "Find nearby jobs", reason: "Set your shop/yard location", link: "/settings?tab=dowork", cta: "Set Location" },
+  "Service radius": { blocked: "Receive job matches", reason: "Define your service area", link: "/settings?tab=dowork", cta: "Set Radius" },
+  "Service types": { blocked: "Match with jobs", reason: "Select services you offer", link: "/settings?tab=dowork", cta: "Set Services" },
+  "At least one equipment record": { blocked: "Bid on jobs", reason: "Add your equipment", link: "/settings?tab=dowork", cta: "Add Equipment" },
+  "Operator profile": { blocked: "Use operator features", reason: "Complete operator setup", link: "/settings?tab=dowork", cta: "Complete Setup" },
+  "Insurance documentation": { blocked: "Earn trust badges", reason: "Upload insurance proof", link: "/settings?tab=dowork", cta: "Add Insurance" },
+  "License or certification": { blocked: "Earn trust badges", reason: "Upload license or cert", link: "/settings?tab=dowork", cta: "Add License" },
+  "Credentials (insurance, license)": { blocked: "Earn trust badges", reason: "Add credentials", link: "/settings?tab=dowork", cta: "Add Credentials" },
+  "Equipment": { blocked: "Bid on jobs", reason: "Add equipment", link: "/settings?tab=dowork", cta: "Add Equipment" },
+};
+
 export default function Settings() {
   const { profile, user, roles, hasRole, canSwitchRoles, activeMode, refreshProfile } = useAuth();
   const [searchParams] = useSearchParams();
@@ -135,19 +154,13 @@ export default function Settings() {
                 <h3 className="text-sm font-semibold flex items-center gap-2 mb-2">
                   <AlertTriangle size={13} className="text-warning" /> Setup Required
                 </h3>
+                <p className="text-[11px] text-muted-foreground mb-3">Complete these items to unlock platform features.</p>
                 <div className="space-y-1.5">
-                  {activeMode === "grower" && score.missing.some(m => m.includes("Farm") || m.includes("field")) && (
-                    <BlockedItem label="Post a job" reason="Add a farm and field first" link="/fields" cta="Go to Fields" />
-                  )}
-                  {activeMode === "operator" && score.missing.some(m => m.includes("equipment") || m.includes("Equipment")) && (
-                    <BlockedItem label="Bid on jobs" reason="Add equipment to your profile" link="/settings?tab=dowork" cta="Add Equipment" />
-                  )}
-                  {activeMode === "operator" && score.missing.some(m => m.includes("Service radius") || m.includes("Base location")) && (
-                    <BlockedItem label="Receive job matches" reason="Set your base location and service radius" link="/settings?tab=dowork" cta="Set Location" />
-                  )}
-                  {activeMode === "operator" && score.missing.some(m => m.includes("Service types")) && (
-                    <BlockedItem label="Match with jobs" reason="Select the types of work you perform" link="/settings?tab=dowork" cta="Set Services" />
-                  )}
+                  {score.missing.map(item => {
+                    const mapping = MISSING_ITEM_MAP[item];
+                    if (!mapping) return null;
+                    return <BlockedItem key={item} label={mapping.blocked} reason={mapping.reason} link={mapping.link} cta={mapping.cta} />;
+                  })}
                 </div>
               </section>
             )}

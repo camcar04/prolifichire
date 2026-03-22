@@ -81,7 +81,7 @@ export function useMarketplaceJobs() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["marketplace-jobs"],
+    queryKey: ["marketplace-jobs", user?.id],
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -92,7 +92,29 @@ export function useMarketplaceJobs() {
           farms(name)
         `)
         .in("status", ["requested", "quoted", "scheduled"])
+        .neq("requested_by", user!.id)
         .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+export function useMyBidQueue() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["my-quotes", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quotes")
+        .select(`
+          *,
+          jobs(*, job_fields(*, fields(name, crop, acreage, centroid_lat, centroid_lng)), farms(name))
+        `)
+        .eq("operator_id", user!.id)
+        .order("submitted_at", { ascending: false });
       if (error) throw error;
       return data || [];
     },
