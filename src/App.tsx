@@ -57,12 +57,10 @@ const App = () => (
             <Route path="/payouts" element={<Payouts />} />
             <Route path="/integrations" element={<Integrations />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/finance" element={<Dashboard />} />
-            <Route path="/files" element={<Dashboard />} />
-            <Route path="/messages" element={<Dashboard />} />
-            <Route path="/operators" element={<Dashboard />} />
+            <Route path="/finance" element={<Payouts />} />
+            <Route path="/files" element={<Fields />} />
+            <Route path="/messages" element={<NotificationsPage />} />
             <Route path="/operators/:operatorId" element={<OperatorProfile />} />
-            <Route path="/compliance" element={<Dashboard />} />
             <Route path="/legal/privacy" element={<PrivacyPolicy />} />
             <Route path="/legal/terms" element={<TermsOfService />} />
             <Route path="/legal/cookies" element={<CookiePolicy />} />
