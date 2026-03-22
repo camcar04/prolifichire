@@ -6,9 +6,12 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { FieldMap } from "@/components/map/FieldMap";
 import { ActivityTimeline } from "@/components/shared/ActivityTimeline";
 import { FieldPacketCard } from "@/components/shared/FieldPacketCard";
+import { PricingSuggestionCard } from "@/components/intelligence/PricingSuggestionCard";
+import { RouteContextBadge } from "@/components/intelligence/RouteContext";
+import { usePricingEngine } from "@/hooks/useIntelligence";
 import {
   getJobById, getFieldById, getExceptionsByJob, getQuotesByJob,
-  getFieldPacketByJob, jobs, auditLogs,
+  getFieldPacketByJob, jobs, auditLogs, operators,
 } from "@/data/mock";
 import {
   formatCurrency, formatAcres, formatOperationType, formatDate,
@@ -16,8 +19,9 @@ import {
 } from "@/lib/format";
 import {
   ChevronRight, Calendar, DollarSign, User, MapPin, AlertTriangle,
-  Clock, FileText, Truck, CheckCircle2,
+  Clock, FileText, Truck, CheckCircle2, Sparkles,
 } from "lucide-react";
+import { useEffect } from "react";
 
 export default function JobDetail() {
   const { jobId } = useParams();
@@ -28,6 +32,23 @@ export default function JobDetail() {
   const quotes = getQuotesByJob(job.id);
   const packet = getFieldPacketByJob(job.id);
   const jobEvents = auditLogs.filter(a => a.entityId === job.id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const { estimate, loading: pricingLoading, getEstimate } = usePricingEngine();
+
+  const operator = operators.find(o => o.userId === job.operatorId);
+  const operatorBase = operator?.baseLat ? { lat: operator.baseLat, lng: operator.baseLng! } : null;
+  const fieldLocation = field?.centroid ? { lat: field.centroid.lat, lng: field.centroid.lng } : null;
+
+  useEffect(() => {
+    if (job && ["requested", "quoted"].includes(job.status)) {
+      getEstimate({
+        operation_type: job.operationType,
+        acreage: job.totalAcres,
+        travel_distance: job.travelDistance,
+        urgency: job.urgency,
+        crop: job.fields[0]?.crop,
+      });
+    }
+  }, [job?.id]);
 
   return (
     <AppShell title="">
@@ -154,6 +175,19 @@ export default function JobDetail() {
 
           {/* Right column — sidebar */}
           <div className="space-y-5">
+            {/* Route context for operators */}
+            {activeMode === "operator" && operatorBase && fieldLocation && (
+              <div className="rounded-xl bg-card shadow-card p-4">
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><Truck size={15} /> Route Context</h3>
+                <RouteContextBadge operatorBase={operatorBase} fieldLocation={fieldLocation} />
+              </div>
+            )}
+
+            {/* AI Pricing */}
+            {["requested", "quoted"].includes(job.status) && (
+              <PricingSuggestionCard estimate={estimate} loading={pricingLoading} acreage={job.totalAcres} />
+            )}
+
             {/* Operator */}
             {job.operatorName && (
               <div className="rounded-xl bg-card shadow-card p-4">
