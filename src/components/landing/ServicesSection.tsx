@@ -1,43 +1,32 @@
 import { useRef } from "react";
-import { Link } from "react-router-dom";
 import { useScrollRevealAll } from "@/hooks/useScrollReveal";
 import { SprayCan, Sprout, Wheat, Tractor, Mountain } from "lucide-react";
 
 const services = [
   {
     icon: SprayCan,
-    slug: "spraying",
-    title: "Custom Spraying Services",
-    desc: "Professional crop spraying, herbicide application, and fungicide programs executed by experienced operators with GPS-guided equipment. Whether you need pre-emerge, post-emerge, or late-season applications, ProlificHire connects you with licensed applicators who understand drift management, buffer zones, and restricted-entry intervals. Get variable-rate prescriptions applied accurately with full documentation.",
-    keywords: "custom spraying, crop spraying near me, herbicide application, agricultural spraying services",
+    title: "Custom Spraying",
+    desc: "Herbicide, fungicide, and foliar applications by licensed operators with GPS-guided equipment. Variable-rate prescriptions, drift management, and full as-applied documentation.",
   },
   {
     icon: Sprout,
-    slug: "planting",
-    title: "Custom Planting Services",
-    desc: "Find experienced planting operators equipped with modern planters, variable-rate drives, and precision seed placement technology. From corn and soybeans to wheat and specialty crops, our marketplace connects growers with operators who can handle any seed type, population target, and row spacing requirement. Upload your prescription maps and let operators execute with full data return.",
-    keywords: "custom planting, planting services near me, seed planting, precision planting",
+    title: "Custom Planting",
+    desc: "Precision seed placement with modern planters. Variable-rate population, any row spacing, and complete data return including as-planted maps.",
   },
   {
     icon: Wheat,
-    slug: "harvest",
-    title: "Custom Harvesting Services",
-    desc: "Connect with harvest crews who bring combines, grain carts, and trucking capacity to your fields when timing matters most. ProlificHire handles field boundaries, moisture tracking, and yield data sharing so you get every bushel accounted for. Schedule crews weeks in advance or find last-minute availability when weather windows open.",
-    keywords: "custom harvesting, harvest crews near me, combine services, grain harvesting",
+    title: "Custom Harvesting",
+    desc: "Combines, grain carts, and trucking coordinated through one platform. Yield data sharing, moisture tracking, and field-by-field accounting.",
   },
   {
     icon: Tractor,
-    slug: "fertilizer",
-    title: "Fertilizer Application Services",
-    desc: "Dry spread, liquid application, anhydrous ammonia — whatever your fertility program calls for, ProlificHire connects you with operators who have the right equipment and certifications. Specify rates, zones, and product pickup logistics. Track every pass with as-applied maps tied directly to your field records for clean agronomic history.",
-    keywords: "fertilizer application, custom fertilizer spreading, agricultural application services",
+    title: "Fertilizer Application",
+    desc: "Dry spread, liquid, and anhydrous programs. Specify rates, zones, and product pickup logistics with as-applied records tied to each field.",
   },
   {
     icon: Mountain,
-    slug: "rock-picking",
-    title: "Rock Picking Services",
-    desc: "Clear your fields of surface rocks before planting or after tillage with professional rock picking services. Operators bring rock pickers, skid steers, and hauling equipment to handle everything from scattered stones to heavy boulder fields. Specify density estimates, disposal preferences, and equipment requirements through structured job specs.",
-    keywords: "rock picking services, field rock removal, agricultural rock picking",
+    title: "Rock Picking",
+    desc: "Clear fields before planting or after tillage. Specify density, disposal preferences, and equipment requirements through structured job specs.",
   },
 ];
 
@@ -46,34 +35,31 @@ export default function ServicesSection() {
   useScrollRevealAll(ref);
 
   return (
-    <section ref={ref} id="services" className="py-20 md:py-28">
+    <section ref={ref} id="services" className="py-20 md:py-28 bg-surface-2">
       <div className="container">
-        <div className="max-w-2xl mx-auto text-center mb-14">
-          <p className="reveal text-sm font-semibold text-accent uppercase tracking-wider mb-3">Services</p>
-          <h2 className="reveal text-3xl md:text-4xl font-bold tracking-tight" style={{ transitionDelay: "80ms" }}>
+        <div className="max-w-lg mx-auto text-center mb-12">
+          <h2 className="reveal text-2xl md:text-3xl font-bold tracking-tight">
             Hire custom farming services near you
           </h2>
-          <p className="reveal mt-4 text-muted-foreground text-lg" style={{ transitionDelay: "120ms" }}>
-            Find spraying, planting, harvest, rock picking, and more — all matched to your fields, crop, and schedule.
+          <p className="reveal mt-3 text-muted-foreground text-[15px]" style={{ transitionDelay: "80ms" }}>
+            Spraying, planting, harvest, fertilizer, rock picking — matched to your fields.
           </p>
         </div>
 
-        <div className="space-y-10">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {services.map((s, i) => (
             <article
-              key={s.slug}
-              className="reveal rounded-xl bg-card shadow-card p-6 md:p-8"
-              style={{ transitionDelay: `${i * 80}ms` }}
+              key={s.title}
+              className="reveal rounded-lg bg-card shadow-card p-5"
+              style={{ transitionDelay: `${i * 70}ms` }}
             >
-              <div className="flex items-start gap-4 mb-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <s.icon size={20} className="text-primary" />
+              <div className="flex items-center gap-3 mb-2.5">
+                <div className="h-8 w-8 rounded-md bg-primary/8 flex items-center justify-center shrink-0">
+                  <s.icon size={16} className="text-primary" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-lg">{s.title}</h3>
-                </div>
+                <h3 className="font-semibold text-sm">{s.title}</h3>
               </div>
-              <p className="text-muted-foreground text-sm leading-relaxed max-w-3xl">{s.desc}</p>
+              <p className="text-muted-foreground text-[13px] leading-relaxed">{s.desc}</p>
             </article>
           ))}
         </div>

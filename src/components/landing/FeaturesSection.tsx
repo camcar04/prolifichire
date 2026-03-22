@@ -8,32 +8,32 @@ const features = [
   {
     icon: Map,
     title: "Field Workspaces",
-    desc: "Every field gets a permanent digital workspace — boundary maps, work history, files, financials, and permissions in one place.",
+    desc: "Every field gets a permanent workspace — boundaries, work history, files, financials, and permissions in one view.",
   },
   {
     icon: Briefcase,
     title: "Job Marketplace",
-    desc: "Growers post work, operators browse and accept. Full context on every field before commitment.",
+    desc: "Post work, get quotes, accept operators. Full field context before anyone commits.",
   },
   {
     icon: FileStack,
     title: "Field Packets",
-    desc: "Auto-generated data bundles per job — boundaries, prescriptions, and access instructions ready for download.",
+    desc: "Auto-generated data bundles per job — boundaries, prescriptions, access notes — ready for download.",
   },
   {
     icon: DollarSign,
-    title: "Financial Engine",
-    desc: "Per-acre, hourly, or flat-rate pricing. Split payments, change orders, and full reconciliation built in.",
+    title: "Payments & Splits",
+    desc: "Per-acre, hourly, or flat-rate. Owner/tenant split payments and full reconciliation built in.",
   },
   {
     icon: Shield,
-    title: "Trust & Compliance",
+    title: "Compliance Tracking",
     desc: "Insurance verification, certification tracking, and audit logging across every interaction.",
   },
   {
     icon: CalendarDays,
     title: "Scheduling & Routing",
-    desc: "Calendar-based dispatch with travel distance, weather delays, and route clustering for efficiency.",
+    desc: "Calendar dispatch with travel distance, weather delays, and route clustering for efficiency.",
   },
 ];
 
@@ -42,30 +42,29 @@ export default function FeaturesSection() {
   useScrollRevealAll(ref);
 
   return (
-    <section ref={ref} id="features" className="py-24 md:py-32 bg-surface-2">
+    <section ref={ref} id="features" className="py-20 md:py-28 bg-surface-2">
       <div className="container">
-        <div className="max-w-2xl mx-auto text-center mb-16">
-          <p className="reveal text-sm font-semibold text-accent uppercase tracking-wider mb-3">Platform Capabilities</p>
-          <h2 className="reveal text-3xl md:text-4xl font-bold tracking-tight" style={{ transitionDelay: "80ms" }}>
-            Built for how agricultural work actually happens
+        <div className="max-w-lg mx-auto text-center mb-12">
+          <h2 className="reveal text-2xl md:text-3xl font-bold tracking-tight">
+            Built for how fieldwork actually happens
           </h2>
-          <p className="reveal mt-4 text-muted-foreground text-lg" style={{ transitionDelay: "120ms" }}>
-            Every feature designed around the field — not generic project management bolted onto agriculture.
+          <p className="reveal mt-3 text-muted-foreground text-[15px]" style={{ transitionDelay: "80ms" }}>
+            Every feature organized around the field — not generic project management.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {features.map((f, i) => (
             <div
               key={f.title}
-              className="reveal group rounded-xl bg-card p-6 shadow-card hover:shadow-card-hover transition-[box-shadow] duration-300"
-              style={{ transitionDelay: `${i * 80}ms` }}
+              className="reveal group rounded-lg bg-card p-5 shadow-card hover:shadow-card-hover transition-[box-shadow] duration-300"
+              style={{ transitionDelay: `${i * 70}ms` }}
             >
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/15 transition-colors">
-                <f.icon size={20} className="text-primary" />
+              <div className="h-9 w-9 rounded-md bg-primary/8 flex items-center justify-center mb-3 group-hover:bg-primary/12 transition-colors">
+                <f.icon size={18} className="text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">{f.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">{f.desc}</p>
+              <h3 className="font-semibold text-sm mb-1.5">{f.title}</h3>
+              <p className="text-muted-foreground text-[13px] leading-relaxed">{f.desc}</p>
             </div>
           ))}
         </div>

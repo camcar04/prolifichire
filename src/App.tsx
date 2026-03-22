@@ -15,6 +15,7 @@ import Signup from "./pages/Signup";
 import Schedule from "./pages/Schedule";
 import Packets from "./pages/Packets";
 import Payouts from "./pages/Payouts";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import GrowerOnboarding from "./pages/onboarding/GrowerOnboarding";
 import OperatorOnboarding from "./pages/onboarding/OperatorOnboarding";
@@ -54,12 +55,12 @@ const App = () => (
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/payouts" element={<Payouts />} />
             <Route path="/integrations" element={<Integrations />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/finance" element={<Dashboard />} />
             <Route path="/files" element={<Dashboard />} />
             <Route path="/messages" element={<Dashboard />} />
             <Route path="/operators" element={<Dashboard />} />
             <Route path="/compliance" element={<Dashboard />} />
-            <Route path="/settings" element={<Dashboard />} />
             <Route path="/legal/privacy" element={<PrivacyPolicy />} />
             <Route path="/legal/terms" element={<TermsOfService />} />
             <Route path="/legal/cookies" element={<CookiePolicy />} />
