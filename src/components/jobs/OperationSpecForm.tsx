@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import type { OperationType, PlantingSpec, ApplicationSpec, HarvestSpec, CropType } from "@/types/domain";
+import type { OperationType, PlantingSpec, ApplicationSpec, HarvestSpec, CropType, MowingSpec, BalingSpec } from "@/types/domain";
 
 interface OperationSpecFormProps {
   operationType: OperationType;
