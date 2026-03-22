@@ -32,6 +32,7 @@ import { AIAssistant } from "./components/ai/AIAssistant";
 import OperatorProfile from "./pages/OperatorProfile";
 import Enterprise from "./pages/Enterprise";
 import CalendarView from "./pages/CalendarView";
+import BidQueue from "./pages/BidQueue";
 
 const queryClient = new QueryClient();
 
