@@ -56,6 +56,10 @@ export default function JobDetail() {
   const inputs = (job as any).job_inputs || [];
   const invoices = (job as any).invoices || [];
   const specs = (job as any).operation_specs || [];
+  const contracts = (job as any).contracts || [];
+  const myPendingSig = contracts.flatMap((c: any) => (c.contract_signatures || []))
+    .find((s: any) => s.signer_id === user?.id && s.status === "pending");
+  const signingContract = contracts.find((c: any) => c.id === signingContractId);
   const contractMode = (job as any).contract_mode || "fixed_price";
   const isCancelled = job.status === "cancelled";
   const cancelInfo = canCancelJob(job, user?.id || "");
