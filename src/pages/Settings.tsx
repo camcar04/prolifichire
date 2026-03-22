@@ -569,3 +569,9 @@ function BlockedItem({ label, reason, link, cta }: { label: string; reason: stri
     </div>
   );
 }
+
+/* ── Operator Pricing Section ── */
+function OperatorPricingSection() {
+  const { PricingProfileEditor } = require("@/components/operators/PricingProfileEditor");
+  return <PricingProfileEditor />;
+}
