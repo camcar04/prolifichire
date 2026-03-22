@@ -24,7 +24,7 @@ export default function NetworkSection() {
           <h2 className="reveal text-2xl md:text-3xl font-bold tracking-tight">
             Built for ag networks
           </h2>
-          <p className="reveal mt-3 text-muted-foreground text-[15px]" style={{ transitionDelay: "80ms" }}>
+          <p className="reveal mt-3 text-primary-foreground/60 text-[15px]" style={{ transitionDelay: "80ms" }}>
             Retailers, co-ops, ethanol plants, and grain handlers — manage growers and operators in one system.
           </p>
         </div>
