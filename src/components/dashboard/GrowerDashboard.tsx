@@ -173,7 +173,7 @@ export default function GrowerDashboard() {
           </div>
 
           {/* Financials — inline summary */}
-          <div className="rounded-lg border bg-card p-3">
+          <div className="rounded border bg-card p-3">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Financials</h3>
               <Button variant="ghost" size="sm" className="h-5 text-[10px] text-muted-foreground px-1.5" asChild>
