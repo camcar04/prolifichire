@@ -34,20 +34,11 @@ export function OperatorDecisionStrip({ job }: OperatorDecisionStripProps) {
   const isBidding = contractMode === "open_bidding";
   const isInvite = contractMode === "invite_only";
 
-  const acceptMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("jobs").update({
-        operator_id: user!.id,
-        status: "accepted",
-      }).eq("id", job.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Job accepted!");
-      queryClient.invalidateQueries({ queryKey: ["job", job.id] });
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
+  const acceptJobMutation = useAcceptJob();
+
+  const handleAccept = () => {
+    acceptJobMutation.mutate({ jobId: job.id, job });
+  };
 
   const submitQuoteMutation = useMutation({
     mutationFn: async () => {
