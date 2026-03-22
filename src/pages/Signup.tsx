@@ -72,12 +72,18 @@ export default function Signup() {
       return;
     }
 
-    // Store primary account type and enabled types on profile
+    // Store primary account type, enabled types, and user role
     if (data.user) {
       await supabase.from("profiles").update({
         primary_account_type: selectedRole,
         enabled_account_types: [selectedRole],
       }).eq("user_id", data.user.id);
+
+      // Insert the selected role into user_roles table
+      await supabase.from("user_roles").insert({
+        user_id: data.user.id,
+        role: selectedRole as any,
+      });
     }
 
     setLoading(false);
