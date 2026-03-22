@@ -155,7 +155,17 @@ export function OEMConnectionsPanel() {
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-bold mb-1">Platform Integrations</h2>
-        <p className="text-sm text-muted-foreground">Connect your precision ag platforms to import and export field data.</p>
+        <p className="text-sm text-muted-foreground">Optionally connect your precision ag platforms to import and export field data. All core features work with manual uploads — integrations are enhancements, not requirements.</p>
+      </div>
+
+      <div className="rounded-lg border border-primary/15 bg-primary/5 p-3 flex items-start gap-3">
+        <Upload size={16} className="text-primary mt-0.5 shrink-0" />
+        <div className="text-sm">
+          <p className="font-medium text-foreground">No external account needed</p>
+          <p className="text-muted-foreground text-xs mt-0.5">
+            Upload shapefiles, GeoJSON, KML, CSV, or draw field boundaries directly. Create jobs, generate field packets, and manage operations using only platform tools.
+          </p>
+        </div>
       </div>
 
       <div className="space-y-4">
