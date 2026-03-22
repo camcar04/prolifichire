@@ -42,6 +42,7 @@ export default function GrowerDashboard() {
 
   return (
     <div className="space-y-4 animate-fade-in">
+      <NextStepBanner />
       {/* Summary strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label="Active Jobs" value={String(activeJobs.length)} change={`${inProgress.length} in progress`} changeType="neutral" icon={<Briefcase size={15} />} />
