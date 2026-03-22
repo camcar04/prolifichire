@@ -323,6 +323,7 @@ function FilesContent({ datasets, fieldId, onUpload }: { datasets: any[]; fieldI
           <Upload size={20} className="mx-auto mb-2 text-muted-foreground/30" />
           <p className="text-sm text-muted-foreground">No files uploaded yet.</p>
           <p className="text-xs text-muted-foreground mt-1">Upload boundary files, prescriptions, or other field data.</p>
+          <Button variant="outline" size="sm" className="mt-3 text-xs" onClick={onUpload}>Upload First File</Button>
         </div>
       ) : (
         <div className="divide-y">
