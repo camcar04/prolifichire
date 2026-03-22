@@ -9,8 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { formatCurrency, formatAcres, formatOperationType } from "@/lib/format";
 import { toast } from "sonner";
 import {
-  Check, Send, Bookmark, MapPin, Clock, Wheat,
-  AlertTriangle, DollarSign, Truck,
+  Check, Send, Bookmark, BookmarkCheck, MapPin, Clock, Wheat,
+  AlertTriangle, DollarSign, Truck, MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,8 +22,10 @@ export function OperatorDecisionStrip({ job }: OperatorDecisionStripProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [quoteOpen, setQuoteOpen] = useState(false);
+  const [counterQuoteOpen, setCounterQuoteOpen] = useState(false);
   const [quoteRate, setQuoteRate] = useState("");
   const [quoteNotes, setQuoteNotes] = useState("");
+  const [saved, setSaved] = useState(false);
   const contractMode = job.contract_mode || "fixed_price";
   const isFixed = contractMode === "fixed_price";
   const isBidding = contractMode === "open_bidding";
@@ -62,10 +64,18 @@ export function OperatorDecisionStrip({ job }: OperatorDecisionStripProps) {
     onSuccess: () => {
       toast.success("Quote submitted");
       setQuoteOpen(false);
+      setCounterQuoteOpen(false);
+      setQuoteRate("");
+      setQuoteNotes("");
       queryClient.invalidateQueries({ queryKey: ["job", job.id] });
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const handleSave = () => {
+    setSaved(true);
+    toast.success("Job saved to your quote folder");
+  };
 
   const stats = [
     { icon: Wheat, label: formatOperationType(job.operation_type), sub: "Type" },
@@ -77,6 +87,43 @@ export function OperatorDecisionStrip({ job }: OperatorDecisionStripProps) {
   if (job.travel_distance) {
     stats.push({ icon: Truck, label: `${Number(job.travel_distance).toFixed(0)} mi`, sub: "Distance" });
   }
+
+  const QuoteDialog = ({ open, onOpenChange, title, description }: { open: boolean; onOpenChange: (v: boolean) => void; title: string; description: string }) => (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader><DialogTitle>{title}</DialogTitle></DialogHeader>
+        <p className="text-xs text-muted-foreground -mt-2 mb-1">{description}</p>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Acres</span>
+            <span className="font-medium tabular">{formatAcres(Number(job.total_acres))}</span>
+          </div>
+          {isFixed && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Posted rate</span>
+              <span className="font-medium tabular">{formatCurrency(Number(job.base_rate))}/ac</span>
+            </div>
+          )}
+          <div>
+            <label className="text-xs font-medium mb-1 block">Your rate (per {job.pricing_model === "per_acre" ? "acre" : "unit"})</label>
+            <Input type="number" value={quoteRate} onChange={e => setQuoteRate(e.target.value)} placeholder="0.00" className="h-9" />
+            {quoteRate && !isNaN(parseFloat(quoteRate)) && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Total: <span className="font-medium text-foreground">{formatCurrency(parseFloat(quoteRate) * Number(job.total_acres || 1))}</span>
+              </p>
+            )}
+          </div>
+          <div>
+            <label className="text-xs font-medium mb-1 block">Notes (optional)</label>
+            <Textarea value={quoteNotes} onChange={e => setQuoteNotes(e.target.value)} rows={2} className="text-sm" placeholder="Availability, conditions, equipment details…" />
+          </div>
+          <Button className="w-full" onClick={() => submitQuoteMutation.mutate()} disabled={submitQuoteMutation.isPending || !quoteRate}>
+            {submitQuoteMutation.isPending ? "Submitting…" : "Submit Quote"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 
   return (
     <div className="rounded-lg bg-card border">
@@ -105,50 +152,45 @@ export function OperatorDecisionStrip({ job }: OperatorDecisionStripProps) {
       <div className="p-3 flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex-1">
           <p className="text-xs text-muted-foreground">
-            {isFixed ? "Fixed price job — accept at posted rate" :
+            {isFixed ? "Fixed price job — accept at posted rate or submit a different quote" :
              isBidding ? "Open bidding — submit your best quote" :
              "You've been invited to this job"}
           </p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
           {isFixed && job.status === "requested" && (
-            <Button size="sm" onClick={() => acceptMutation.mutate()} disabled={acceptMutation.isPending} className="gap-1">
-              <Check size={13} /> Accept Job
-            </Button>
+            <>
+              <Button size="sm" onClick={() => acceptMutation.mutate()} disabled={acceptMutation.isPending} className="gap-1">
+                <Check size={13} /> Accept at {formatCurrency(Number(job.base_rate))}/ac
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setCounterQuoteOpen(true)} className="gap-1">
+                <MessageSquare size={13} /> Submit Different Rate
+              </Button>
+              <QuoteDialog
+                open={counterQuoteOpen}
+                onOpenChange={setCounterQuoteOpen}
+                title="Submit Counter-Quote"
+                description={`The posted rate is ${formatCurrency(Number(job.base_rate))}/ac. Submit your preferred rate below.`}
+              />
+            </>
           )}
           {(isBidding || isInvite) && job.status === "requested" && (
-            <Dialog open={quoteOpen} onOpenChange={setQuoteOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="gap-1"><Send size={13} /> Submit Quote</Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-sm">
-                <DialogHeader><DialogTitle>Submit Quote</DialogTitle></DialogHeader>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Acres</span>
-                    <span className="font-medium tabular">{formatAcres(Number(job.total_acres))}</span>
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium mb-1 block">Your rate (per {job.pricing_model === "per_acre" ? "acre" : "unit"})</label>
-                    <Input type="number" value={quoteRate} onChange={e => setQuoteRate(e.target.value)} placeholder="0.00" className="h-9" />
-                    {quoteRate && !isNaN(parseFloat(quoteRate)) && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Total: <span className="font-medium text-foreground">{formatCurrency(parseFloat(quoteRate) * Number(job.total_acres || 1))}</span>
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium mb-1 block">Notes (optional)</label>
-                    <Textarea value={quoteNotes} onChange={e => setQuoteNotes(e.target.value)} rows={2} className="text-sm" placeholder="Availability, conditions, etc." />
-                  </div>
-                  <Button className="w-full" onClick={() => submitQuoteMutation.mutate()} disabled={submitQuoteMutation.isPending || !quoteRate}>
-                    {submitQuoteMutation.isPending ? "Submitting…" : "Submit Quote"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <>
+              <Button size="sm" onClick={() => setQuoteOpen(true)} className="gap-1">
+                <Send size={13} /> Submit Quote
+              </Button>
+              <QuoteDialog
+                open={quoteOpen}
+                onOpenChange={setQuoteOpen}
+                title="Submit Quote"
+                description="Enter your rate for this job."
+              />
+            </>
           )}
-          <Button size="sm" variant="outline" className="gap-1"><Bookmark size={13} /> Save</Button>
+          <Button size="sm" variant="outline" onClick={handleSave} disabled={saved} className="gap-1">
+            {saved ? <BookmarkCheck size={13} /> : <Bookmark size={13} />}
+            {saved ? "Saved" : "Save"}
+          </Button>
         </div>
       </div>
     </div>

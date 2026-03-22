@@ -91,7 +91,7 @@ export function CreateFarmDialog({ open, onOpenChange }: Props) {
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} className="h-8 text-xs">Cancel</Button>
-          <Button size="sm" onClick={() => mutation.mutate()} disabled={!form.name.trim() || mutation.isPending} className="h-8 text-xs">
+          <Button size="sm" onClick={() => mutation.mutate()} disabled={!form.name.trim() || !form.county.trim() || !form.state || mutation.isPending} className="h-8 text-xs">
             {mutation.isPending ? "Creating…" : "Create Farm"}
           </Button>
         </div>
