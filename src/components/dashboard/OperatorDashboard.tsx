@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
   Briefcase, DollarSign, TrendingUp, ArrowRight, Package,
-  MapPin, Clock, CheckCircle2, AlertTriangle, FileText, Truck,
+  MapPin, Clock, CheckCircle2, AlertTriangle, FileText, Truck, Bell,
 } from "lucide-react";
 import { jobs, fieldPackets, credentials, operators } from "@/data/mock";
 import { formatCurrency, formatAcres, formatOperationType, formatDate, formatDateShort } from "@/lib/format";
+import { useNotifications } from "@/hooks/useNotifications";
+import { formatDistanceToNow } from "date-fns";
 
 // Mock: operator is usr-3 (Mike Brennan)
 const OPERATOR_ID = "usr-3";
