@@ -13,6 +13,7 @@ import { OperatorDecisionStrip } from "@/components/jobs/OperatorDecisionStrip";
 import { JobExecutionPanel } from "@/components/jobs/JobExecutionPanel";
 import { CancelJobDialog } from "@/components/jobs/CancelJobDialog";
 import { PrivateCostCalculator } from "@/components/operators/PrivateCostCalculator";
+import { ProfitReviewPanel } from "@/components/operators/ProfitReviewPanel";
 import { formatContractMode } from "@/components/jobs/ContractModeSelector";
 import { canCancelJob, canEditJob } from "@/hooks/useJobActions";
 import { useJob } from "@/hooks/useJobs";
@@ -500,6 +501,11 @@ export default function JobDetail() {
                 <div className="flex justify-between"><span className="text-muted-foreground">Approved</span>{job.proof_approved ? <span className="text-success font-medium">Yes</span> : <span className="text-muted-foreground">Pending</span>}</div>
               </div>
             </div>
+
+            {/* Profit Review — operator only, completed jobs */}
+            {isOperatorView && ["completed", "approved", "paid", "closed"].includes(job.status) && (
+              <ProfitReviewPanel job={job} />
+            )}
 
             {/* Field Packets */}
             {packets.length > 0 && (

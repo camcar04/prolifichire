@@ -1247,6 +1247,68 @@ export type Database = {
           },
         ]
       }
+      job_actuals: {
+        Row: {
+          actual_acres: number | null
+          actual_equipment_cost: number | null
+          actual_fuel_cost: number | null
+          actual_hours: number | null
+          actual_labor_cost: number | null
+          actual_loads: number | null
+          actual_other_cost: number | null
+          actual_total_cost: number | null
+          actual_travel_miles: number | null
+          created_at: string
+          id: string
+          job_id: string
+          notes: string | null
+          operator_id: string
+          updated_at: string
+        }
+        Insert: {
+          actual_acres?: number | null
+          actual_equipment_cost?: number | null
+          actual_fuel_cost?: number | null
+          actual_hours?: number | null
+          actual_labor_cost?: number | null
+          actual_loads?: number | null
+          actual_other_cost?: number | null
+          actual_total_cost?: number | null
+          actual_travel_miles?: number | null
+          created_at?: string
+          id?: string
+          job_id: string
+          notes?: string | null
+          operator_id: string
+          updated_at?: string
+        }
+        Update: {
+          actual_acres?: number | null
+          actual_equipment_cost?: number | null
+          actual_fuel_cost?: number | null
+          actual_hours?: number | null
+          actual_labor_cost?: number | null
+          actual_loads?: number | null
+          actual_other_cost?: number | null
+          actual_total_cost?: number | null
+          actual_travel_miles?: number | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          notes?: string | null
+          operator_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_actuals_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_edit_history: {
         Row: {
           acknowledged_at: string | null

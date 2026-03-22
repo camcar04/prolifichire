@@ -7,6 +7,7 @@ import { NextStepBanner } from "@/components/dashboard/NextStepBanner";
 import { CommandStrip } from "@/components/dashboard/CommandStrip";
 import { KPIStrip } from "@/components/dashboard/KPIStrip";
 import { ContextualGuidance, buildOperatorGuidance } from "@/components/dashboard/ContextualGuidance";
+import { PricingInsightsPanel } from "@/components/operators/PricingInsightsPanel";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Briefcase, DollarSign, ArrowRight, Package,
@@ -132,6 +133,7 @@ export default function OperatorDashboard() {
           </div>
 
           <ProfileScoreCard />
+          <PricingInsightsPanel />
 
           <div className="space-y-1">
             <Button variant="outline" size="sm" className="w-full justify-start h-7 text-[11px]" asChild>
