@@ -17,6 +17,8 @@ const upcomingJobs = jobs.filter(j => j.scheduledStart && ["scheduled", "accepte
 const recentJobs = jobs.slice(0, 6);
 
 export default function GrowerDashboard() {
+  const { notifications, markRead } = useNotifications();
+  const recentAlerts = notifications.filter(n => !n.read).slice(0, 5);
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Stat row */}
