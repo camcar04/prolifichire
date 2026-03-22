@@ -33,6 +33,7 @@ export default function JobDetail() {
   const exceptions = getExceptionsByJob(job.id);
   const quotes = getQuotesByJob(job.id);
   const packet = getFieldPacketByJob(job.id);
+  const inputs = getInputsByJob(job.id);
   const jobEvents = auditLogs.filter(a => a.entityId === job.id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const { estimate, loading: pricingLoading, getEstimate } = usePricingEngine();
 
