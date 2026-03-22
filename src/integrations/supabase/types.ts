@@ -2114,6 +2114,68 @@ export type Database = {
           },
         ]
       }
+      operator_pricing_profiles: {
+        Row: {
+          created_at: string
+          desired_margin_pct: number | null
+          equipment_costs: Json | null
+          fuel_surcharge_pct: number | null
+          hauling_cost_per_mile: number | null
+          id: string
+          labor_cost_per_hour: number | null
+          minimum_job_fee: number | null
+          operator_profile_id: string
+          service_defaults: Json | null
+          target_per_acre: number | null
+          target_per_hour: number | null
+          travel_fee_per_mile: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          desired_margin_pct?: number | null
+          equipment_costs?: Json | null
+          fuel_surcharge_pct?: number | null
+          hauling_cost_per_mile?: number | null
+          id?: string
+          labor_cost_per_hour?: number | null
+          minimum_job_fee?: number | null
+          operator_profile_id: string
+          service_defaults?: Json | null
+          target_per_acre?: number | null
+          target_per_hour?: number | null
+          travel_fee_per_mile?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          desired_margin_pct?: number | null
+          equipment_costs?: Json | null
+          fuel_surcharge_pct?: number | null
+          hauling_cost_per_mile?: number | null
+          id?: string
+          labor_cost_per_hour?: number | null
+          minimum_job_fee?: number | null
+          operator_profile_id?: string
+          service_defaults?: Json | null
+          target_per_acre?: number | null
+          target_per_hour?: number | null
+          travel_fee_per_mile?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_pricing_profiles_operator_profile_id_fkey"
+            columns: ["operator_profile_id"]
+            isOneToOne: false
+            referencedRelation: "operator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operator_profiles: {
         Row: {
           base_address: string | null
