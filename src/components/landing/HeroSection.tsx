@@ -14,7 +14,7 @@ export default function HeroSection() {
       {/* Background image with solid dark overlay */}
       <div className="absolute inset-0">
         <img src={heroImg} alt="" className="w-full h-full object-cover" loading="eager" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/92 via-black/85 to-black/70" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/90 to-black/80" />
       </div>
 
       <div className="relative container py-20 md:py-28 lg:py-36">
