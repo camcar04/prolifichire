@@ -307,6 +307,36 @@ export default function JobDetail() {
                 </div>
               )}
 
+              {/* Contracts */}
+              {contracts.length > 0 && (
+                <div className="rounded-lg border bg-card p-3">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
+                    <FileText size={10} /> Contracts
+                  </p>
+                  {contracts.map((c: any) => {
+                    const sigs = c.contract_signatures || [];
+                    const myPending = sigs.find((s: any) => s.signer_id === user?.id && s.status === "pending");
+                    return (
+                      <div key={c.id} className="text-[11px] py-1.5 border-t first:border-0 first:pt-0">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">{c.title}</span>
+                          <StatusBadge status={c.status} />
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] text-muted-foreground">{sigs.length} signatures</span>
+                          {myPending && (
+                            <Button size="sm" variant="outline" className="h-5 text-[10px] px-1.5 gap-0.5"
+                              onClick={() => setSigningContractId(c.id)}>
+                              <Pen size={8} /> Sign
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               {/* Exceptions */}
               {exceptions.length > 0 && (
                 <div className="rounded-lg border border-destructive/20 bg-card p-3">
@@ -321,8 +351,22 @@ export default function JobDetail() {
                   ))}
                 </div>
               )}
+
+              {/* Liability */}
+              <LiabilityDisclaimer variant="compact" />
             </div>
           </div>
+
+          {/* Contract signing dialog */}
+          {signingContract && (
+            <ContractSignatureDialog
+              open={!!signingContractId}
+              onOpenChange={(open) => !open && setSigningContractId(null)}
+              contractId={signingContract.id}
+              contractTitle={signingContract.title}
+              jobDisplayId={job.display_id}
+            />
+          )}
 
           {/* Mobile sticky execution bar */}
           <div className="fixed bottom-14 left-0 right-0 bg-card/95 backdrop-blur-sm border-t p-2.5 flex gap-2 lg:hidden z-40">
