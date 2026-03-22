@@ -16,7 +16,7 @@ export type OperationType =
   | "hauling" | "grain_hauling" | "scouting" | "soil_sampling" | "fertilizing"
   | "seeding" | "mowing" | "baling" | "drainage" | "rock_picking" | "other";
 
-export type PricingModel = "per_acre" | "per_hour" | "flat_rate" | "negotiated";
+export type PricingModel = "per_acre" | "per_hour" | "flat_rate" | "negotiated" | "per_load" | "per_bushel" | "per_mile" | "day_rate";
 
 export type CropType =
   | "corn" | "soybeans" | "wheat" | "alfalfa" | "oats"
