@@ -415,6 +415,17 @@ export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, cent
         </div>
       </div>
 
+      {/* Locate me button */}
+      <button
+        onClick={locateUser}
+        className="absolute top-4 right-4 z-20 h-9 w-9 rounded-lg bg-white/15 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/25 active:scale-95 transition-all"
+        title="Use my location"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
+        </svg>
+      </button>
+
       {/* Edit mode hint */}
       {!isDrawing && polygon && !isDragging && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-md text-[11px] text-white/80 font-medium pointer-events-none">
