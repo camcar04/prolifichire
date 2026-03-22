@@ -14,31 +14,31 @@ const faqs = [
   },
   {
     q: "How much does spraying cost per acre?",
-    a: "Spraying rates vary by region, product type, and timing. Typical custom application rates range from $8–$18 per acre for ground spraying, depending on distance, product complexity, and equipment requirements. ProlificHire shows estimated market ranges when you create a job so you can price competitively.",
+    a: "Rates vary by region, product, and timing. Ground application typically runs $8–$18/acre depending on distance and complexity. ProlificHire shows estimated market ranges when you create a job.",
   },
   {
     q: "How do I find harvest crews near me?",
-    a: "Post a harvest job on the marketplace with your field details, crop type, expected moisture, and timing window. Operators who offer harvest services within your area will be notified and can quote or accept. You can also browse operator profiles filtered by service type and location.",
+    a: "Post a harvest job with your field details, crop type, moisture expectations, and timing window. Operators who offer harvest services in your area will be notified and can quote or accept.",
   },
   {
-    q: "What data do I need to provide for a job?",
-    a: "At minimum, you need field boundaries (shapefile, GeoJSON, or drawn on the map), crop type, acreage, and the operation type. For precision work like variable-rate spraying or planting, you'll want to upload prescription maps. ProlificHire automatically bundles all necessary data into a field packet for the operator.",
+    q: "What data do I need to provide?",
+    a: "At minimum: field boundaries, crop type, acreage, and operation type. For variable-rate work, upload prescription maps. ProlificHire bundles everything into a field packet for the operator.",
   },
   {
     q: "How does payment work?",
-    a: "After work is completed and approved, ProlificHire generates an invoice based on the agreed pricing. Payments are processed through our secure payment system with support for split payments between owners and tenants. Operators receive payouts directly to their connected bank account.",
+    a: "After work is completed and approved, an invoice is generated from the agreed pricing. Payments process securely with support for owner/tenant splits. Operators receive payouts to their connected bank account.",
   },
   {
-    q: "Can I split payments between an owner and a tenant?",
-    a: "Yes. ProlificHire supports configurable split payment rules. For example, you can set a 50/50 split between the landowner and tenant farmer. Each party receives a separate invoice for their portion and can pay independently.",
+    q: "Can I split payments between owner and tenant?",
+    a: "Yes. Configure split rules — for example, 50/50 between landowner and tenant. Each party receives a separate invoice and can pay independently.",
   },
   {
-    q: "What file formats are supported for field boundaries?",
-    a: "ProlificHire accepts shapefiles (.zip), GeoJSON, KML, and CSV formats for field boundaries. You can also draw boundaries directly on the map. All files are converted to a standard GeoJSON format with automatic acreage calculation.",
+    q: "What file formats are supported?",
+    a: "Shapefiles (.zip), GeoJSON, KML, and CSV for boundaries. You can also draw directly on the map. All files convert to standard GeoJSON with automatic acreage calculation.",
   },
   {
     q: "Is my field data secure?",
-    a: "Yes. All field data is stored securely with role-based access controls. Only authorized users can view field boundaries, datasets, and financial records. Every file download and access event is logged in an immutable audit trail.",
+    a: "All data is stored with role-based access controls. Only authorized users can view boundaries, datasets, and financials. Every download is logged in an immutable audit trail.",
   },
 ];
 
@@ -47,23 +47,22 @@ export default function FAQSection() {
   useScrollRevealAll(ref);
 
   return (
-    <section ref={ref} id="faq" className="py-20 md:py-28 bg-surface-2">
+    <section ref={ref} id="faq" className="py-20 md:py-28">
       <div className="container">
-        <div className="max-w-2xl mx-auto text-center mb-14">
-          <p className="reveal text-sm font-semibold text-accent uppercase tracking-wider mb-3">FAQ</p>
-          <h2 className="reveal text-3xl md:text-4xl font-bold tracking-tight" style={{ transitionDelay: "80ms" }}>
+        <div className="max-w-lg mx-auto text-center mb-12">
+          <h2 className="reveal text-2xl md:text-3xl font-bold tracking-tight">
             Frequently asked questions
           </h2>
         </div>
 
-        <div className="reveal max-w-3xl mx-auto" style={{ transitionDelay: "160ms" }}>
-          <Accordion type="single" collapsible className="space-y-2">
+        <div className="reveal max-w-2xl mx-auto" style={{ transitionDelay: "120ms" }}>
+          <Accordion type="single" collapsible className="space-y-1.5">
             {faqs.map((faq, i) => (
-              <AccordionItem key={i} value={`faq-${i}`} className="rounded-xl bg-card shadow-card border-none px-6">
-                <AccordionTrigger className="text-left text-sm font-medium hover:no-underline py-4">
+              <AccordionItem key={i} value={`faq-${i}`} className="rounded-lg bg-card shadow-card border-none px-5">
+                <AccordionTrigger className="text-left text-[13px] font-medium hover:no-underline py-3.5">
                   {faq.q}
                 </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-4">
+                <AccordionContent className="text-[13px] text-muted-foreground leading-relaxed pb-3.5">
                   {faq.a}
                 </AccordionContent>
               </AccordionItem>
@@ -72,7 +71,6 @@ export default function FAQSection() {
         </div>
       </div>
 
-      {/* JSON-LD FAQ structured data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

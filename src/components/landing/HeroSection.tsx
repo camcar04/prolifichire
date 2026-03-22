@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, MapPin, Shield, Zap } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useScrollRevealAll } from "@/hooks/useScrollReveal";
 import heroImg from "@/assets/hero-aerial.jpg";
 
@@ -11,56 +11,49 @@ export default function HeroSection() {
 
   return (
     <section ref={ref} className="relative pt-16 overflow-hidden">
-      {/* Background image with overlay */}
       <div className="absolute inset-0">
-        <img
-          src={heroImg}
-          alt=""
-          className="w-full h-full object-cover"
-          loading="eager"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-foreground/85 via-foreground/70 to-foreground/40" />
+        <img src={heroImg} alt="" className="w-full h-full object-cover" loading="eager" />
+        <div className="absolute inset-0 bg-gradient-to-r from-foreground/90 via-foreground/75 to-foreground/30" />
       </div>
 
-      <div className="relative container py-24 md:py-32 lg:py-40">
-        <div className="max-w-2xl">
-          <div className="reveal flex items-center gap-2 mb-6">
-            <span className="inline-flex items-center rounded-full bg-accent/20 px-3 py-1 text-xs font-medium text-accent">
-              Field-Centric Operations
-            </span>
-          </div>
-
-          <h1 className="reveal text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-primary-foreground leading-[1.08]" style={{ transitionDelay: "80ms" }}>
-            The operating system for agricultural fieldwork
+      <div className="relative container py-20 md:py-28 lg:py-36">
+        <div className="max-w-xl">
+          <h1
+            className="reveal text-3xl md:text-4xl lg:text-[3.25rem] font-bold tracking-tight text-primary-foreground leading-[1.1]"
+            style={{ transitionDelay: "80ms" }}
+          >
+            Hire fieldwork.{" "}
+            <span className="text-accent">Get it done.</span>
           </h1>
 
-          <p className="reveal mt-6 text-lg md:text-xl text-primary-foreground/75 max-w-xl leading-relaxed" style={{ transitionDelay: "160ms" }}>
-            Connect growers and custom operators. Manage jobs, field data, and payments — all tied to the field where work happens.
+          <p
+            className="reveal mt-5 text-base md:text-lg text-primary-foreground/70 max-w-md leading-relaxed"
+            style={{ transitionDelay: "160ms" }}
+          >
+            The marketplace connecting growers with custom operators for spraying, planting, harvest, and more — organized around your fields.
           </p>
 
-          <div className="reveal mt-8 flex flex-wrap gap-3" style={{ transitionDelay: "240ms" }}>
-            <Button variant="hero" size="xl" asChild>
-              <Link to="/dashboard">
-                Start Managing Fields
-                <ArrowRight size={18} />
+          <div className="reveal mt-7 flex flex-wrap gap-3" style={{ transitionDelay: "240ms" }}>
+            <Button variant="hero" size="lg" asChild>
+              <Link to="/signup">
+                Create Free Account
+                <ArrowRight size={16} className="ml-1" />
               </Link>
             </Button>
-            <Button variant="hero-outline" size="xl" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" asChild>
-              <Link to="/marketplace">Browse Marketplace</Link>
+            <Button
+              variant="hero-outline"
+              size="lg"
+              className="border-primary-foreground/25 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+              asChild
+            >
+              <Link to="/marketplace">Browse Jobs</Link>
             </Button>
           </div>
 
-          <div className="reveal mt-12 flex flex-wrap gap-6" style={{ transitionDelay: "320ms" }}>
-            {[
-              { icon: MapPin, label: "Field-centric workspace" },
-              { icon: Shield, label: "Compliance tracking" },
-              { icon: Zap, label: "Instant field packets" },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center gap-2 text-sm text-primary-foreground/65">
-                <item.icon size={16} className="text-accent" />
-                {item.label}
-              </div>
-            ))}
+          <div className="reveal mt-10 flex flex-wrap gap-x-6 gap-y-2 text-[13px] text-primary-foreground/55" style={{ transitionDelay: "320ms" }}>
+            <span>✓ Free for growers to post</span>
+            <span>✓ GPS-guided operators</span>
+            <span>✓ Split payments built in</span>
           </div>
         </div>
       </div>
