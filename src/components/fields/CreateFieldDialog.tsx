@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFarms } from "@/hooks/useFields";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { StateSelect } from "@/components/ui/state-select";
 import { Textarea } from "@/components/ui/textarea";
 import { FieldDrawMap, getBbox, getCentroid } from "@/components/map/FieldDrawMap";
-import { MapPin, ChevronRight, ChevronLeft, CheckCircle2 } from "lucide-react";
+import { X, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +40,6 @@ export function CreateFieldDialog({ open, onOpenChange, preselectedFarmId }: Pro
   const queryClient = useQueryClient();
   const { data: farms = [] } = useFarms();
 
-  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [form, setForm] = useState({
     name: "",
     farmId: preselectedFarmId || "",
@@ -57,18 +55,24 @@ export function CreateFieldDialog({ open, onOpenChange, preselectedFarmId }: Pro
 
   const [boundary, setBoundary] = useState<GeoJSON.Polygon | null>(null);
   const [calculatedAcres, setCalculatedAcres] = useState(0);
+  const [showDetails, setShowDetails] = useState(false);
 
-  const handleBoundaryChange = (geojson: GeoJSON.Polygon | null, acres: number) => {
+  // Set default farm
+  useEffect(() => {
+    if (open && !form.farmId && farms.length === 1) {
+      setForm(f => ({ ...f, farmId: farms[0].id }));
+    }
+  }, [open, farms]);
+
+  const handleBoundaryChange = useCallback((geojson: GeoJSON.Polygon | null, acres: number) => {
     setBoundary(geojson);
     setCalculatedAcres(acres);
     if (acres > 0) {
       setForm(f => ({ ...f, acreage: acres.toFixed(1) }));
     }
-  };
+  }, []);
 
-  const step1Valid = form.name.trim() && form.farmId;
-  const step2Valid = boundary !== null;
-  const step3Valid = form.acreage && form.county.trim() && form.state;
+  const canSave = form.name.trim() && form.farmId && (boundary !== null || Number(form.acreage) > 0);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -115,191 +119,144 @@ export function CreateFieldDialog({ open, onOpenChange, preselectedFarmId }: Pro
     setForm({ name: "", farmId: preselectedFarmId || "", acreage: "", crop: "corn", cropYear: String(new Date().getFullYear()), county: "", state: "", legalDescription: "", cluNumber: "", fsaFarmNumber: "" });
     setBoundary(null);
     setCalculatedAcres(0);
-    setStep(1);
+    setShowDetails(false);
   };
 
+  const handleClose = () => {
+    resetForm();
+    onOpenChange(false);
+  };
+
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); onOpenChange(v); }}>
-      <DialogContent className="sm:max-w-3xl max-h-[92vh] overflow-y-auto p-0">
-        {/* Progress header */}
-        <div className="px-5 pt-5 pb-3 border-b">
-          <DialogHeader>
-            <DialogTitle className="text-base">Add Field to Library</DialogTitle>
-            <DialogDescription className="text-xs">
-              {step === 1 && "Name your field and assign it to a farm"}
-              {step === 2 && "Draw the field boundary on the satellite map"}
-              {step === 3 && "Confirm details and save"}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex items-center gap-1 mt-3">
-            {[1, 2, 3].map(s => (
-              <div key={s} className={cn(
-                "h-1 flex-1 rounded-full transition-colors",
-                s <= step ? "bg-primary" : "bg-muted"
-              )} />
-            ))}
-          </div>
-          <div className="flex items-center justify-between mt-1.5 text-[10px] text-muted-foreground">
-            <span className={step === 1 ? "text-foreground font-medium" : ""}>1. Identity</span>
-            <span className={step === 2 ? "text-foreground font-medium" : ""}>2. Boundary</span>
-            <span className={step === 3 ? "text-foreground font-medium" : ""}>3. Details</span>
-          </div>
+    <div className="fixed inset-0 z-50 flex flex-col bg-background">
+      {/* Top bar — dark, minimal */}
+      <div className="flex items-center justify-between h-14 px-4 bg-card border-b shrink-0">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <button onClick={handleClose}
+            className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95 shrink-0">
+            <X size={18} />
+          </button>
+
+          <Input
+            value={form.name}
+            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            placeholder="Field name"
+            className="h-9 border-0 bg-transparent text-base font-semibold px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50 max-w-[240px]"
+          />
         </div>
 
-        <div className="px-5 py-4">
-          {/* Step 1: Name + Farm */}
-          {step === 1 && (
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium">Farm <span className="text-destructive">*</span></Label>
-                <Select value={form.farmId} onValueChange={v => setForm(f => ({ ...f, farmId: v }))}>
-                  <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Select farm" /></SelectTrigger>
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Farm selector — compact */}
+          <Select value={form.farmId} onValueChange={v => setForm(f => ({ ...f, farmId: v }))}>
+            <SelectTrigger className="h-8 w-auto min-w-[120px] text-xs border-muted bg-muted/50">
+              <SelectValue placeholder="Farm" />
+            </SelectTrigger>
+            <SelectContent>
+              {farms.map(farm => (
+                <SelectItem key={farm.id} value={farm.id}>{farm.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs">
+            Cancel
+          </Button>
+          <Button size="sm" onClick={() => mutation.mutate()}
+            disabled={!canSave || mutation.isPending}
+            className="h-8 text-xs font-semibold">
+            {mutation.isPending ? "Saving…" : "Save Field"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Map — fills remaining space */}
+      <div className="flex-1 relative">
+        <FieldDrawMap
+          onBoundaryChange={handleBoundaryChange}
+          initialGeojson={boundary}
+          fullscreen
+          className="!rounded-none"
+        />
+
+        {/* Details drawer — slides up from bottom-left */}
+        <div className={cn(
+          "absolute bottom-16 left-4 z-30 w-[320px] rounded-xl bg-card/95 backdrop-blur-xl shadow-2xl border overflow-hidden transition-all duration-300",
+          showDetails ? "max-h-[60vh] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
+        )}>
+          <div className="p-4 space-y-3 overflow-y-auto max-h-[55vh]">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Field Details</h3>
+            
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">Crop</Label>
+                <Select value={form.crop} onValueChange={v => setForm(f => ({ ...f, crop: v }))}>
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {farms.map(farm => (
-                      <SelectItem key={farm.id} value={farm.id}>{farm.name}</SelectItem>
-                    ))}
+                    {CROP_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium">Field Name <span className="text-destructive">*</span></Label>
-                <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  placeholder="e.g. North Quarter, Section 12 West" className="h-9 text-sm" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">Crop</Label>
-                  <Select value={form.crop} onValueChange={v => setForm(f => ({ ...f, crop: v }))}>
-                    <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {CROP_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">Crop Year</Label>
-                  <Input type="number" value={form.cropYear} onChange={e => setForm(f => ({ ...f, cropYear: e.target.value }))} className="h-9 text-sm" />
-                </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">Year</Label>
+                <Input type="number" value={form.cropYear} onChange={e => setForm(f => ({ ...f, cropYear: e.target.value }))} className="h-8 text-xs" />
               </div>
             </div>
-          )}
 
-          {/* Step 2: Draw boundary */}
-          {step === 2 && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
-                <MapPin size={13} className="text-primary shrink-0" />
-                <span>Click on the map to place boundary points. Place at least 3 points, then click "Close Shape" to complete.</span>
-              </div>
-              <FieldDrawMap
-                onBoundaryChange={handleBoundaryChange}
-                initialGeojson={boundary}
-                className="!aspect-[16/9] min-h-[350px]"
-              />
-              {boundary && (
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 size={14} className="text-primary" />
-                  <span className="font-medium">{calculatedAcres.toFixed(1)} acres</span>
-                  <span className="text-muted-foreground">boundary drawn</span>
-                </div>
-              )}
-              {!boundary && (
-                <p className="text-[11px] text-muted-foreground">You can skip this step and add a boundary later, but jobs require field location data.</p>
-              )}
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">
+                Acreage {calculatedAcres > 0 && <span className="text-primary">(from boundary)</span>}
+              </Label>
+              <Input type="number" value={form.acreage} onChange={e => setForm(f => ({ ...f, acreage: e.target.value }))} placeholder="0" className="h-8 text-xs" />
             </div>
-          )}
 
-          {/* Step 3: Details */}
-          {step === 3 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">
-                    Acreage <span className="text-destructive">*</span>
-                    {calculatedAcres > 0 && <span className="text-primary ml-1 font-normal">(from map)</span>}
-                  </Label>
-                  <Input type="number" value={form.acreage} onChange={e => setForm(f => ({ ...f, acreage: e.target.value }))}
-                    placeholder="160" className="h-9 text-sm" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">County <span className="text-destructive">*</span></Label>
-                  <Input value={form.county} onChange={e => setForm(f => ({ ...f, county: e.target.value }))}
-                    placeholder="e.g. Lancaster" className="h-9 text-sm" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">State <span className="text-destructive">*</span></Label>
-                  <StateSelect value={form.state} onValueChange={v => setForm(f => ({ ...f, state: v }))} />
-                </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">County</Label>
+                <Input value={form.county} onChange={e => setForm(f => ({ ...f, county: e.target.value }))} placeholder="Lancaster" className="h-8 text-xs" />
               </div>
-
-              {/* Summary */}
-              <div className="rounded-lg border bg-muted/30 p-3 space-y-1.5">
-                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Summary</h4>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                  <span className="text-muted-foreground">Field</span><span className="font-medium">{form.name || "—"}</span>
-                  <span className="text-muted-foreground">Farm</span><span className="font-medium">{farms.find(f => f.id === form.farmId)?.name || "—"}</span>
-                  <span className="text-muted-foreground">Acreage</span><span className="font-medium tabular-nums">{form.acreage || "—"} ac</span>
-                  <span className="text-muted-foreground">Boundary</span>
-                  <span className={cn("font-medium", boundary ? "text-primary" : "text-warning")}>
-                    {boundary ? "✓ Drawn" : "Not set"}
-                  </span>
-                  <span className="text-muted-foreground">Crop</span><span className="font-medium">{CROP_OPTIONS.find(c => c.value === form.crop)?.label}</span>
-                </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">State</Label>
+                <StateSelect value={form.state} onValueChange={v => setForm(f => ({ ...f, state: v }))} />
               </div>
+            </div>
 
-              <details className="group">
-                <summary className="text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
-                  Additional identifiers ›
-                </summary>
-                <div className="mt-2 space-y-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Legal Description</Label>
-                    <Textarea value={form.legalDescription} onChange={e => setForm(f => ({ ...f, legalDescription: e.target.value }))}
-                      placeholder="SE¼ of Section 12, T15N, R8E" rows={2} className="text-sm" />
+            <details className="group">
+              <summary className="text-[10px] font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                Legal identifiers ›
+              </summary>
+              <div className="mt-2 space-y-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground">Legal Description</Label>
+                  <Textarea value={form.legalDescription} onChange={e => setForm(f => ({ ...f, legalDescription: e.target.value }))}
+                    placeholder="SE¼ of Section 12…" rows={2} className="text-xs" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">CLU #</Label>
+                    <Input value={form.cluNumber} onChange={e => setForm(f => ({ ...f, cluNumber: e.target.value }))} className="h-8 text-xs" />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">CLU Number</Label>
-                      <Input value={form.cluNumber} onChange={e => setForm(f => ({ ...f, cluNumber: e.target.value }))} className="h-9 text-sm" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">FSA Farm Number</Label>
-                      <Input value={form.fsaFarmNumber} onChange={e => setForm(f => ({ ...f, fsaFarmNumber: e.target.value }))} className="h-9 text-sm" />
-                    </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">FSA Farm #</Label>
+                    <Input value={form.fsaFarmNumber} onChange={e => setForm(f => ({ ...f, fsaFarmNumber: e.target.value }))} className="h-8 text-xs" />
                   </div>
                 </div>
-              </details>
-            </div>
-          )}
+              </div>
+            </details>
+          </div>
         </div>
 
-        {/* Footer navigation */}
-        <div className="flex items-center justify-between px-5 py-3 border-t bg-muted/20">
-          <div>
-            {step > 1 && (
-              <Button variant="ghost" size="sm" onClick={() => setStep(s => (s - 1) as 1 | 2 | 3)} className="h-8 text-xs gap-1">
-                <ChevronLeft size={12} /> Back
-              </Button>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => { resetForm(); onOpenChange(false); }} className="h-8 text-xs">Cancel</Button>
-            {step < 3 ? (
-              <Button size="sm" onClick={() => setStep(s => (s + 1) as 1 | 2 | 3)}
-                disabled={step === 1 ? !step1Valid : false}
-                className="h-8 text-xs gap-1">
-                {step === 2 && !boundary ? "Skip Boundary" : "Next"} <ChevronRight size={12} />
-              </Button>
-            ) : (
-              <Button size="sm" onClick={() => mutation.mutate()}
-                disabled={!step3Valid || mutation.isPending}
-                className="h-8 text-xs">
-                {mutation.isPending ? "Saving…" : "Save Field"}
-              </Button>
-            )}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        {/* Toggle details button */}
+        <button onClick={() => setShowDetails(!showDetails)}
+          className={cn(
+            "absolute z-30 left-4 rounded-lg bg-card/90 backdrop-blur-md shadow-lg border px-3 py-2 text-xs font-medium text-foreground hover:bg-card active:scale-95 transition-all flex items-center gap-1.5",
+            showDetails ? "bottom-[calc(60vh+80px)]" : "bottom-16"
+          )}>
+          <ChevronDown size={12} className={cn("transition-transform", showDetails && "rotate-180")} />
+          {showDetails ? "Hide" : "Details"}
+        </button>
+      </div>
+    </div>
   );
 }
