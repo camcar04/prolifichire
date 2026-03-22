@@ -181,10 +181,10 @@ export function QuoteComparisonTable({ jobId, onAccept }: QuoteComparisonTablePr
                   <td className="px-4 py-2.5">
                     <span className={cn("text-[10px] font-medium",
                       q.status === "accepted" ? "text-success" :
-                      q.status === "rejected" ? "text-destructive" :
+                      q.status === "declined" ? "text-destructive" :
                       "text-muted-foreground"
                     )}>
-                      {q.status === "accepted" ? "✓ Accepted" : q.status === "rejected" ? "Declined" : "Pending"}
+                      {q.status === "accepted" ? "✓ Accepted" : q.status === "declined" ? "Declined" : "Pending"}
                     </span>
                   </td>
                   <td className="px-4 py-2.5 text-right">
