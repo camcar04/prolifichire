@@ -2896,6 +2896,38 @@ export type Database = {
           },
         ]
       }
+      saved_jobs: {
+        Row: {
+          id: string
+          job_id: string
+          notes: string | null
+          saved_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          job_id: string
+          notes?: string | null
+          saved_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          job_id?: string
+          notes?: string | null
+          saved_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_jobs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_areas: {
         Row: {
           county: string | null
