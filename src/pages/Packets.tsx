@@ -1,14 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import AppShell from "@/components/layout/AppShell";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ListSkeleton } from "@/components/shared/PageSkeleton";
+import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Package, AlertTriangle, CheckCircle2, ChevronRight, MapPin, Clock, FileText } from "lucide-react";
+import { Package, AlertTriangle, CheckCircle2, ChevronRight, MapPin, Clock, FileText, Store, RefreshCw, Loader2 } from "lucide-react";
 import { formatOperationType, formatAcres, formatRelative, formatCropType } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 type PacketGroup = "ready" | "incomplete" | "in_progress" | "awaiting" | "completed";
 
@@ -23,8 +25,8 @@ const GROUP_LABELS: Record<PacketGroup, string> = {
 
 export default function Packets() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  // Get packets assigned to this operator
   const { data: packets = [], isLoading: packetsLoading } = useQuery({
     queryKey: ["my-packets", user?.id],
     enabled: !!user,
@@ -45,7 +47,6 @@ export default function Packets() {
     },
   });
 
-  // Get accepted/in-progress jobs that don't have packets yet
   const { data: jobsWithoutPackets = [], isLoading: jobsLoading } = useQuery({
     queryKey: ["operator-jobs-no-packet", user?.id],
     enabled: !!user,
@@ -54,7 +55,7 @@ export default function Packets() {
         .from("jobs")
         .select(`
           id, display_id, operation_type, title, status, total_acres, scheduled_start, deadline, urgency,
-          job_fields(fields(name, crop, acreage, centroid_lat, centroid_lng))
+          job_fields(fields(id, name, crop, acreage, centroid_lat, centroid_lng))
         `)
         .eq("operator_id", user!.id)
         .in("status", ["accepted", "scheduled", "in_progress"]);
@@ -65,23 +66,52 @@ export default function Packets() {
     },
   });
 
+  // Auto-generate packet for jobs that don't have one
+  const generatePacket = useMutation({
+    mutationFn: async (job: any) => {
+      const field = job.job_fields?.[0]?.fields;
+      if (!field) throw new Error("No field linked to this job");
+      const fieldId = job.job_fields[0].fields?.id || job.job_fields[0].field_id;
+      
+      // Get the actual field_id from job_fields
+      const { data: jf } = await supabase
+        .from("job_fields")
+        .select("field_id")
+        .eq("job_id", job.id)
+        .limit(1)
+        .single();
+      
+      if (!jf) throw new Error("No field linked to this job");
+
+      const { error } = await supabase.from("field_packets").insert({
+        job_id: job.id,
+        field_id: jf.field_id,
+        operator_id: user!.id,
+        status: "pending" as any,
+        version: 1,
+        missing_required: [],
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-packets"] });
+      queryClient.invalidateQueries({ queryKey: ["operator-jobs-no-packet"] });
+      toast.success("Packet generated");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const isLoading = packetsLoading || jobsLoading;
 
   // Group items
   const grouped: Record<PacketGroup, any[]> = {
-    in_progress: [],
-    ready: [],
-    incomplete: [],
-    awaiting: [],
-    completed: [],
+    in_progress: [], ready: [], incomplete: [], awaiting: [], completed: [],
   };
 
-  // Jobs without packets → awaiting
   jobsWithoutPackets.forEach((j: any) => {
     grouped.awaiting.push({ type: "pending_packet", id: j.id, job: j, packet: null });
   });
 
-  // Packets → grouped by status
   packets.forEach((p: any) => {
     const item = { type: "packet", id: p.id, job: p.jobs, packet: p };
     const jobStatus = p.jobs?.status;
@@ -112,7 +142,7 @@ export default function Packets() {
           <EmptyState
             icon={<Package size={24} />}
             title="No field packets yet"
-            description="Accept a job to receive your first field packet. Packets contain field data, maps, and instructions needed to execute work."
+            description="Accept a job from the marketplace to receive your first field packet. Packets contain field data, maps, and instructions needed to execute work."
             action={{ label: "Browse Available Jobs", to: "/marketplace" }}
           />
         ) : (
@@ -143,7 +173,13 @@ export default function Packets() {
                   </p>
                   <div className="space-y-1.5">
                     {items.map((item: any) => (
-                      <PacketRow key={item.id} item={item} group={group} />
+                      <PacketRow
+                        key={item.id}
+                        item={item}
+                        group={group}
+                        onGenerate={() => generatePacket.mutate(item.job)}
+                        generating={generatePacket.isPending}
+                      />
                     ))}
                   </div>
                 </div>
@@ -156,7 +192,7 @@ export default function Packets() {
   );
 }
 
-function PacketRow({ item, group }: { item: any; group: PacketGroup }) {
+function PacketRow({ item, group, onGenerate, generating }: { item: any; group: PacketGroup; onGenerate: () => void; generating: boolean }) {
   const job = item.job;
   const packet = item.packet;
   const fieldName = job?.job_fields?.[0]?.fields?.name;
@@ -164,56 +200,38 @@ function PacketRow({ item, group }: { item: any; group: PacketGroup }) {
   const fileCount = packet?.field_packet_files?.filter((f: any) => f.included)?.length || 0;
   const missingCount = packet?.missing_required?.length || 0;
 
-  const borderClass = group === "in_progress"
-    ? "border-success/30"
-    : group === "ready"
-    ? "border-primary/20"
-    : group === "incomplete"
-    ? "border-destructive/20"
-    : group === "awaiting"
-    ? "border-dashed border-warning/40"
+  const borderClass = group === "in_progress" ? "border-success/30"
+    : group === "ready" ? "border-primary/20"
+    : group === "incomplete" ? "border-destructive/20"
+    : group === "awaiting" ? "border-dashed border-warning/40"
     : "";
 
-  const iconBg = group === "in_progress"
-    ? "bg-success/10"
-    : group === "ready"
-    ? "bg-primary/10"
-    : group === "incomplete"
-    ? "bg-destructive/10"
-    : group === "awaiting"
-    ? "bg-warning/10"
+  const iconBg = group === "in_progress" ? "bg-success/10"
+    : group === "ready" ? "bg-primary/10"
+    : group === "incomplete" ? "bg-destructive/10"
+    : group === "awaiting" ? "bg-warning/10"
     : "bg-muted";
 
-  const Icon = group === "in_progress"
-    ? CheckCircle2
-    : group === "ready"
-    ? Package
-    : group === "incomplete" || group === "awaiting"
-    ? AlertTriangle
+  const Icon = group === "in_progress" ? CheckCircle2
+    : group === "ready" ? Package
+    : group === "incomplete" || group === "awaiting" ? AlertTriangle
     : FileText;
 
-  const iconColor = group === "in_progress"
-    ? "text-success"
-    : group === "ready"
-    ? "text-primary"
-    : group === "incomplete"
-    ? "text-destructive"
-    : group === "awaiting"
-    ? "text-warning"
+  const iconColor = group === "in_progress" ? "text-success"
+    : group === "ready" ? "text-primary"
+    : group === "incomplete" ? "text-destructive"
+    : group === "awaiting" ? "text-warning"
     : "text-muted-foreground";
 
   return (
-    <Link
-      to={`/jobs/${job?.id || item.id}`}
-      className={cn(
-        "flex items-center gap-3 rounded-lg bg-card border p-3 hover:bg-surface-2 transition-colors",
-        borderClass
-      )}
-    >
+    <div className={cn(
+      "flex items-center gap-3 rounded-lg bg-card border p-3 transition-colors",
+      borderClass
+    )}>
       <div className={cn("h-8 w-8 rounded-md flex items-center justify-center shrink-0", iconBg)}>
         <Icon size={14} className={iconColor} />
       </div>
-      <div className="flex-1 min-w-0">
+      <Link to={`/jobs/${job?.id || item.id}`} className="flex-1 min-w-0 hover:opacity-80 transition-opacity">
         <div className="flex items-center gap-2">
           <p className="text-[13px] font-medium truncate">
             {job?.display_id} · {job ? formatOperationType(job.operation_type) : ""}
@@ -229,7 +247,7 @@ function PacketRow({ item, group }: { item: any; group: PacketGroup }) {
         </p>
         {group === "awaiting" && (
           <p className="text-[10px] text-warning mt-0.5 flex items-center gap-1">
-            <Clock size={9} /> Waiting for field data and packet generation
+            <Clock size={9} /> Packet not yet generated — click to create
           </p>
         )}
         {group === "incomplete" && missingCount > 0 && (
@@ -249,11 +267,20 @@ function PacketRow({ item, group }: { item: any; group: PacketGroup }) {
             {fileCount > 0 && ` · ${fileCount} files`}
           </p>
         )}
-      </div>
+      </Link>
       <div className="flex items-center gap-2 shrink-0">
-        <StatusBadge status={packet?.status || (group === "awaiting" ? "draft" : job?.status)} />
-        <ChevronRight size={14} className="text-muted-foreground" />
+        {group === "awaiting" ? (
+          <Button size="sm" variant="outline" className="h-7 text-[10px] gap-1" onClick={onGenerate} disabled={generating}>
+            {generating ? <Loader2 size={10} className="animate-spin" /> : <RefreshCw size={10} />}
+            Generate
+          </Button>
+        ) : (
+          <>
+            <StatusBadge status={packet?.status || job?.status} />
+            <Link to={`/jobs/${job?.id || item.id}`}><ChevronRight size={14} className="text-muted-foreground" /></Link>
+          </>
+        )}
       </div>
-    </Link>
+    </div>
   );
 }

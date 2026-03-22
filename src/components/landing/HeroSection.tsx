@@ -14,22 +14,22 @@ export default function HeroSection() {
       {/* Background image with solid dark overlay */}
       <div className="absolute inset-0">
         <img src={heroImg} alt="" className="w-full h-full object-cover" loading="eager" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/92 via-black/85 to-black/70" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/90 to-black/80" />
       </div>
 
       <div className="relative container py-20 md:py-28 lg:py-36">
         <div className="max-w-lg">
           <h1
-            className="reveal text-3xl sm:text-4xl md:text-[2.75rem] lg:text-5xl font-bold tracking-tight text-white"
-            style={{ lineHeight: 1.1, transitionDelay: "80ms", textShadow: "0 2px 8px rgba(0,0,0,0.5)" }}
+            className="reveal text-3xl sm:text-4xl md:text-[2.75rem] lg:text-5xl font-bold tracking-tight text-white drop-shadow-lg"
+            style={{ lineHeight: 1.1, transitionDelay: "80ms", textShadow: "0 2px 12px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5)" }}
           >
             Run your farm work.{" "}
             <span className="text-[hsl(83,55%,55%)]">Or power your entire network.</span>
           </h1>
 
           <p
-            className="reveal mt-5 text-base md:text-lg text-white/90 max-w-md leading-relaxed"
-            style={{ transitionDelay: "160ms", textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}
+            className="reveal mt-5 text-base md:text-lg text-white max-w-md leading-relaxed font-medium"
+            style={{ transitionDelay: "160ms", textShadow: "0 1px 6px rgba(0,0,0,0.6)" }}
           >
             Manage farm work, coordinate operators, and run your entire network — growers, crews, and logistics — all in one platform.
           </p>

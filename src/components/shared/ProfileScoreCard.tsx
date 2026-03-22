@@ -13,18 +13,19 @@ const MISSING_ITEM_LINKS: Record<string, { link: string; label: string }> = {
   "At least one field": { link: "/fields", label: "Add a field" },
   "Field boundary": { link: "/fields", label: "Add field boundary" },
   "Field location": { link: "/fields", label: "Set field location" },
-  "Operator profile": { link: "/settings?tab=account", label: "Complete operator profile" },
-  "Base location": { link: "/settings?tab=account", label: "Set base location" },
-  "Service radius": { link: "/settings?tab=account", label: "Set service radius" },
-  "Service types": { link: "/settings?tab=account", label: "Select service types" },
-  "At least one equipment record": { link: "/settings?tab=account", label: "Add equipment" },
-  "Insurance documentation": { link: "/settings?tab=account", label: "Upload insurance" },
-  "License or certification": { link: "/settings?tab=account", label: "Add license" },
-  "Credentials (insurance, license)": { link: "/settings?tab=account", label: "Add credentials" },
+  "Operator profile": { link: "/settings?tab=dowork", label: "Complete operator profile" },
+  "Base location": { link: "/settings?tab=dowork", label: "Set base location" },
+  "Service radius": { link: "/settings?tab=dowork", label: "Set service radius" },
+  "Service types": { link: "/settings?tab=dowork", label: "Select service types" },
+  "At least one equipment record": { link: "/settings?tab=dowork", label: "Add equipment" },
+  "Equipment": { link: "/settings?tab=dowork", label: "Add equipment" },
+  "Insurance documentation": { link: "/settings?tab=dowork", label: "Upload insurance" },
+  "License or certification": { link: "/settings?tab=dowork", label: "Add license" },
+  "Credentials (insurance, license)": { link: "/settings?tab=dowork", label: "Add credentials" },
 };
 
 function getItemAction(item: string) {
-  return MISSING_ITEM_LINKS[item] || { link: "/settings?tab=account", label: item };
+  return MISSING_ITEM_LINKS[item] || { link: "/settings?tab=dowork", label: item };
 }
 
 export function ProfileScoreCard({ compact = false }: { compact?: boolean }) {
@@ -61,13 +62,13 @@ export function ProfileScoreCard({ compact = false }: { compact?: boolean }) {
       {score.missing.length > 0 && (
         <div className="space-y-1">
           <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide mb-1.5">Complete to unlock features</p>
-          {score.missing.slice(0, 4).map(item => {
+          {score.missing.slice(0, 5).map(item => {
             const action = getItemAction(item);
             return (
               <Link
                 key={item}
                 to={action.link}
-                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground hover:bg-surface-2 rounded px-1.5 py-1 -mx-1.5 transition-colors group"
+                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground hover:bg-surface-2 rounded px-1.5 py-1.5 -mx-1.5 transition-colors group"
               >
                 <AlertTriangle size={11} className="text-warning shrink-0" />
                 <span className="flex-1 min-w-0 truncate">{action.label}</span>
@@ -75,9 +76,9 @@ export function ProfileScoreCard({ compact = false }: { compact?: boolean }) {
               </Link>
             );
           })}
-          {score.missing.length > 4 && (
+          {score.missing.length > 5 && (
             <Link to="/settings?tab=account" className="text-[11px] text-primary hover:underline block mt-1">
-              +{score.missing.length - 4} more items →
+              +{score.missing.length - 5} more items →
             </Link>
           )}
         </div>
