@@ -742,7 +742,17 @@ export interface BalingSpec {
   boundaryFileAttached: boolean;
 }
 
-export type OperationSpecData = PlantingSpec | ApplicationSpec | HarvestSpec | MowingSpec | BalingSpec;
+export interface RockPickingSpec {
+  rockDensity: "low" | "medium" | "high";
+  estimatedRockSize: "small" | "mixed" | "large" | "boulders";
+  equipmentType: string;
+  disposalMethod: "pile_on_field" | "haul_off" | "pile_at_edge" | "other";
+  disposalLocation: string;
+  fieldConditionNotes: string;
+  boundaryFileAttached: boolean;
+}
+
+export type OperationSpecData = PlantingSpec | ApplicationSpec | HarvestSpec | MowingSpec | BalingSpec | RockPickingSpec;
 
 export interface OperationSpec {
   id: string;

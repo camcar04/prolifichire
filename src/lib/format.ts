@@ -47,6 +47,8 @@ export function formatOperationType(type: string): string {
   const labels: Record<string, string> = {
     mowing: "Mowing / Hay Cutting",
     baling: "Baling",
+    rock_picking: "Rock Picking",
+    soil_sampling: "Soil Sampling",
   };
   return labels[type] || type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 }
