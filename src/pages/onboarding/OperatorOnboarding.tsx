@@ -128,9 +128,10 @@ export default function OperatorOnboarding() {
   };
 
   const canNext = () => {
-    if (step === 0) return form.firstName && form.lastName;
-    if (step === 1) return form.businessName;
+    if (step === 0) return form.firstName.trim() && form.lastName.trim() && form.phone.trim();
+    if (step === 1) return form.businessName.trim();
     if (step === 2) return services.length > 0;
+    if (step === 3) return form.address.trim() && form.city.trim() && form.state.trim() && form.zip.trim();
     return true;
   };
 
@@ -179,17 +180,17 @@ export default function OperatorOnboarding() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label>First name</Label>
+                    <Label>First name <span className="text-destructive">*</span></Label>
                     <Input value={form.firstName} onChange={e => set("firstName", e.target.value)} required />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Last name</Label>
+                    <Label>Last name <span className="text-destructive">*</span></Label>
                     <Input value={form.lastName} onChange={e => set("lastName", e.target.value)} required />
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Phone</Label>
-                  <Input value={form.phone} onChange={e => set("phone", e.target.value)} />
+                  <Label>Phone <span className="text-destructive">*</span></Label>
+                  <Input value={form.phone} onChange={e => set("phone", e.target.value)} required />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Preferred communication</Label>
@@ -209,7 +210,7 @@ export default function OperatorOnboarding() {
             {step === 1 && (
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label>Business name</Label>
+                  <Label>Business name <span className="text-destructive">*</span></Label>
                   <Input value={form.businessName} onChange={e => set("businessName", e.target.value)} placeholder="e.g. AgriPro Custom Services" required />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -260,21 +261,21 @@ export default function OperatorOnboarding() {
             {step === 3 && (
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label>Shop / yard address</Label>
-                  <Input value={form.address} onChange={e => set("address", e.target.value)} />
+                  <Label>Shop / yard address <span className="text-destructive">*</span></Label>
+                  <Input value={form.address} onChange={e => set("address", e.target.value)} required />
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1.5">
-                    <Label>City</Label>
-                    <Input value={form.city} onChange={e => set("city", e.target.value)} />
+                    <Label>City <span className="text-destructive">*</span></Label>
+                    <Input value={form.city} onChange={e => set("city", e.target.value)} required />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>State</Label>
-                    <Input value={form.state} onChange={e => set("state", e.target.value)} />
+                    <Label>State <span className="text-destructive">*</span></Label>
+                    <Input value={form.state} onChange={e => set("state", e.target.value)} required />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>ZIP</Label>
-                    <Input value={form.zip} onChange={e => set("zip", e.target.value)} />
+                    <Label>ZIP <span className="text-destructive">*</span></Label>
+                    <Input value={form.zip} onChange={e => set("zip", e.target.value)} required />
                   </div>
                 </div>
                 <div className="space-y-1.5">
