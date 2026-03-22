@@ -49,6 +49,8 @@ export function formatOperationType(type: string): string {
     baling: "Baling",
     rock_picking: "Rock Picking",
     soil_sampling: "Soil Sampling",
+    grain_hauling: "Grain Hauling / Semi Support",
+    hauling: "Hauling",
   };
   return labels[type] || type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 }
