@@ -43,7 +43,7 @@ export default function OperatorProfile() {
   if (isLoading) return <AppShell title=""><DetailSkeleton /></AppShell>;
   if (!op) return <AppShell title=""><EmptyState icon={<User size={24} />} title="Operator not found" description="This profile doesn't exist or you don't have access." /></AppShell>;
 
-  const badges = deriveBadgesFromRows(op.credentials);
+  const badges = deriveBadgesFromRows(op.credentials, op.equipment);
   const isOwn = user?.id === op.user_id;
   const isAdmin = roles.includes("admin");
 
