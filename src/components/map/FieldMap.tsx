@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Map as MapIcon, Layers, Maximize2 } from "lucide-react";
+import { Map as MapIcon, Layers } from "lucide-react";
 import type { Field } from "@/types/domain";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -33,13 +33,76 @@ const SATELLITE_STYLE: maplibregl.StyleSpecification = {
   ],
 };
 
+function addFieldLayers(map: maplibregl.Map, allFields: Field[]) {
+  allFields.forEach((f) => {
+    const sourceId = `field-${f.id}`;
+    if (map.getSource(sourceId)) return; // already added
+
+    const bb = f.boundingBox;
+    const polygon: GeoJSON.Feature<GeoJSON.Polygon> = {
+      type: "Feature",
+      properties: { name: f.name, acreage: f.acreage, status: f.status },
+      geometry: {
+        type: "Polygon",
+        coordinates: [[
+          [bb.west, bb.south],
+          [bb.east, bb.south],
+          [bb.east, bb.north],
+          [bb.west, bb.north],
+          [bb.west, bb.south],
+        ]],
+      },
+    };
+
+    map.addSource(sourceId, { type: "geojson", data: polygon });
+
+    map.addLayer({
+      id: `${sourceId}-fill`,
+      type: "fill",
+      source: sourceId,
+      paint: {
+        "fill-color": f.status === "active" ? "hsl(152, 50%, 38%)" : "hsl(80, 30%, 55%)",
+        "fill-opacity": 0.25,
+      },
+    });
+
+    map.addLayer({
+      id: `${sourceId}-outline`,
+      type: "line",
+      source: sourceId,
+      paint: {
+        "line-color": "hsl(152, 38%, 22%)",
+        "line-width": 2,
+      },
+    });
+
+    map.addLayer({
+      id: `${sourceId}-label`,
+      type: "symbol",
+      source: sourceId,
+      layout: {
+        "text-field": `${f.name.split("—")[0].trim()}\n${f.acreage} ac`,
+        "text-size": 11,
+        "text-anchor": "center",
+      },
+      paint: {
+        "text-color": "#ffffff",
+        "text-halo-color": "rgba(0,0,0,0.7)",
+        "text-halo-width": 1.5,
+      },
+    });
+  });
+}
+
 export function FieldMap({ field, fields, className, aspectRatio = "16/10", showControls = true, overlay, satelliteDefault = true }: FieldMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [isSatellite, setIsSatellite] = useState(satelliteDefault);
   const [loaded, setLoaded] = useState(false);
+  const fieldsRef = useRef<Field[]>([]);
 
   const allFields = fields || (field ? [field] : []);
+  fieldsRef.current = allFields;
   const center = allFields.length > 0 ? allFields[0].centroid : { lat: 41.45, lng: -96.15 };
 
   useEffect(() => {
@@ -55,71 +118,11 @@ export function FieldMap({ field, fields, className, aspectRatio = "16/10", show
 
     map.on("load", () => {
       setLoaded(true);
+      addFieldLayers(map, fieldsRef.current);
 
-      // Add field boundaries as polygons
-      allFields.forEach((f, i) => {
-        const sourceId = `field-${f.id}`;
-        const bb = f.boundingBox;
-        // Create a rectangle polygon from bounding box
-        const polygon: GeoJSON.Feature<GeoJSON.Polygon> = {
-          type: "Feature",
-          properties: { name: f.name, acreage: f.acreage, status: f.status },
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [bb.west, bb.south],
-              [bb.east, bb.south],
-              [bb.east, bb.north],
-              [bb.west, bb.north],
-              [bb.west, bb.south],
-            ]],
-          },
-        };
-
-        map.addSource(sourceId, { type: "geojson", data: polygon });
-
-        map.addLayer({
-          id: `${sourceId}-fill`,
-          type: "fill",
-          source: sourceId,
-          paint: {
-            "fill-color": f.status === "active" ? "hsl(152, 50%, 38%)" : "hsl(80, 30%, 55%)",
-            "fill-opacity": 0.25,
-          },
-        });
-
-        map.addLayer({
-          id: `${sourceId}-outline`,
-          type: "line",
-          source: sourceId,
-          paint: {
-            "line-color": "hsl(152, 38%, 22%)",
-            "line-width": 2,
-          },
-        });
-
-        // Label
-        map.addLayer({
-          id: `${sourceId}-label`,
-          type: "symbol",
-          source: sourceId,
-          layout: {
-            "text-field": `${f.name.split("—")[0].trim()}\n${f.acreage} ac`,
-            "text-size": 11,
-            "text-anchor": "center",
-          },
-          paint: {
-            "text-color": "#ffffff",
-            "text-halo-color": "rgba(0,0,0,0.7)",
-            "text-halo-width": 1.5,
-          },
-        });
-      });
-
-      // Fit to bounds
-      if (allFields.length > 0) {
+      if (fieldsRef.current.length > 0) {
         const bounds = new maplibregl.LngLatBounds();
-        allFields.forEach(f => {
+        fieldsRef.current.forEach(f => {
           bounds.extend([f.boundingBox.west, f.boundingBox.south]);
           bounds.extend([f.boundingBox.east, f.boundingBox.north]);
         });
@@ -141,13 +144,16 @@ export function FieldMap({ field, fields, className, aspectRatio = "16/10", show
     const newSat = !isSatellite;
     setIsSatellite(newSat);
     map.setStyle(newSat ? SATELLITE_STYLE : STREET_STYLE);
+    // Re-add field layers after style loads
+    map.once("style.load", () => {
+      addFieldLayers(map, fieldsRef.current);
+    });
   };
 
   return (
     <div className={cn("relative rounded-lg overflow-hidden border bg-muted", className)} style={{ aspectRatio }}>
       <div ref={mapContainer} className="absolute inset-0" />
 
-      {/* Controls */}
       {showControls && (
         <div className="absolute top-3 right-3 flex flex-col gap-1 z-10">
           <button
@@ -160,7 +166,6 @@ export function FieldMap({ field, fields, className, aspectRatio = "16/10", show
         </div>
       )}
 
-      {/* Coordinate display */}
       {center && loaded && (
         <div className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded bg-card/90 backdrop-blur-sm px-2 py-1 text-[10px] font-mono text-muted-foreground z-10">
           <MapIcon size={10} />
@@ -168,7 +173,6 @@ export function FieldMap({ field, fields, className, aspectRatio = "16/10", show
         </div>
       )}
 
-      {/* Overlay */}
       {overlay && (
         <div className="absolute inset-0 z-10">{overlay}</div>
       )}

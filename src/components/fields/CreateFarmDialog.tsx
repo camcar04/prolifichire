@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { StateSelect } from "@/components/ui/state-select";
 import { toast } from "sonner";
 
 interface Props {
@@ -75,12 +76,12 @@ export function CreateFarmDialog({ open, onOpenChange }: Props) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs">County</Label>
+              <Label className="text-xs">County <span className="text-destructive">*</span></Label>
               <Input value={form.county} onChange={e => setForm(f => ({ ...f, county: e.target.value }))} placeholder="Douglas" className="h-8 text-sm" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">State</Label>
-              <Input value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} placeholder="NE" className="h-8 text-sm" />
+              <Label className="text-xs">State <span className="text-destructive">*</span></Label>
+              <StateSelect value={form.state} onValueChange={v => setForm(f => ({ ...f, state: v }))} />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -90,7 +91,7 @@ export function CreateFarmDialog({ open, onOpenChange }: Props) {
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} className="h-8 text-xs">Cancel</Button>
-          <Button size="sm" onClick={() => mutation.mutate()} disabled={!form.name.trim() || mutation.isPending} className="h-8 text-xs">
+          <Button size="sm" onClick={() => mutation.mutate()} disabled={!form.name.trim() || !form.county.trim() || !form.state || mutation.isPending} className="h-8 text-xs">
             {mutation.isPending ? "Creating…" : "Create Farm"}
           </Button>
         </div>

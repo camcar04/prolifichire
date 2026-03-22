@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { StateSelect } from "@/components/ui/state-select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
@@ -119,12 +120,12 @@ export function CreateFieldDialog({ open, onOpenChange, preselectedFarmId }: Pro
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs">County</Label>
+              <Label className="text-xs">County <span className="text-destructive">*</span></Label>
               <Input value={form.county} onChange={e => setForm(f => ({ ...f, county: e.target.value }))} className="h-8 text-sm" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">State</Label>
-              <Input value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} className="h-8 text-sm" />
+              <Label className="text-xs">State <span className="text-destructive">*</span></Label>
+              <StateSelect value={form.state} onValueChange={v => setForm(f => ({ ...f, state: v }))} />
             </div>
           </div>
 
@@ -152,7 +153,7 @@ export function CreateFieldDialog({ open, onOpenChange, preselectedFarmId }: Pro
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} className="h-8 text-xs">Cancel</Button>
-          <Button size="sm" onClick={() => mutation.mutate()} disabled={!form.name.trim() || !form.farmId || !form.acreage || mutation.isPending} className="h-8 text-xs">
+          <Button size="sm" onClick={() => mutation.mutate()} disabled={!form.name.trim() || !form.farmId || !form.acreage || !form.county.trim() || !form.state || mutation.isPending} className="h-8 text-xs">
             {mutation.isPending ? "Saving…" : "Add Field"}
           </Button>
         </div>
