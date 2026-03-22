@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, ChevronRight, ChevronLeft, Check, Truck, User, Wrench, MapPin, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { WelcomeScreen } from "@/components/onboarding/WelcomeScreen";
 import type { OperationType } from "@/types/domain";
 
 const STEPS = [
@@ -40,10 +41,21 @@ const SERVICE_TYPES: { value: OperationType; label: string }[] = [
 
 export default function OperatorOnboarding() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const [showWelcome, setShowWelcome] = useState(true);
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [services, setServices] = useState<OperationType[]>([]);
+
+  if (showWelcome) {
+    return (
+      <WelcomeScreen
+        mode="operator"
+        userName={profile?.firstName || ""}
+        onStart={() => setShowWelcome(false)}
+      />
+    );
+  }
 
   const [form, setForm] = useState({
     firstName: "", lastName: "", phone: "", preferredComm: "in_app",

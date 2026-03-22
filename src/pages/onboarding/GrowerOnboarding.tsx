@@ -10,6 +10,7 @@ import { StateSelect } from "@/components/ui/state-select";
 import { toast } from "sonner";
 import { Loader2, ChevronRight, ChevronLeft, Check, MapPin, User, Building2, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { WelcomeScreen } from "@/components/onboarding/WelcomeScreen";
 
 const STEPS = [
   { id: "profile", label: "Your Profile", icon: User },
@@ -20,9 +21,20 @@ const STEPS = [
 
 export default function GrowerOnboarding() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const [showWelcome, setShowWelcome] = useState(true);
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+
+  if (showWelcome) {
+    return (
+      <WelcomeScreen
+        mode="grower"
+        userName={profile?.firstName || ""}
+        onStart={() => setShowWelcome(false)}
+      />
+    );
+  }
 
   const [form, setForm] = useState({
     firstName: "", lastName: "", phone: "", role: "owner",
