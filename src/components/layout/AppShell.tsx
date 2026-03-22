@@ -4,12 +4,14 @@ import {
   LayoutDashboard, Map, Briefcase, Store, DollarSign,
   ChevronLeft, ChevronRight, Search, Bell, X, FolderOpen,
   MessageSquare, Calendar, Package, LogOut, Truck, Bookmark,
+  Link2, Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, type AppMode } from "@/contexts/AuthContext";
 import { RoleModeSwitcher } from "@/components/layout/RoleModeSwitcher";
 import { useNotifications } from "@/hooks/useNotifications";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import { OfflineBanner, SyncStatusIndicator } from "@/components/offline/OfflineBanner";
 import { getInitials } from "@/lib/format";
 
 interface NavItem {
