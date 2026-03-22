@@ -96,7 +96,7 @@ export default function OperatorDashboard() {
       )}
 
       {/* Main work surface — 2-column dispatch layout */}
-      <div className="grid lg:grid-cols-5 gap-4">
+      <div className="grid lg:grid-cols-5 gap-3">
         {/* Left: Today's route + quick actions */}
         <div className="lg:col-span-2 space-y-4">
            <div className="rounded border bg-card overflow-hidden">
