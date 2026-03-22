@@ -156,7 +156,7 @@ export default function FieldWorkspace() {
         </div>
 
         {/* Content */}
-        {activeTab === "overview" && <OverviewContent field={field} stats={stats} activeJob={activeJob} packet={packet} auditLogs={fieldAuditLogs} />}
+        {activeTab === "overview" && <OverviewContent field={field} stats={stats} activeJob={activeJob} packet={packet} auditLogs={fieldAuditLogs} activeMode={activeMode} />}
         {activeTab === "jobs" && <JobsContent jobs={fieldJobs} />}
         {activeTab === "history" && <ActivityTimeline events={fieldAuditLogs} />}
         {activeTab === "files" && <FilesContent datasets={fieldDatasets} />}
