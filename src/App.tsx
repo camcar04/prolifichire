@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import FieldWorkspace from "./pages/FieldWorkspace";
@@ -30,7 +31,12 @@ import CookieConsent from "./components/legal/CookieConsent";
 import { AIAssistant } from "./components/ai/AIAssistant";
 import OperatorProfile from "./pages/OperatorProfile";
 import Enterprise from "./pages/Enterprise";
+
 const queryClient = new QueryClient();
+
+function P({ children }: { children: React.ReactNode }) {
+  return <ProtectedRoute>{children}</ProtectedRoute>;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -40,33 +46,39 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/onboarding/grower" element={<GrowerOnboarding />} />
-            <Route path="/onboarding/operator" element={<OperatorOnboarding />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/fields" element={<Fields />} />
-            <Route path="/fields/:fieldId" element={<FieldWorkspace />} />
-            <Route path="/jobs" element={<Dashboard />} />
-            <Route path="/jobs/:jobId" element={<JobDetail />} />
-            <Route path="/marketplace" element={<Marketplace />} />
-            <Route path="/schedule" element={<Schedule />} />
-            <Route path="/packets" element={<Packets />} />
-            <Route path="/templates" element={<Templates />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/payouts" element={<Payouts />} />
-            <Route path="/integrations" element={<Integrations />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/finance" element={<Payouts />} />
-            <Route path="/files" element={<Fields />} />
-            <Route path="/messages" element={<NotificationsPage />} />
-            <Route path="/operators/:operatorId" element={<OperatorProfile />} />
             <Route path="/enterprise" element={<Enterprise />} />
             <Route path="/legal/privacy" element={<PrivacyPolicy />} />
             <Route path="/legal/terms" element={<TermsOfService />} />
             <Route path="/legal/cookies" element={<CookiePolicy />} />
             <Route path="/legal/acceptable-use" element={<AcceptableUse />} />
+
+            {/* Protected: onboarding */}
+            <Route path="/onboarding/grower" element={<P><GrowerOnboarding /></P>} />
+            <Route path="/onboarding/operator" element={<P><OperatorOnboarding /></P>} />
+
+            {/* Protected: app */}
+            <Route path="/dashboard" element={<P><Dashboard /></P>} />
+            <Route path="/fields" element={<P><Fields /></P>} />
+            <Route path="/fields/:fieldId" element={<P><FieldWorkspace /></P>} />
+            <Route path="/jobs" element={<P><Dashboard /></P>} />
+            <Route path="/jobs/:jobId" element={<P><JobDetail /></P>} />
+            <Route path="/marketplace" element={<P><Marketplace /></P>} />
+            <Route path="/schedule" element={<P><Schedule /></P>} />
+            <Route path="/packets" element={<P><Packets /></P>} />
+            <Route path="/templates" element={<P><Templates /></P>} />
+            <Route path="/notifications" element={<P><NotificationsPage /></P>} />
+            <Route path="/payouts" element={<P><Payouts /></P>} />
+            <Route path="/integrations" element={<P><Integrations /></P>} />
+            <Route path="/settings" element={<P><Settings /></P>} />
+            <Route path="/finance" element={<P><Payouts /></P>} />
+            <Route path="/files" element={<P><Fields /></P>} />
+            <Route path="/messages" element={<P><NotificationsPage /></P>} />
+            <Route path="/operators/:operatorId" element={<P><OperatorProfile /></P>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
           <CookieConsent />

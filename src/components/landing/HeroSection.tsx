@@ -11,54 +11,53 @@ export default function HeroSection() {
 
   return (
     <section ref={ref} className="relative pt-14 overflow-hidden">
+      {/* Background image with heavy dark overlay for text legibility */}
       <div className="absolute inset-0">
         <img src={heroImg} alt="" className="w-full h-full object-cover" loading="eager" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/88 via-black/75 to-black/30" />
+        <div className="absolute inset-0 bg-black/80" />
       </div>
 
       <div className="relative container py-20 md:py-28 lg:py-36">
         <div className="max-w-lg">
           <h1
-            className="reveal text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] font-bold tracking-tight text-white"
-            style={{ lineHeight: 1.12, transitionDelay: "80ms" }}
+            className="reveal text-3xl sm:text-4xl md:text-[2.75rem] lg:text-5xl font-bold tracking-tight text-white drop-shadow-md"
+            style={{ lineHeight: 1.1, transitionDelay: "80ms" }}
           >
             Run your farm work.{" "}
-            <span className="text-accent">Or power your entire network.</span>
+            <span className="text-accent drop-shadow-sm">Or power your entire network.</span>
           </h1>
 
           <p
-            className="reveal mt-4 text-[15px] md:text-base text-white/75 max-w-md leading-relaxed"
+            className="reveal mt-5 text-base md:text-lg text-white/80 max-w-md leading-relaxed drop-shadow-sm"
             style={{ transitionDelay: "160ms" }}
           >
             Manage farm work, coordinate operators, and run your entire network — growers, crews, and logistics — all in one platform.
           </p>
 
-          <div className="reveal mt-6 flex flex-wrap gap-2.5" style={{ transitionDelay: "240ms" }}>
-            <Button variant="hero" size="default" asChild>
+          <div className="reveal mt-7 flex flex-wrap gap-3" style={{ transitionDelay: "240ms" }}>
+            <Button variant="hero" size="lg" asChild>
               <Link to="/signup">
                 Post a Job
-                <ArrowRight size={14} className="ml-1" />
+                <ArrowRight size={16} className="ml-1" />
               </Link>
             </Button>
             <Button
-              variant="hero-outline"
-              size="default"
-              className="border-white/25 text-white hover:bg-white/10 hover:text-white"
+              size="lg"
+              className="bg-white/10 backdrop-blur-sm text-white border border-white/20 hover:bg-white/20 hover:text-white font-semibold"
               asChild
             >
               <Link to="/marketplace">Find Work</Link>
             </Button>
             <Button
-              variant="hero-outline"
-              size="default"
-              className="border-white/25 text-white hover:bg-white/10 hover:text-white"
+              size="lg"
+              className="bg-white/10 backdrop-blur-sm text-white border border-white/20 hover:bg-white/20 hover:text-white font-semibold"
               asChild
             >
               <Link to="/enterprise">Start a Network</Link>
             </Button>
           </div>
 
-          <div className="reveal mt-8 flex flex-wrap gap-x-5 gap-y-1.5 text-[12px] text-white/55" style={{ transitionDelay: "320ms" }}>
+          <div className="reveal mt-8 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-white/60 font-medium" style={{ transitionDelay: "320ms" }}>
             <span>✓ Free for growers to post</span>
             <span>✓ GPS-guided operators</span>
             <span>✓ Split payments built in</span>
