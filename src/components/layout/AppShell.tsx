@@ -58,7 +58,7 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
-  const notifications = getUnreadNotifications();
+  const { unreadCount } = useNotifications();
   const { activeMode, profile, signOut } = useAuth();
   const navItems = getNavItems(activeMode);
 
