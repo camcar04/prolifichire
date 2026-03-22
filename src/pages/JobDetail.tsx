@@ -616,6 +616,16 @@ export default function JobDetail() {
                 {job.notes && <div><p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5 font-medium">Notes</p><p className="text-[12px]">{job.notes}</p></div>}
               </div>
             )}
+
+            {/* Poster trust & report — operator view */}
+            {isOperatorView && (
+              <>
+                <PosterStatsCard userId={job.requested_by} />
+                <div className="flex justify-end">
+                  <ReportJobDialog jobId={job.id} />
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
