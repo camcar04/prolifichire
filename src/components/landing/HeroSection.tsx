@@ -11,25 +11,25 @@ export default function HeroSection() {
 
   return (
     <section ref={ref} className="relative pt-14 overflow-hidden">
-      {/* Background image with heavy dark overlay for text legibility */}
+      {/* Background image with solid dark overlay */}
       <div className="absolute inset-0">
         <img src={heroImg} alt="" className="w-full h-full object-cover" loading="eager" />
-        <div className="absolute inset-0 bg-black/80" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/92 via-black/85 to-black/70" />
       </div>
 
       <div className="relative container py-20 md:py-28 lg:py-36">
         <div className="max-w-lg">
           <h1
-            className="reveal text-3xl sm:text-4xl md:text-[2.75rem] lg:text-5xl font-bold tracking-tight text-white drop-shadow-md"
-            style={{ lineHeight: 1.1, transitionDelay: "80ms" }}
+            className="reveal text-3xl sm:text-4xl md:text-[2.75rem] lg:text-5xl font-bold tracking-tight text-white"
+            style={{ lineHeight: 1.1, transitionDelay: "80ms", textShadow: "0 2px 8px rgba(0,0,0,0.5)" }}
           >
             Run your farm work.{" "}
-            <span className="text-accent drop-shadow-sm">Or power your entire network.</span>
+            <span className="text-[hsl(83,55%,55%)]">Or power your entire network.</span>
           </h1>
 
           <p
-            className="reveal mt-5 text-base md:text-lg text-white/80 max-w-md leading-relaxed drop-shadow-sm"
-            style={{ transitionDelay: "160ms" }}
+            className="reveal mt-5 text-base md:text-lg text-white/90 max-w-md leading-relaxed"
+            style={{ transitionDelay: "160ms", textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}
           >
             Manage farm work, coordinate operators, and run your entire network — growers, crews, and logistics — all in one platform.
           </p>
@@ -43,21 +43,21 @@ export default function HeroSection() {
             </Button>
             <Button
               size="lg"
-              className="bg-white/10 backdrop-blur-sm text-white border border-white/20 hover:bg-white/20 hover:text-white font-semibold"
+              className="bg-white/15 backdrop-blur-sm text-white border border-white/25 hover:bg-white/25 hover:text-white font-semibold"
               asChild
             >
               <Link to="/marketplace">Find Work</Link>
             </Button>
             <Button
               size="lg"
-              className="bg-white/10 backdrop-blur-sm text-white border border-white/20 hover:bg-white/20 hover:text-white font-semibold"
+              className="bg-white/15 backdrop-blur-sm text-white border border-white/25 hover:bg-white/25 hover:text-white font-semibold"
               asChild
             >
               <Link to="/enterprise">Start a Network</Link>
             </Button>
           </div>
 
-          <div className="reveal mt-8 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-white/60 font-medium" style={{ transitionDelay: "320ms" }}>
+          <div className="reveal mt-8 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-white/70 font-medium" style={{ transitionDelay: "320ms" }}>
             <span>✓ Free for growers to post</span>
             <span>✓ GPS-guided operators</span>
             <span>✓ Split payments built in</span>

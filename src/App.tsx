@@ -31,6 +31,7 @@ import CookieConsent from "./components/legal/CookieConsent";
 import { AIAssistant } from "./components/ai/AIAssistant";
 import OperatorProfile from "./pages/OperatorProfile";
 import Enterprise from "./pages/Enterprise";
+import CalendarView from "./pages/CalendarView";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,7 @@ const App = () => (
             <Route path="/jobs/:jobId" element={<P><JobDetail /></P>} />
             <Route path="/marketplace" element={<P><Marketplace /></P>} />
             <Route path="/schedule" element={<P><Schedule /></P>} />
+            <Route path="/calendar" element={<P><CalendarView /></P>} />
             <Route path="/packets" element={<P><Packets /></P>} />
             <Route path="/templates" element={<P><Templates /></P>} />
             <Route path="/notifications" element={<P><NotificationsPage /></P>} />

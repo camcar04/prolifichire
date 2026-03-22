@@ -27,6 +27,7 @@ const growerNav: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", to: "/dashboard" },
   { icon: Map, label: "Fields", to: "/fields" },
   { icon: Briefcase, label: "Jobs", to: "/jobs" },
+  { icon: Calendar, label: "Calendar", to: "/calendar" },
   { icon: Store, label: "Marketplace", to: "/marketplace" },
   { icon: Bookmark, label: "Templates", to: "/templates" },
   { icon: DollarSign, label: "Financials", to: "/finance" },
@@ -38,7 +39,7 @@ const growerNav: NavItem[] = [
 const operatorNav: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", to: "/dashboard" },
   { icon: Briefcase, label: "My Jobs", to: "/jobs" },
-  { icon: Calendar, label: "Schedule", to: "/schedule" },
+  { icon: Calendar, label: "Calendar", to: "/calendar" },
   { icon: Package, label: "Field Packets", to: "/packets" },
   { icon: Store, label: "Marketplace", to: "/marketplace" },
   { icon: Bookmark, label: "Templates", to: "/templates" },
