@@ -894,6 +894,128 @@ export type Database = {
           },
         ]
       }
+      hauling_assignments: {
+        Row: {
+          assigned_at: string
+          completed_at: string | null
+          id: string
+          job_id: string
+          loads_completed: number | null
+          notes: string | null
+          operator_id: string
+          started_at: string | null
+          status: string
+          truck_id: string | null
+        }
+        Insert: {
+          assigned_at?: string
+          completed_at?: string | null
+          id?: string
+          job_id: string
+          loads_completed?: number | null
+          notes?: string | null
+          operator_id: string
+          started_at?: string | null
+          status?: string
+          truck_id?: string | null
+        }
+        Update: {
+          assigned_at?: string
+          completed_at?: string | null
+          id?: string
+          job_id?: string
+          loads_completed?: number | null
+          notes?: string | null
+          operator_id?: string
+          started_at?: string | null
+          status?: string
+          truck_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hauling_assignments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hauling_assignments_truck_id_fkey"
+            columns: ["truck_id"]
+            isOneToOne: false
+            referencedRelation: "truck_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hauling_job_details: {
+        Row: {
+          created_at: string
+          delivery_address: string | null
+          delivery_lat: number | null
+          delivery_lng: number | null
+          delivery_location_name: string | null
+          estimated_cycle_minutes: number | null
+          estimated_distance_miles: number | null
+          expected_loads_per_day: number | null
+          harvest_conditions: string | null
+          id: string
+          job_id: string
+          moisture_notes: string | null
+          scale_ticket_required: boolean | null
+          schedule_model: string
+          trucks_assigned: number
+          trucks_needed: number
+          unload_instructions: string | null
+        }
+        Insert: {
+          created_at?: string
+          delivery_address?: string | null
+          delivery_lat?: number | null
+          delivery_lng?: number | null
+          delivery_location_name?: string | null
+          estimated_cycle_minutes?: number | null
+          estimated_distance_miles?: number | null
+          expected_loads_per_day?: number | null
+          harvest_conditions?: string | null
+          id?: string
+          job_id: string
+          moisture_notes?: string | null
+          scale_ticket_required?: boolean | null
+          schedule_model?: string
+          trucks_assigned?: number
+          trucks_needed?: number
+          unload_instructions?: string | null
+        }
+        Update: {
+          created_at?: string
+          delivery_address?: string | null
+          delivery_lat?: number | null
+          delivery_lng?: number | null
+          delivery_location_name?: string | null
+          estimated_cycle_minutes?: number | null
+          estimated_distance_miles?: number | null
+          expected_loads_per_day?: number | null
+          harvest_conditions?: string | null
+          id?: string
+          job_id?: string
+          moisture_notes?: string | null
+          scale_ticket_required?: boolean | null
+          schedule_model?: string
+          trucks_assigned?: number
+          trucks_needed?: number
+          unload_instructions?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hauling_job_details_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_line_items: {
         Row: {
           description: string
@@ -2261,6 +2383,107 @@ export type Database = {
           },
         ]
       }
+      truck_availability: {
+        Row: {
+          available_date: string
+          created_at: string
+          end_time: string | null
+          id: string
+          is_available: boolean | null
+          notes: string | null
+          operator_profile_id: string
+          start_time: string | null
+          truck_id: string
+        }
+        Insert: {
+          available_date: string
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          is_available?: boolean | null
+          notes?: string | null
+          operator_profile_id: string
+          start_time?: string | null
+          truck_id: string
+        }
+        Update: {
+          available_date?: string
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          is_available?: boolean | null
+          notes?: string | null
+          operator_profile_id?: string
+          start_time?: string | null
+          truck_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "truck_availability_operator_profile_id_fkey"
+            columns: ["operator_profile_id"]
+            isOneToOne: false
+            referencedRelation: "operator_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "truck_availability_truck_id_fkey"
+            columns: ["truck_id"]
+            isOneToOne: false
+            referencedRelation: "truck_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      truck_units: {
+        Row: {
+          capacity_bushels: number | null
+          capacity_tons: number | null
+          created_at: string
+          id: string
+          license_plate: string | null
+          make: string | null
+          model: string | null
+          operator_profile_id: string
+          status: string
+          truck_type: string
+          year: number | null
+        }
+        Insert: {
+          capacity_bushels?: number | null
+          capacity_tons?: number | null
+          created_at?: string
+          id?: string
+          license_plate?: string | null
+          make?: string | null
+          model?: string | null
+          operator_profile_id: string
+          status?: string
+          truck_type?: string
+          year?: number | null
+        }
+        Update: {
+          capacity_bushels?: number | null
+          capacity_tons?: number | null
+          created_at?: string
+          id?: string
+          license_plate?: string | null
+          make?: string | null
+          model?: string | null
+          operator_profile_id?: string
+          status?: string
+          truck_type?: string
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "truck_units_operator_profile_id_fkey"
+            columns: ["operator_profile_id"]
+            isOneToOne: false
+            referencedRelation: "operator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -2404,6 +2627,7 @@ export type Database = {
         | "drainage"
         | "other"
         | "rock_picking"
+        | "grain_hauling"
       packet_status:
         | "pending"
         | "generating"
@@ -2424,7 +2648,15 @@ export type Database = {
         | "approve_payment"
         | "manage"
         | "admin"
-      pricing_model: "per_acre" | "per_hour" | "flat_rate" | "negotiated"
+      pricing_model:
+        | "per_acre"
+        | "per_hour"
+        | "flat_rate"
+        | "negotiated"
+        | "per_load"
+        | "per_bushel"
+        | "per_mile"
+        | "day_rate"
       product_form: "dry" | "liquid" | "gas" | "granular" | "other"
       quote_status:
         | "pending"
@@ -2679,6 +2911,7 @@ export const Constants = {
         "drainage",
         "other",
         "rock_picking",
+        "grain_hauling",
       ],
       packet_status: [
         "pending",
@@ -2703,7 +2936,16 @@ export const Constants = {
         "manage",
         "admin",
       ],
-      pricing_model: ["per_acre", "per_hour", "flat_rate", "negotiated"],
+      pricing_model: [
+        "per_acre",
+        "per_hour",
+        "flat_rate",
+        "negotiated",
+        "per_load",
+        "per_bushel",
+        "per_mile",
+        "day_rate",
+      ],
       product_form: ["dry", "liquid", "gas", "granular", "other"],
       quote_status: ["pending", "accepted", "declined", "expired", "countered"],
       rate_type: [
