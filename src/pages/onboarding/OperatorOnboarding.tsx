@@ -71,9 +71,16 @@ export default function OperatorOnboarding() {
       }).select("id").single();
       if (orgErr) throw orgErr;
 
+      // Get current enabled types to preserve them
+      const { data: currentProfile } = await supabase.from("profiles").select("enabled_account_types, primary_account_type").eq("user_id", user.id).single();
+      const currentEnabled = (currentProfile?.enabled_account_types as string[] | null) || [];
+      const updatedEnabled = currentEnabled.includes("operator") ? currentEnabled : [...currentEnabled, "operator"];
+
       await supabase.from("profiles").update({
         first_name: form.firstName, last_name: form.lastName, phone: form.phone,
         organization_id: org.id, onboarding_completed: true,
+        enabled_account_types: updatedEnabled,
+        primary_account_type: currentProfile?.primary_account_type || "operator",
         preferred_comm_method: form.preferredComm as any,
       }).eq("user_id", user.id);
 
