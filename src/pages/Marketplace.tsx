@@ -495,6 +495,14 @@ function JobDetailPane({ job, isSaved, onToggleSave, onOpenFull }: {
             <p className="text-[11px] text-muted-foreground">{job.requirements}</p>
           </div>
         )}
+
+        {/* Poster trust info */}
+        <PosterStatsCard userId={job.requested_by} compact />
+
+        {/* Report */}
+        <div className="flex justify-end">
+          <ReportJobDialog jobId={job.id} />
+        </div>
       </div>
 
       {/* Sticky action bar */}
