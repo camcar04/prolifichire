@@ -29,6 +29,7 @@ const growerNav: NavItem[] = [
   { icon: DollarSign, label: "Financials", to: "/finance" },
   { icon: FolderOpen, label: "Files", to: "/files" },
   { icon: MessageSquare, label: "Messages", to: "/messages" },
+  { icon: Link2, label: "Integrations", to: "/integrations" },
 ];
 
 const operatorNav: NavItem[] = [
