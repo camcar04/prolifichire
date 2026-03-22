@@ -55,7 +55,7 @@ export default function Login() {
       toast.error("Invalid email or password.");
     } else {
       setAttempts(0);
-      navigate("/dashboard");
+      navigate(redirectTo);
     }
   };
 
