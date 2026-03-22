@@ -66,6 +66,7 @@ const App = () => (
             <Route path="/legal/acceptable-use" element={<AcceptableUse />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <CookieConsent />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
