@@ -238,6 +238,15 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Compliance */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <ShieldCheck size={14} className="text-primary" />
+          <h3 className="text-[13px] font-semibold">Compliance & Credentials</h3>
+        </div>
+        <CompliancePanel />
+      </div>
     </div>
   );
 }
