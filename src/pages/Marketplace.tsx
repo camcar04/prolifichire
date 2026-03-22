@@ -18,6 +18,7 @@ import {
   CheckCircle2, AlertTriangle, Target, SlidersHorizontal,
 } from "lucide-react";
 import { useMarketplaceJobs } from "@/hooks/useJobs";
+import { useSavedJobIds, useToggleSaveJob } from "@/hooks/useSavedJobs";
 import {
   formatCurrency, formatAcres, formatOperationType, formatCropType,
   formatDateShort, formatPricingModel, formatRelative,
@@ -25,7 +26,6 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import type { OperationType } from "@/types/domain";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 const OP_FILTERS: (OperationType | "all")[] = [
   "all", "spraying", "planting", "harvest", "grain_hauling", "tillage",
@@ -35,11 +35,12 @@ const OP_FILTERS: (OperationType | "all")[] = [
 export default function Marketplace() {
   const { activeMode } = useAuth();
   const { data: allJobs = [], isLoading } = useMarketplaceJobs();
+  const savedJobIds = useSavedJobIds();
+  const toggleSaveMutation = useToggleSaveJob();
   const navigate = useNavigate();
 
   const [filter, setFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
   const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [sortBy, setSortBy] = useState<string>("newest");
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -47,12 +48,7 @@ export default function Marketplace() {
 
   const toggleSave = (jobId: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setSavedJobs(prev => {
-      const next = new Set(prev);
-      if (next.has(jobId)) { next.delete(jobId); toast("Removed from queue"); }
-      else { next.add(jobId); toast.success("Saved to bid queue"); }
-      return next;
-    });
+    toggleSaveMutation.mutate({ jobId, isSaved: savedJobIds.has(jobId) });
   };
 
   const filtered = useMemo(() => {
@@ -65,7 +61,7 @@ export default function Marketplace() {
         (j as any).job_fields?.[0]?.fields?.name?.toLowerCase().includes(q)
       );
     }
-    if (showSavedOnly) jobs = jobs.filter(j => savedJobs.has(j.id));
+    if (showSavedOnly) jobs = jobs.filter(j => savedJobIds.has(j.id));
 
     if (sortBy === "pay_high") jobs = [...jobs].sort((a, b) => Number(b.estimated_total) - Number(a.estimated_total));
     else if (sortBy === "pay_low") jobs = [...jobs].sort((a, b) => Number(a.estimated_total) - Number(b.estimated_total));
@@ -73,7 +69,7 @@ export default function Marketplace() {
     else if (sortBy === "deadline") jobs = [...jobs].sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
 
     return jobs;
-  }, [allJobs, filter, searchQuery, showSavedOnly, savedJobs, sortBy]);
+  }, [allJobs, filter, searchQuery, showSavedOnly, savedJobIds, sortBy]);
 
   const selectedJob = useMemo(() => {
     if (!selectedJobId) return null;
@@ -117,7 +113,7 @@ export default function Marketplace() {
             </Select>
             <Button variant={showSavedOnly ? "default" : "outline"} size="sm"
               className={cn("h-8 text-[11px] gap-1")} onClick={() => setShowSavedOnly(!showSavedOnly)}>
-              <Bookmark size={11} /> Queue {savedJobs.size > 0 && `(${savedJobs.size})`}
+              <Bookmark size={11} /> Queue {savedJobIds.size > 0 && `(${savedJobIds.size})`}
             </Button>
             <Button variant="ghost" size="sm" className="h-8 text-[11px] gap-1 hidden lg:flex"
               onClick={() => setShowFilters(!showFilters)}>
@@ -203,7 +199,7 @@ export default function Marketplace() {
 
                 <div className="pt-3 border-t">
                   <p className="text-[10px] text-muted-foreground">
-                    {allJobs.length} total · {savedJobs.size} saved
+                    {allJobs.length} total · {savedJobIds.size} saved
                   </p>
                 </div>
               </div>
@@ -217,8 +213,12 @@ export default function Marketplace() {
               <div className="divide-y">
                 {filtered.map(job => {
                   const jf = (job as any).job_fields?.[0];
-                  const fieldName = jf?.fields?.name || "—";
-                  const isSaved = savedJobs.has(job.id);
+                  const fieldData = jf?.fields;
+                  const fieldName = fieldData?.name || "—";
+                  const locationSummary = fieldData?.county && fieldData?.state
+                    ? `${fieldData.county}, ${fieldData.state}`
+                    : fieldData?.state || (fieldData?.centroid_lat ? "Located" : "No location");
+                  const isSaved = savedJobIds.has(job.id);
                   const isSelected = effectiveSelected?.id === job.id;
                   const contractLabel = getContractLabel((job as any).contract_mode || "fixed_price");
 
@@ -246,6 +246,8 @@ export default function Marketplace() {
                         </div>
                         <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground">
                           <span className="flex items-center gap-0.5"><MapPin size={8} />{fieldName}</span>
+                          <span>·</span>
+                          <span className="truncate max-w-[100px]">{locationSummary}</span>
                           <span>·</span>
                           <span>{formatAcres(Number(job.total_acres))}</span>
                           <span>·</span>
@@ -275,7 +277,7 @@ export default function Marketplace() {
               <div className="hidden lg:flex flex-col w-[380px] shrink-0 overflow-y-auto bg-card/30">
                 <JobDetailPane
                   job={effectiveSelected}
-                  isSaved={savedJobs.has(effectiveSelected.id)}
+                  isSaved={savedJobIds.has(effectiveSelected.id)}
                   onToggleSave={() => toggleSave(effectiveSelected.id)}
                   onOpenFull={() => navigate(`/jobs/${effectiveSelected.id}`)}
                 />

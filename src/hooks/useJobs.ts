@@ -88,7 +88,7 @@ export function useMarketplaceJobs() {
         .from("jobs")
         .select(`
           *,
-          job_fields(*, fields(name, crop, acreage, centroid_lat, centroid_lng)),
+          job_fields(*, fields(name, crop, acreage, centroid_lat, centroid_lng, county, state, boundary_geojson, bbox_north, bbox_south, bbox_east, bbox_west)),
           farms(name)
         `)
         .in("status", ["requested", "quoted", "scheduled"])
