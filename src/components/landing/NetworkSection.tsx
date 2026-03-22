@@ -32,7 +32,7 @@ export default function NetworkSection() {
         <div className="reveal grid sm:grid-cols-2 gap-x-6 gap-y-3 max-w-2xl mx-auto" style={{ transitionDelay: "120ms" }}>
           {points.map((p) => (
             <div key={p.text} className="flex items-start gap-2.5">
-              <p.icon size={15} className="text-primary mt-0.5 shrink-0" />
+              <p.icon size={15} className="text-accent mt-0.5 shrink-0" />
               <p className="text-[13px] text-primary-foreground/55 leading-relaxed">{p.text}</p>
             </div>
           ))}
