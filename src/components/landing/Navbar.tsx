@@ -20,6 +20,7 @@ export default function Navbar() {
           <a href="#features" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">Features</a>
           <a href="#services" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">Services</a>
           <a href="#how-it-works" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">How It Works</a>
+          <Link to="/enterprise" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">Enterprise</Link>
           <a href="#faq" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
         </div>
 
