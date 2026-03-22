@@ -13,8 +13,9 @@ import {
   getFieldById, getJobsByField, getDatasetsByField, getAuditLogsByField,
   getFieldRequirements, getFieldAccess, fieldStats, getInvoicesByField,
   getThreadsByField, getMessagesByThread, getPermissionsByField, fieldPackets,
-  fields,
+  fields, getInputsByJob,
 } from "@/data/mock";
+import { MaterialsSummaryBadge } from "@/components/materials/MaterialInputsPanel";
 import {
   formatCurrency, formatAcres, formatOperationType, formatCropType,
   formatDate, formatPricingModel,
