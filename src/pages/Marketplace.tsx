@@ -427,6 +427,10 @@ function JobDetailPane({ job, isSaved, onToggleSave, onOpenFull }: {
                 {job.urgency}
               </span>
             )}
+            {(() => {
+              const badges = deriveJobBadges({ ...job, _confirmed: true }, null);
+              return badges.map(b => <VerifiedJobBadge key={b} type={b} size="md" />);
+            })()}
           </div>
           <h2 className="text-sm font-bold leading-tight">{job.title}</h2>
           <p className="text-[11px] text-muted-foreground mt-0.5">
