@@ -17,13 +17,18 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<AppMode>("grower");
+  const [selectedRole, setSelectedRole] = useState<AppMode | null>(null);
   const [loading, setLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const navigate = useNavigate();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!selectedRole) {
+      toast.error("Please select how you'll use ProlificHire.");
+      return;
+    }
 
     if (!canPerformAction("signup", 3000)) {
       toast.error("Please wait before trying again.");
@@ -52,7 +57,7 @@ export default function Signup() {
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: trimmedEmail,
       password,
       options: {
@@ -60,14 +65,25 @@ export default function Signup() {
         emailRedirectTo: window.location.origin,
       },
     });
-    setLoading(false);
+    
     if (error) {
+      setLoading(false);
       toast.error("Could not create account. Please try again.");
-    } else {
-      localStorage.setItem("ph_active_mode", selectedRole);
-      toast.success("Account created! Setting up your workspace...");
-      navigate(selectedRole === "operator" ? "/onboarding/operator" : "/onboarding/grower");
+      return;
     }
+
+    // Store primary account type and enabled types on profile
+    if (data.user) {
+      await supabase.from("profiles").update({
+        primary_account_type: selectedRole,
+        enabled_account_types: [selectedRole],
+      }).eq("user_id", data.user.id);
+    }
+
+    setLoading(false);
+    localStorage.setItem("ph_active_mode", selectedRole);
+    toast.success("Account created! Let's set up your workspace.");
+    navigate(selectedRole === "operator" ? "/onboarding/operator" : "/onboarding/grower");
   };
 
   return (
@@ -82,10 +98,10 @@ export default function Signup() {
 
         <div className="rounded-xl bg-card shadow-card p-6">
           <h1 className="text-lg font-semibold mb-1">Create your account</h1>
-          <p className="text-sm text-muted-foreground mb-5">What are you here to do?</p>
+          <p className="text-sm text-muted-foreground mb-5">How will you use ProlificHire?</p>
 
-          {/* Role picker — prominent segmented */}
-          <div className="rounded-xl border-2 border-border bg-surface-2 p-1.5 mb-6">
+          {/* Role picker */}
+          <div className="rounded-xl border-2 border-border bg-surface-2 p-1.5 mb-4">
             <div className="grid grid-cols-2 gap-1.5">
               <button
                 type="button"
@@ -121,6 +137,10 @@ export default function Signup() {
               </button>
             </div>
           </div>
+
+          <p className="text-[10px] text-muted-foreground text-center mb-5">
+            Start with one role. You can enable both later in Settings.
+          </p>
 
           <form onSubmit={handleSignup} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
@@ -160,7 +180,7 @@ export default function Signup() {
                 <Link to="/legal/acceptable-use" className="text-primary underline" target="_blank">Acceptable Use Policy</Link>.
               </label>
             </div>
-            <Button type="submit" className="w-full" disabled={loading || !agreedToTerms}>
+            <Button type="submit" className="w-full" disabled={loading || !agreedToTerms || !selectedRole}>
               {loading && <Loader2 size={16} className="animate-spin mr-2" />}
               Create Account
             </Button>

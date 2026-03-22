@@ -1,22 +1,55 @@
+import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import AppShell from "@/components/layout/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TeamManagement } from "@/components/settings/TeamManagement";
-import { User, Bell, Shield, CreditCard, Users } from "lucide-react";
+import { User, Bell, Shield, CreditCard, Users, Briefcase, Wrench, ArrowRight, CheckCircle2, Lock } from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export default function Settings() {
-  const { profile } = useAuth();
+  const { profile, user, roles, hasRole, canSwitchRoles, refreshProfile } = useAuth();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") || "profile";
+  const [enablingRole, setEnablingRole] = useState(false);
+
+  const handleEnableRole = async (role: "grower" | "operator") => {
+    if (!user) return;
+    setEnablingRole(true);
+    try {
+      const currentEnabled = profile?.enabledAccountTypes || [];
+      if (!currentEnabled.includes(role)) {
+        await supabase.from("profiles").update({
+          enabled_account_types: [...currentEnabled, role],
+        }).eq("user_id", user.id);
+      }
+
+      // Also add user_role if missing
+      if (!roles.includes(role as any)) {
+        await supabase.from("user_roles").insert({ user_id: user.id, role: role as any });
+      }
+
+      await refreshProfile();
+      toast.success(`${role === "grower" ? "Hire Work" : "Do Work"} role enabled! Complete onboarding to get started.`);
+    } catch {
+      toast.error("Failed to enable role.");
+    }
+    setEnablingRole(false);
+  };
 
   return (
     <AppShell title="Settings">
       <div className="max-w-3xl animate-fade-in">
-        <Tabs defaultValue="profile" className="space-y-4">
-          <TabsList className="h-8">
+        <Tabs defaultValue={defaultTab} className="space-y-4">
+          <TabsList className="h-8 flex-wrap">
             <TabsTrigger value="profile" className="text-xs gap-1"><User size={12} /> Profile</TabsTrigger>
+            <TabsTrigger value="account" className="text-xs gap-1"><Briefcase size={12} /> Account</TabsTrigger>
             <TabsTrigger value="team" className="text-xs gap-1"><Users size={12} /> Team</TabsTrigger>
             <TabsTrigger value="notifications" className="text-xs gap-1"><Bell size={12} /> Notifications</TabsTrigger>
             <TabsTrigger value="security" className="text-xs gap-1"><Shield size={12} /> Security</TabsTrigger>
@@ -45,6 +78,93 @@ export default function Settings() {
             <section className="rounded-lg bg-card border p-5">
               <h2 className="text-sm font-semibold flex items-center gap-2 mb-4"><CreditCard size={14} /> Billing & Payments</h2>
               <p className="text-[13px] text-muted-foreground">Payment method and billing settings will be available when Stripe Connect is configured.</p>
+            </section>
+          </TabsContent>
+
+          {/* Account Types Tab */}
+          <TabsContent value="account" className="space-y-6">
+            <section className="rounded-lg bg-card border p-5">
+              <h2 className="text-sm font-semibold flex items-center gap-2 mb-4">
+                <Briefcase size={14} /> Account Types
+              </h2>
+              <p className="text-[13px] text-muted-foreground mb-5">
+                Manage your account roles. Enable additional roles to access more features.
+              </p>
+
+              <div className="grid sm:grid-cols-2 gap-3">
+                {/* Hire Work role card */}
+                <div className={cn(
+                  "rounded-lg border-2 p-4 transition-colors",
+                  hasRole("grower") ? "border-primary/30 bg-primary/5" : "border-border"
+                )}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Briefcase size={16} className={hasRole("grower") ? "text-primary" : "text-muted-foreground"} />
+                    <span className="text-sm font-semibold">Hire Work</span>
+                    {hasRole("grower") && <CheckCircle2 size={14} className="text-primary ml-auto" />}
+                  </div>
+                  <p className="text-[12px] text-muted-foreground mb-3">Post jobs, manage fields, hire operators.</p>
+                  {hasRole("grower") ? (
+                    <p className="text-[11px] text-primary font-medium flex items-center gap-1">
+                      <CheckCircle2 size={11} /> Enabled
+                    </p>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs"
+                      disabled={enablingRole}
+                      onClick={() => handleEnableRole("grower")}
+                    >
+                      Enable <ArrowRight size={12} className="ml-1" />
+                    </Button>
+                  )}
+                </div>
+
+                {/* Do Work role card */}
+                <div className={cn(
+                  "rounded-lg border-2 p-4 transition-colors",
+                  hasRole("operator") ? "border-primary/30 bg-primary/5" : "border-border"
+                )}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Wrench size={16} className={hasRole("operator") ? "text-primary" : "text-muted-foreground"} />
+                    <span className="text-sm font-semibold">Do Work</span>
+                    {hasRole("operator") && <CheckCircle2 size={14} className="text-primary ml-auto" />}
+                  </div>
+                  <p className="text-[12px] text-muted-foreground mb-3">Accept jobs, submit quotes, manage equipment.</p>
+                  {hasRole("operator") ? (
+                    <p className="text-[11px] text-primary font-medium flex items-center gap-1">
+                      <CheckCircle2 size={11} /> Enabled
+                    </p>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs"
+                      disabled={enablingRole}
+                      onClick={() => handleEnableRole("operator")}
+                    >
+                      Enable <ArrowRight size={12} className="ml-1" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {canSwitchRoles && (
+                <p className="text-[11px] text-muted-foreground mt-4 flex items-center gap-1">
+                  <CheckCircle2 size={11} className="text-primary" />
+                  Both roles enabled. Use the workspace switcher in the sidebar to toggle.
+                </p>
+              )}
+            </section>
+
+            <section className="rounded-lg bg-card border p-5">
+              <h2 className="text-sm font-semibold flex items-center gap-2 mb-3">
+                <Lock size={14} /> Primary Account
+              </h2>
+              <p className="text-[13px] text-muted-foreground">
+                Your primary account type is <span className="font-medium text-foreground">{profile?.primaryAccountType === "operator" ? "Do Work" : "Hire Work"}</span>.
+                This determines your default workspace on login.
+              </p>
             </section>
           </TabsContent>
 

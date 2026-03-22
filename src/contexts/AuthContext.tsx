@@ -8,13 +8,24 @@ export type AppMode = "grower" | "operator";
 interface AuthState {
   user: SupaUser | null;
   session: Session | null;
-  profile: { firstName: string; lastName: string; email: string; avatarUrl?: string } | null;
+  profile: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatarUrl?: string;
+    primaryAccountType?: string | null;
+    enabledAccountTypes?: string[];
+    onboardingCompleted?: boolean;
+  } | null;
   roles: UserRole[];
   activeMode: AppMode;
   loading: boolean;
   isAuthenticated: boolean;
+  hasRole: (role: AppMode) => boolean;
+  canSwitchRoles: boolean;
   setActiveMode: (mode: AppMode) => void;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
@@ -38,16 +49,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = useCallback(async (userId: string) => {
     const { data: prof } = await supabase
       .from("profiles")
-      .select("first_name, last_name, email, avatar_url")
+      .select("first_name, last_name, email, avatar_url, primary_account_type, enabled_account_types, onboarding_completed")
       .eq("user_id", userId)
       .single();
 
     if (prof) {
+      const enabledTypes = (prof.enabled_account_types as string[] | null) || [];
       setProfile({
         firstName: prof.first_name,
         lastName: prof.last_name,
         email: prof.email,
         avatarUrl: prof.avatar_url ?? undefined,
+        primaryAccountType: prof.primary_account_type,
+        enabledAccountTypes: enabledTypes,
+        onboardingCompleted: prof.onboarding_completed ?? false,
       });
     }
 
@@ -59,14 +74,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const roleList = (userRoles || []).map((r) => r.role as UserRole);
     setRoles(roleList);
 
-    // Auto-set mode based on roles if no stored preference
+    // Auto-set mode based on primary account type or roles
     const stored = localStorage.getItem("ph_active_mode");
-    if (!stored && roleList.length > 0) {
-      if (roleList.includes("operator") && !roleList.includes("grower")) {
+    if (!stored && prof) {
+      const primary = prof.primary_account_type;
+      if (primary === "operator") {
         setActiveMode("operator");
+      } else if (primary === "grower") {
+        setActiveMode("grower");
+      } else if (roleList.length > 0) {
+        if (roleList.includes("operator") && !roleList.includes("grower")) {
+          setActiveMode("operator");
+        }
       }
     }
   }, [setActiveMode]);
+
+  const refreshProfile = useCallback(async () => {
+    if (user) {
+      await fetchProfile(user.id);
+    }
+  }, [user, fetchProfile]);
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
@@ -76,14 +104,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRoles([]);
   }, []);
 
+  // Derived state
+  const hasRole = useCallback((role: AppMode): boolean => {
+    if (!profile) return false;
+    const enabled = profile.enabledAccountTypes || [];
+    // User has the role if it's in enabled_account_types or in user_roles
+    return enabled.includes(role) || roles.includes(role as UserRole);
+  }, [profile, roles]);
+
+  const canSwitchRoles = hasRole("grower") && hasRole("operator");
+
   useEffect(() => {
-    // Set up listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         if (newSession?.user) {
-          // Defer profile fetch to avoid deadlock
           setTimeout(() => fetchProfile(newSession.user.id), 0);
         } else {
           setProfile(null);
@@ -93,7 +129,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // THEN check existing session
     supabase.auth.getSession().then(({ data: { session: existing } }) => {
       setSession(existing);
       setUser(existing?.user ?? null);
@@ -115,8 +150,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       activeMode,
       loading,
       isAuthenticated: !!session,
+      hasRole,
+      canSwitchRoles,
       setActiveMode,
       signOut,
+      refreshProfile,
     }}>
       {children}
     </AuthContext.Provider>
