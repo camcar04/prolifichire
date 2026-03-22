@@ -62,6 +62,7 @@ const App = () => (
             <Route path="/files" element={<Fields />} />
             <Route path="/messages" element={<NotificationsPage />} />
             <Route path="/operators/:operatorId" element={<OperatorProfile />} />
+            <Route path="/enterprise" element={<Enterprise />} />
             <Route path="/legal/privacy" element={<PrivacyPolicy />} />
             <Route path="/legal/terms" element={<TermsOfService />} />
             <Route path="/legal/cookies" element={<CookiePolicy />} />
