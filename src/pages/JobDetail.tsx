@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { FieldMap } from "@/components/map/FieldMap";
 import { DetailSkeleton } from "@/components/shared/PageSkeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { JobCredentialMatch } from "@/components/operators/JobCredentialMatch";
 import { useJob } from "@/hooks/useJobs";
 import {
   formatCurrency, formatAcres, formatOperationType, formatDate,
@@ -13,7 +14,7 @@ import {
 } from "@/lib/format";
 import {
   ChevronRight, Calendar, DollarSign, User, MapPin, AlertTriangle,
-  Clock, FileText, Truck, CheckCircle2, Package,
+  Clock, FileText, Truck, CheckCircle2, Package, ShieldCheck,
 } from "lucide-react";
 
 export default function JobDetail() {
