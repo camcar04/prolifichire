@@ -84,8 +84,9 @@ export default function GrowerOnboarding() {
   };
 
   const canNext = () => {
-    if (step === 0) return form.firstName && form.lastName;
-    if (step === 1) return form.orgName;
+    if (step === 0) return form.firstName.trim() && form.lastName.trim() && form.phone.trim();
+    if (step === 1) return form.orgName.trim();
+    if (step === 3) return form.address.trim() && form.city.trim() && form.state.trim() && form.zip.trim();
     return true;
   };
 
