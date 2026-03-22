@@ -248,6 +248,7 @@ export default function Settings() {
           {/* ── Do Work Section ── */}
           {hasRole("operator") && (
             <TabsContent value="dowork" className="space-y-5">
+              <EnsureOperatorProfile />
               <OperatorLocationSection />
               <OperatorServicesSection />
               <OperatorPricingSection />
@@ -312,6 +313,56 @@ export default function Settings() {
   );
 }
 
+/* ── Auto-create operator profile if missing ── */
+function EnsureOperatorProfile() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [creating, setCreating] = useState(false);
+
+  const { data: opProfile, isLoading } = useQuery({
+    queryKey: ["operator-profile-settings", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("operator_profiles").select("id").eq("user_id", user!.id).single();
+      return data;
+    },
+  });
+
+  const handleCreate = useCallback(async () => {
+    if (!user || creating) return;
+    setCreating(true);
+    const { data: profile } = await supabase.from("profiles").select("organization_id").eq("user_id", user.id).single();
+    const orgId = profile?.organization_id;
+    if (!orgId) { setCreating(false); return; }
+    await supabase.from("operator_profiles").insert({
+      user_id: user.id,
+      organization_id: orgId,
+      business_name: "",
+      service_types: [],
+    });
+    queryClient.invalidateQueries({ queryKey: ["operator-profile-settings"] });
+    queryClient.invalidateQueries({ queryKey: ["profile-score"] });
+    setCreating(false);
+  }, [user, creating, queryClient]);
+
+  useEffect(() => {
+    if (!isLoading && !opProfile && user) {
+      handleCreate();
+    }
+  }, [isLoading, opProfile, user, handleCreate]);
+
+  if (isLoading || creating) {
+    return (
+      <div className="rounded-lg bg-card border p-5 flex items-center gap-3">
+        <Loader2 size={14} className="animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Setting up operator profile…</p>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 /* ── Operator Location Section ── */
 function OperatorLocationSection() {
   const { user } = useAuth();
@@ -361,7 +412,8 @@ function OperatorLocationSection() {
     return (
       <section className="rounded-lg bg-card border p-5">
         <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><MapPin size={14} /> Location & Service Area</h2>
-        <p className="text-[13px] text-muted-foreground">Complete operator onboarding to set your location.</p>
+        <p className="text-[13px] text-muted-foreground">Operator profile is being created. Please wait a moment…</p>
+        <Loader2 size={14} className="animate-spin text-muted-foreground mt-2" />
       </section>
     );
   }
@@ -483,7 +535,8 @@ function OperatorEquipmentSection() {
     return (
       <section className="rounded-lg bg-card border p-5">
         <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><Wrench size={14} /> Equipment</h2>
-        <p className="text-[13px] text-muted-foreground">Complete operator onboarding to manage equipment.</p>
+        <p className="text-[13px] text-muted-foreground">Operator profile is being created…</p>
+        <Loader2 size={14} className="animate-spin text-muted-foreground mt-2" />
       </section>
     );
   }
@@ -512,7 +565,8 @@ function OperatorCredentialsSection() {
     return (
       <section className="rounded-lg bg-card border p-5">
         <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><Shield size={14} /> Credentials & Insurance</h2>
-        <p className="text-[13px] text-muted-foreground">Complete operator onboarding to manage credentials.</p>
+        <p className="text-[13px] text-muted-foreground">Operator profile is being created…</p>
+        <Loader2 size={14} className="animate-spin text-muted-foreground mt-2" />
       </section>
     );
   }
