@@ -210,8 +210,11 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
           </div>
         </header>
 
-        <main className="flex-1 p-6">{children}</main>
+        <main className={cn("flex-1 p-4 sm:p-6", isMobile && "pb-20")}>{children}</main>
       </div>
+
+      {/* Mobile bottom bar */}
+      <MobileBottomBar />
 
       {/* Search Modal */}
       {searchOpen && (
