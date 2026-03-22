@@ -39,7 +39,7 @@ export default function GrowerDashboard() {
   }
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-3 animate-fade-in">
       <NextStepBanner />
 
       {/* Command strip — not a hero, an operational signal */}
