@@ -99,8 +99,8 @@ export default function OperatorDashboard() {
       <div className="grid lg:grid-cols-5 gap-4">
         {/* Left: Today's route + quick actions */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <div className="flex items-center justify-between px-3 py-2 border-b bg-surface-2/50">
+           <div className="rounded border bg-card overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 border-b bg-surface-2/40">
               <div className="flex items-center gap-1.5">
                 <Truck size={11} className="text-muted-foreground" />
                 <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Today's Route</h3>
