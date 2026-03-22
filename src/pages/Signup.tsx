@@ -19,6 +19,7 @@ export default function Signup() {
   const [showPass, setShowPass] = useState(false);
   const [selectedRole, setSelectedRole] = useState<AppMode>("grower");
   const [loading, setLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const navigate = useNavigate();
 
   const handleSignup = async (e: React.FormEvent) => {
