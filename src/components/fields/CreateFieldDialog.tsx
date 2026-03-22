@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StateSelect } from "@/components/ui/state-select";
 import { Textarea } from "@/components/ui/textarea";
+import { FieldDrawMap, getBbox, getCentroid } from "@/components/map/FieldDrawMap";
 import { toast } from "sonner";
 
 const CROP_OPTIONS = [
@@ -51,9 +52,21 @@ export function CreateFieldDialog({ open, onOpenChange, preselectedFarmId }: Pro
     fsaFarmNumber: "",
   });
 
+  const [boundary, setBoundary] = useState<GeoJSON.Polygon | null>(null);
+  const [calculatedAcres, setCalculatedAcres] = useState(0);
+  const [showMap, setShowMap] = useState(false);
+
+  const handleBoundaryChange = (geojson: GeoJSON.Polygon | null, acres: number) => {
+    setBoundary(geojson);
+    setCalculatedAcres(acres);
+    if (acres > 0 && !form.acreage) {
+      setForm(f => ({ ...f, acreage: acres.toFixed(1) }));
+    }
+  };
+
   const mutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("fields").insert({
+      const insertData: Record<string, any> = {
         name: form.name,
         farm_id: form.farmId,
         acreage: Number(form.acreage) || 0,
@@ -64,7 +77,23 @@ export function CreateFieldDialog({ open, onOpenChange, preselectedFarmId }: Pro
         legal_description: form.legalDescription || null,
         clu_number: form.cluNumber || null,
         fsa_farm_number: form.fsaFarmNumber || null,
-      });
+      };
+
+      // If boundary drawn, include geospatial data
+      if (boundary) {
+        const ring = boundary.coordinates[0];
+        const cent = getCentroid(ring);
+        const bbox = getBbox(ring);
+        insertData.boundary_geojson = boundary;
+        insertData.centroid_lat = cent.lat;
+        insertData.centroid_lng = cent.lng;
+        insertData.bbox_north = bbox.north;
+        insertData.bbox_south = bbox.south;
+        insertData.bbox_east = bbox.east;
+        insertData.bbox_west = bbox.west;
+      }
+
+      const { error } = await supabase.from("fields").insert(insertData);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -72,6 +101,9 @@ export function CreateFieldDialog({ open, onOpenChange, preselectedFarmId }: Pro
       queryClient.invalidateQueries({ queryKey: ["farms"] });
       toast.success("Field added to library");
       setForm({ name: "", farmId: preselectedFarmId || "", acreage: "", crop: "corn", cropYear: String(new Date().getFullYear()), county: "", state: "", legalDescription: "", cluNumber: "", fsaFarmNumber: "" });
+      setBoundary(null);
+      setCalculatedAcres(0);
+      setShowMap(false);
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -79,7 +111,7 @@ export function CreateFieldDialog({ open, onOpenChange, preselectedFarmId }: Pro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-base">Add Field to Library</DialogTitle>
         </DialogHeader>
@@ -101,7 +133,10 @@ export function CreateFieldDialog({ open, onOpenChange, preselectedFarmId }: Pro
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs">Acreage *</Label>
+              <Label className="text-xs">
+                Acreage *
+                {calculatedAcres > 0 && <span className="text-primary ml-1">(calc: {calculatedAcres.toFixed(1)})</span>}
+              </Label>
               <Input type="number" value={form.acreage} onChange={e => setForm(f => ({ ...f, acreage: e.target.value }))} placeholder="160" className="h-8 text-sm" />
             </div>
             <div className="space-y-1.5">
@@ -127,6 +162,28 @@ export function CreateFieldDialog({ open, onOpenChange, preselectedFarmId }: Pro
               <Label className="text-xs">State <span className="text-destructive">*</span></Label>
               <StateSelect value={form.state} onValueChange={v => setForm(f => ({ ...f, state: v }))} />
             </div>
+          </div>
+
+          {/* Map boundary drawing */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">Field Boundary</Label>
+              <Button variant="ghost" size="sm" className="h-6 text-[10px]"
+                onClick={() => setShowMap(!showMap)}>
+                {showMap ? "Hide Map" : "Draw on Map"}
+              </Button>
+            </div>
+            {showMap && (
+              <FieldDrawMap
+                onBoundaryChange={handleBoundaryChange}
+                initialGeojson={boundary}
+              />
+            )}
+            {boundary && !showMap && (
+              <p className="text-[11px] text-success bg-success/8 rounded px-2 py-1">
+                ✓ Boundary drawn — {calculatedAcres.toFixed(1)} acres calculated
+              </p>
+            )}
           </div>
 
           <details className="group">
