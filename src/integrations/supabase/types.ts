@@ -1000,6 +1000,72 @@ export type Database = {
           },
         ]
       }
+      job_templates: {
+        Row: {
+          base_rate: number | null
+          comm_defaults: Json | null
+          contract_defaults: Json | null
+          created_at: string
+          crop: Database["public"]["Enums"]["crop_type"] | null
+          description: string | null
+          id: string
+          is_shared: boolean | null
+          name: string
+          notes: string | null
+          operation_type: Database["public"]["Enums"]["operation_type"]
+          owner_id: string
+          pricing_model: Database["public"]["Enums"]["pricing_model"] | null
+          required_files: string[] | null
+          requirements: string | null
+          spec_data: Json
+          updated_at: string
+          urgency: string | null
+          use_count: number | null
+        }
+        Insert: {
+          base_rate?: number | null
+          comm_defaults?: Json | null
+          contract_defaults?: Json | null
+          created_at?: string
+          crop?: Database["public"]["Enums"]["crop_type"] | null
+          description?: string | null
+          id?: string
+          is_shared?: boolean | null
+          name: string
+          notes?: string | null
+          operation_type: Database["public"]["Enums"]["operation_type"]
+          owner_id: string
+          pricing_model?: Database["public"]["Enums"]["pricing_model"] | null
+          required_files?: string[] | null
+          requirements?: string | null
+          spec_data?: Json
+          updated_at?: string
+          urgency?: string | null
+          use_count?: number | null
+        }
+        Update: {
+          base_rate?: number | null
+          comm_defaults?: Json | null
+          contract_defaults?: Json | null
+          created_at?: string
+          crop?: Database["public"]["Enums"]["crop_type"] | null
+          description?: string | null
+          id?: string
+          is_shared?: boolean | null
+          name?: string
+          notes?: string | null
+          operation_type?: Database["public"]["Enums"]["operation_type"]
+          owner_id?: string
+          pricing_model?: Database["public"]["Enums"]["pricing_model"] | null
+          required_files?: string[] | null
+          requirements?: string | null
+          spec_data?: Json
+          updated_at?: string
+          urgency?: string | null
+          use_count?: number | null
+        }
+        Relationships: []
+      }
       jobs: {
         Row: {
           actual_end: string | null

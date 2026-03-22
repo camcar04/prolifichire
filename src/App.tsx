@@ -18,6 +18,7 @@ import Payouts from "./pages/Payouts";
 import NotFound from "./pages/NotFound";
 import GrowerOnboarding from "./pages/onboarding/GrowerOnboarding";
 import OperatorOnboarding from "./pages/onboarding/OperatorOnboarding";
+import Templates from "./pages/Templates";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/schedule" element={<Schedule />} />
             <Route path="/packets" element={<Packets />} />
+            <Route path="/templates" element={<Templates />} />
             <Route path="/payouts" element={<Payouts />} />
             <Route path="/finance" element={<Dashboard />} />
             <Route path="/files" element={<Dashboard />} />

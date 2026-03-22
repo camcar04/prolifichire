@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Map, Briefcase, Store, DollarSign,
   ChevronLeft, ChevronRight, Search, Bell, X, FolderOpen,
-  MessageSquare, Calendar, Package, LogOut, Truck,
+  MessageSquare, Calendar, Package, LogOut, Truck, Bookmark,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getUnreadNotifications } from "@/data/mock";
@@ -22,6 +22,7 @@ const growerNav: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", to: "/dashboard" },
   { icon: Map, label: "Fields", to: "/fields" },
   { icon: Briefcase, label: "Jobs", to: "/jobs" },
+  { icon: Bookmark, label: "Templates", to: "/templates" },
   { icon: Store, label: "Marketplace", to: "/marketplace" },
   { icon: DollarSign, label: "Financials", to: "/finance" },
   { icon: FolderOpen, label: "Files", to: "/files" },
@@ -31,6 +32,7 @@ const growerNav: NavItem[] = [
 const operatorNav: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", to: "/dashboard" },
   { icon: Briefcase, label: "My Jobs", to: "/jobs" },
+  { icon: Bookmark, label: "Templates", to: "/templates" },
   { icon: Calendar, label: "Schedule", to: "/schedule" },
   { icon: Package, label: "Field Packets", to: "/packets" },
   { icon: Store, label: "Marketplace", to: "/marketplace" },
