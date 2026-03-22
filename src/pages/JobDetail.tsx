@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { FieldMap } from "@/components/map/FieldMap";
 import { DetailSkeleton } from "@/components/shared/PageSkeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { LiabilityDisclaimer } from "@/components/shared/LiabilityDisclaimer";
 import { JobCredentialMatch } from "@/components/operators/JobCredentialMatch";
 import { JobEquipmentMatch } from "@/components/operators/JobEquipmentMatch";
 import { QuoteComparisonTable } from "@/components/jobs/QuoteComparisonTable";
@@ -16,6 +17,7 @@ import { ExecutionChecklist } from "@/components/jobs/ExecutionChecklist";
 import { CancelJobDialog } from "@/components/jobs/CancelJobDialog";
 import { PrivateCostCalculator } from "@/components/operators/PrivateCostCalculator";
 import { ProfitReviewPanel } from "@/components/operators/ProfitReviewPanel";
+import { ContractSignatureDialog } from "@/components/contracts/ContractSignatureDialog";
 import { formatContractMode } from "@/components/jobs/ContractModeSelector";
 import { canCancelJob, canEditJob } from "@/hooks/useJobActions";
 import { useJob } from "@/hooks/useJobs";
@@ -28,7 +30,7 @@ import {
   ChevronRight, Calendar, DollarSign, User, MapPin, AlertTriangle,
   Clock, FileText, Truck, CheckCircle2, Package, ShieldCheck, Users,
   Ban, Edit, History, Navigation, Phone, Download, Compass, TriangleAlert,
-  Play, Pause, Camera, MessageSquare,
+  Play, Pause, Camera, MessageSquare, Pen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
