@@ -90,17 +90,30 @@ export function OperatorDecisionStrip({ job }: OperatorDecisionStripProps) {
         <div className="space-y-3">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Acres</span>
-            <span className="font-medium tabular">{formatAcres(Number(job.total_acres))}</span>
+            <span className="font-medium tabular-nums">{formatAcres(Number(job.total_acres))}</span>
           </div>
           {isFixed && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Posted rate</span>
-              <span className="font-medium tabular">{formatCurrency(Number(job.base_rate))}/ac</span>
+              <span className="font-medium tabular-nums">{formatCurrency(Number(job.base_rate))}/ac</span>
             </div>
           )}
           <div>
             <label className="text-xs font-medium mb-1 block">Your rate (per {job.pricing_model === "per_acre" ? "acre" : "unit"})</label>
-            <Input type="number" value={quoteRate} onChange={e => setQuoteRate(e.target.value)} placeholder="0.00" className="h-9" />
+            <input
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              value={quoteRate}
+              onChange={e => {
+                const v = e.target.value;
+                if (v === "" || /^\d*\.?\d{0,2}$/.test(v)) {
+                  setQuoteRate(v);
+                }
+              }}
+              placeholder="0.00"
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            />
             {quoteRate && !isNaN(parseFloat(quoteRate)) && (
               <p className="text-xs text-muted-foreground mt-1">
                 Total: <span className="font-medium text-foreground">{formatCurrency(parseFloat(quoteRate) * Number(job.total_acres || 1))}</span>
