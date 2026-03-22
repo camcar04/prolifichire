@@ -261,21 +261,21 @@ export default function OperatorOnboarding() {
             {step === 3 && (
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label>Shop / yard address</Label>
-                  <Input value={form.address} onChange={e => set("address", e.target.value)} />
+                  <Label>Shop / yard address <span className="text-destructive">*</span></Label>
+                  <Input value={form.address} onChange={e => set("address", e.target.value)} required />
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1.5">
-                    <Label>City</Label>
-                    <Input value={form.city} onChange={e => set("city", e.target.value)} />
+                    <Label>City <span className="text-destructive">*</span></Label>
+                    <Input value={form.city} onChange={e => set("city", e.target.value)} required />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>State</Label>
-                    <Input value={form.state} onChange={e => set("state", e.target.value)} />
+                    <Label>State <span className="text-destructive">*</span></Label>
+                    <Input value={form.state} onChange={e => set("state", e.target.value)} required />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>ZIP</Label>
-                    <Input value={form.zip} onChange={e => set("zip", e.target.value)} />
+                    <Label>ZIP <span className="text-destructive">*</span></Label>
+                    <Input value={form.zip} onChange={e => set("zip", e.target.value)} required />
                   </div>
                 </div>
                 <div className="space-y-1.5">
