@@ -8,9 +8,11 @@ import { FieldMap } from "@/components/map/FieldMap";
 import { WeatherPanel } from "@/components/weather/WeatherPanel";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { DetailSkeleton } from "@/components/shared/PageSkeleton";
+import { FieldFileUpload } from "@/components/fields/FieldFileUpload";
 import { useField } from "@/hooks/useFields";
 import { useJobsByField } from "@/hooks/useJobs";
 import { useDatasetsByField, useInvoicesByField } from "@/hooks/useDatasets";
+import { supabase } from "@/integrations/supabase/client";
 import {
   formatCurrency, formatAcres, formatOperationType, formatCropType,
   formatDate, formatPricingModel, formatFileSize, formatRelative,

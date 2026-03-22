@@ -84,7 +84,7 @@ export function CreateFieldDialog({ open, onOpenChange, preselectedFarmId }: Pro
         const ring = boundary.coordinates[0];
         const cent = getCentroid(ring);
         const bbox = getBbox(ring);
-        insertData.boundary_geojson = boundary;
+        insertData.boundary_geojson = boundary as any;
         insertData.centroid_lat = cent.lat;
         insertData.centroid_lng = cent.lng;
         insertData.bbox_north = bbox.north;
