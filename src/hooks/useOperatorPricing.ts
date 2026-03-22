@@ -47,7 +47,7 @@ export function useOperatorPricingProfile() {
         .eq("user_id", user!.id)
         .maybeSingle();
       if (error) throw error;
-      return data as PricingProfile | null;
+      return (data as unknown) as PricingProfile | null;
     },
   });
 
