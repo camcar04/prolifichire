@@ -76,12 +76,12 @@ export function CreateFarmDialog({ open, onOpenChange }: Props) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs">County</Label>
+              <Label className="text-xs">County <span className="text-destructive">*</span></Label>
               <Input value={form.county} onChange={e => setForm(f => ({ ...f, county: e.target.value }))} placeholder="Douglas" className="h-8 text-sm" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">State</Label>
-              <Input value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} placeholder="NE" className="h-8 text-sm" />
+              <Label className="text-xs">State <span className="text-destructive">*</span></Label>
+              <StateSelect value={form.state} onValueChange={v => setForm(f => ({ ...f, state: v }))} />
             </div>
           </div>
           <div className="space-y-1.5">
