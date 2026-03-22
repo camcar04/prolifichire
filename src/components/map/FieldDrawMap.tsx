@@ -1,7 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { Map as MapIcon, Layers, Pencil, Trash2, Undo2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -10,6 +8,8 @@ interface FieldDrawMapProps {
   onBoundaryChange: (geojson: GeoJSON.Polygon | null, acres: number) => void;
   className?: string;
   center?: { lat: number; lng: number };
+  /** When true, map fills entire container with no border/radius */
+  fullscreen?: boolean;
 }
 
 const SATELLITE_STYLE: maplibregl.StyleSpecification = {
@@ -29,8 +29,6 @@ const SATELLITE_STYLE: maplibregl.StyleSpecification = {
   ],
 };
 
-const STREET_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
-
 // Calculate polygon area using Shoelace formula on spherical coordinates
 function calculateAcres(coords: number[][]): number {
   if (coords.length < 3) return 0;
@@ -42,7 +40,6 @@ function calculateAcres(coords: number[][]): number {
       (2 + Math.sin(toRad(coords[i][1])) + Math.sin(toRad(coords[j][1])));
   }
   area = Math.abs((area * 6378137 * 6378137) / 2);
-  // Convert square meters to acres
   return area / 4046.8564224;
 }
 
@@ -66,20 +63,22 @@ function getCentroid(coords: number[][]) {
 
 export { calculateAcres, getBbox, getCentroid };
 
-export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, center }: FieldDrawMapProps) {
+export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, center, fullscreen }: FieldDrawMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const [isSatellite, setIsSatellite] = useState(true);
-  const [isDrawing, setIsDrawing] = useState(false);
   const [points, setPoints] = useState<number[][]>([]);
   const [polygon, setPolygon] = useState<GeoJSON.Polygon | null>(initialGeojson || null);
   const [acres, setAcres] = useState(0);
+  const [isDrawing, setIsDrawing] = useState(!initialGeojson);
+  const [isDragging, setIsDragging] = useState(false);
   const pointsRef = useRef<number[][]>([]);
   const markersRef = useRef<maplibregl.Marker[]>([]);
+  const dragIdxRef = useRef<number | null>(null);
+  const liveAcresRef = useRef(0);
 
   const defaultCenter = center || { lat: 41.45, lng: -96.15 };
 
-  // Sync polygon with parent
+  // Report polygon to parent
   useEffect(() => {
     if (polygon) {
       const ring = polygon.coordinates[0];
@@ -89,41 +88,55 @@ export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, cent
     }
   }, [polygon]);
 
-  // Initialize map
+  // Init map
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
-      style: isSatellite ? SATELLITE_STYLE : STREET_STYLE,
+      style: SATELLITE_STYLE,
       center: [defaultCenter.lng, defaultCenter.lat],
-      zoom: 14,
+      zoom: 15,
       attributionControl: false,
     });
 
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+
     map.on("load", () => {
-      // Add polygon source
+      // Polygon fill + outline
       map.addSource("field-polygon", {
         type: "geojson",
-        data: polygon ? { type: "Feature", properties: {}, geometry: polygon } : { type: "FeatureCollection", features: [] },
+        data: polygon
+          ? { type: "Feature", properties: {}, geometry: polygon }
+          : { type: "FeatureCollection", features: [] },
       });
       map.addLayer({
         id: "field-fill", type: "fill", source: "field-polygon",
-        paint: { "fill-color": "hsl(152, 50%, 38%)", "fill-opacity": 0.3 },
+        paint: { "fill-color": "hsl(152, 55%, 45%)", "fill-opacity": 0.2 },
       });
       map.addLayer({
         id: "field-outline", type: "line", source: "field-polygon",
-        paint: { "line-color": "hsl(152, 60%, 50%)", "line-width": 2.5 },
+        paint: { "line-color": "hsl(152, 65%, 55%)", "line-width": 2.5 },
       });
 
-      // Draw line source (while drawing)
+      // Drawing line
       map.addSource("draw-line", {
         type: "geojson",
         data: { type: "FeatureCollection", features: [] },
       });
       map.addLayer({
         id: "draw-line-layer", type: "line", source: "draw-line",
-        paint: { "line-color": "#fff", "line-width": 2, "line-dasharray": [3, 2] },
+        paint: { "line-color": "hsla(0,0%,100%,0.85)", "line-width": 2, "line-dasharray": [4, 3] },
+      });
+
+      // Live fill preview while drawing
+      map.addSource("draw-fill", {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+      });
+      map.addLayer({
+        id: "draw-fill-layer", type: "fill", source: "draw-fill",
+        paint: { "fill-color": "hsl(152, 55%, 45%)", "fill-opacity": 0.12 },
       });
 
       // Fit to existing polygon
@@ -131,12 +144,11 @@ export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, cent
         const ring = polygon.coordinates[0];
         const bounds = new maplibregl.LngLatBounds();
         ring.forEach(c => bounds.extend(c as [number, number]));
-        map.fitBounds(bounds, { padding: 60, maxZoom: 16 });
+        map.fitBounds(bounds, { padding: 80, maxZoom: 17 });
       }
     });
 
     mapRef.current = map;
-
     return () => {
       markersRef.current.forEach(m => m.remove());
       map.remove();
@@ -144,52 +156,118 @@ export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, cent
     };
   }, []);
 
-  // Handle map clicks for drawing
+  // Drawing click handler
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
     const handleClick = (e: maplibregl.MapMouseEvent) => {
-      if (!isDrawing) return;
+      if (!isDrawing || isDragging) return;
+
       const pt: number[] = [e.lngLat.lng, e.lngLat.lat];
+
+      // Check if clicking near first point to close
+      if (pointsRef.current.length >= 3) {
+        const first = pointsRef.current[0];
+        const pixel = map.project(e.lngLat);
+        const firstPixel = map.project(new maplibregl.LngLat(first[0], first[1]));
+        const dist = Math.sqrt((pixel.x - firstPixel.x) ** 2 + (pixel.y - firstPixel.y) ** 2);
+        if (dist < 20) {
+          finishDraw();
+          return;
+        }
+      }
+
       pointsRef.current = [...pointsRef.current, pt];
       setPoints([...pointsRef.current]);
 
-      // Add vertex marker
-      const el = document.createElement("div");
-      el.className = "w-3 h-3 rounded-full bg-white border-2 border-primary shadow-md";
-      const marker = new maplibregl.Marker({ element: el }).setLngLat(e.lngLat).addTo(map);
-      markersRef.current.push(marker);
-
-      // Update draw line
-      updateDrawLine(map, pointsRef.current);
+      addVertexMarker(map, pt, pointsRef.current.length - 1, true);
+      updateDrawPreview(map, pointsRef.current);
     };
 
     map.on("click", handleClick);
     return () => { map.off("click", handleClick); };
-  }, [isDrawing]);
+  }, [isDrawing, isDragging]);
 
-  // Update cursor based on drawing state
+  // Cursor
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     map.getCanvas().style.cursor = isDrawing ? "crosshair" : "";
   }, [isDrawing]);
 
-  function updateDrawLine(map: maplibregl.Map, pts: number[][]) {
-    const src = map.getSource("draw-line") as maplibregl.GeoJSONSource;
-    if (!src || pts.length < 2) return;
-    src.setData({
+  function addVertexMarker(map: maplibregl.Map, pt: number[], idx: number, isDraw: boolean) {
+    const el = document.createElement("div");
+    const isFirst = idx === 0 && isDraw;
+    el.className = cn(
+      "rounded-full border-2 shadow-lg transition-transform",
+      isFirst
+        ? "w-4 h-4 bg-primary border-white cursor-pointer"
+        : "w-3 h-3 bg-white border-primary/80 cursor-grab"
+    );
+    if (isFirst) el.title = "Click to close shape";
+
+    const marker = new maplibregl.Marker({ element: el, draggable: !isDraw })
+      .setLngLat(pt as [number, number])
+      .addTo(map);
+
+    if (!isDraw) {
+      marker.on("dragstart", () => {
+        setIsDragging(true);
+        dragIdxRef.current = idx;
+        el.style.transform += " scale(1.3)";
+      });
+      marker.on("drag", () => {
+        const lngLat = marker.getLngLat();
+        pointsRef.current[idx] = [lngLat.lng, lngLat.lat];
+        updatePolygonSource(map, pointsRef.current);
+        // Live acres during drag
+        const a = calculateAcres(pointsRef.current);
+        liveAcresRef.current = a;
+        setAcres(a);
+      });
+      marker.on("dragend", () => {
+        setIsDragging(false);
+        dragIdxRef.current = null;
+        el.style.transform = el.style.transform.replace(" scale(1.3)", "");
+        const ring = [...pointsRef.current, pointsRef.current[0]];
+        const poly: GeoJSON.Polygon = { type: "Polygon", coordinates: [ring] };
+        setPolygon(poly);
+      });
+    }
+
+    markersRef.current.push(marker);
+  }
+
+  function updateDrawPreview(map: maplibregl.Map, pts: number[][]) {
+    const lineSrc = map.getSource("draw-line") as maplibregl.GeoJSONSource;
+    const fillSrc = map.getSource("draw-fill") as maplibregl.GeoJSONSource;
+    if (pts.length < 2) {
+      lineSrc?.setData({ type: "FeatureCollection", features: [] });
+      fillSrc?.setData({ type: "FeatureCollection", features: [] });
+      return;
+    }
+    lineSrc?.setData({
       type: "Feature", properties: {},
       geometry: { type: "LineString", coordinates: [...pts, pts[0]] },
     });
+    if (pts.length >= 3) {
+      fillSrc?.setData({
+        type: "Feature", properties: {},
+        geometry: { type: "Polygon", coordinates: [[...pts, pts[0]]] },
+      });
+      const a = calculateAcres(pts);
+      liveAcresRef.current = a;
+      setAcres(a);
+    }
   }
 
-  const startDraw = () => {
-    // Clear existing
-    clearDraw();
-    setIsDrawing(true);
-  };
+  function updatePolygonSource(map: maplibregl.Map, pts: number[][]) {
+    const src = map.getSource("field-polygon") as maplibregl.GeoJSONSource;
+    if (!src || pts.length < 3) return;
+    const ring = [...pts, pts[0]];
+    src.setData({ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [ring] } });
+  }
 
   const finishDraw = useCallback(() => {
     if (pointsRef.current.length < 3) return;
@@ -198,19 +276,19 @@ export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, cent
     setPolygon(poly);
     setIsDrawing(false);
 
-    // Update map
     const map = mapRef.current;
     if (map) {
       const src = map.getSource("field-polygon") as maplibregl.GeoJSONSource;
       src?.setData({ type: "Feature", properties: {}, geometry: poly });
-      const lineSrc = map.getSource("draw-line") as maplibregl.GeoJSONSource;
-      lineSrc?.setData({ type: "FeatureCollection", features: [] });
+      (map.getSource("draw-line") as maplibregl.GeoJSONSource)?.setData({ type: "FeatureCollection", features: [] });
+      (map.getSource("draw-fill") as maplibregl.GeoJSONSource)?.setData({ type: "FeatureCollection", features: [] });
+
+      // Clear draw markers, add edit markers
+      markersRef.current.forEach(m => m.remove());
+      markersRef.current = [];
+      pointsRef.current.forEach((pt, i) => addVertexMarker(map, pt, i, false));
     }
 
-    // Clear markers
-    markersRef.current.forEach(m => m.remove());
-    markersRef.current = [];
-    pointsRef.current = [];
     setPoints([]);
   }, []);
 
@@ -219,16 +297,16 @@ export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, cent
     setPoints([]);
     pointsRef.current = [];
     setAcres(0);
+    setIsDrawing(true);
     onBoundaryChange(null, 0);
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
 
     const map = mapRef.current;
     if (map) {
-      const src = map.getSource("field-polygon") as maplibregl.GeoJSONSource;
-      src?.setData({ type: "FeatureCollection", features: [] });
-      const lineSrc = map.getSource("draw-line") as maplibregl.GeoJSONSource;
-      lineSrc?.setData({ type: "FeatureCollection", features: [] });
+      (map.getSource("field-polygon") as maplibregl.GeoJSONSource)?.setData({ type: "FeatureCollection", features: [] });
+      (map.getSource("draw-line") as maplibregl.GeoJSONSource)?.setData({ type: "FeatureCollection", features: [] });
+      (map.getSource("draw-fill") as maplibregl.GeoJSONSource)?.setData({ type: "FeatureCollection", features: [] });
     }
   };
 
@@ -239,96 +317,72 @@ export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, cent
     const last = markersRef.current.pop();
     last?.remove();
     const map = mapRef.current;
-    if (map) updateDrawLine(map, pointsRef.current);
+    if (map) updateDrawPreview(map, pointsRef.current);
   };
 
-  const toggleStyle = () => {
-    const map = mapRef.current;
-    if (!map) return;
-    const newSat = !isSatellite;
-    setIsSatellite(newSat);
-    map.setStyle(newSat ? SATELLITE_STYLE : STREET_STYLE);
-    map.once("style.load", () => {
-      // Re-add sources/layers
-      map.addSource("field-polygon", {
-        type: "geojson",
-        data: polygon ? { type: "Feature", properties: {}, geometry: polygon } : { type: "FeatureCollection", features: [] },
-      });
-      map.addLayer({ id: "field-fill", type: "fill", source: "field-polygon", paint: { "fill-color": "hsl(152, 50%, 38%)", "fill-opacity": 0.3 } });
-      map.addLayer({ id: "field-outline", type: "line", source: "field-polygon", paint: { "line-color": "hsl(152, 60%, 50%)", "line-width": 2.5 } });
-      map.addSource("draw-line", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-      map.addLayer({ id: "draw-line-layer", type: "line", source: "draw-line", paint: { "line-color": "#fff", "line-width": 2, "line-dasharray": [3, 2] } });
-    });
+  const redraw = () => {
+    clearDraw();
   };
 
   return (
-    <div className={cn("relative rounded-lg overflow-hidden border bg-muted", className)} style={{ aspectRatio: "16/10" }}>
+    <div className={cn(
+      "relative bg-black",
+      fullscreen ? "w-full h-full" : "rounded-lg overflow-hidden border",
+      className
+    )} style={fullscreen ? undefined : { aspectRatio: "16/10" }}>
       <div ref={mapContainer} className="absolute inset-0" />
 
-      {/* Map controls */}
-      <div className="absolute top-3 right-3 flex flex-col gap-1 z-10">
-        <button onClick={toggleStyle}
-          className="h-7 w-7 rounded bg-card/90 backdrop-blur-sm shadow-card flex items-center justify-center text-xs text-foreground hover:bg-card transition-colors active:scale-95"
-          title={isSatellite ? "Street view" : "Satellite view"}>
-          <Layers size={14} />
-        </button>
+      {/* Bottom status bar */}
+      <div className="absolute bottom-0 inset-x-0 z-20">
+        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-t from-black/70 via-black/40 to-transparent">
+          {/* Left: acres */}
+          <div className="text-white">
+            {(acres > 0 || (isDrawing && points.length >= 3)) ? (
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold tabular-nums tracking-tight">{acres.toFixed(1)}</span>
+                <span className="text-sm text-white/70 font-medium">acres</span>
+              </div>
+            ) : isDrawing ? (
+              <p className="text-sm text-white/70">
+                {points.length === 0
+                  ? "Tap map to place boundary points"
+                  : points.length < 3
+                    ? `${3 - points.length} more point${3 - points.length > 1 ? "s" : ""} to close`
+                    : "Tap first point to close"}
+              </p>
+            ) : null}
+          </div>
+
+          {/* Right: draw controls */}
+          <div className="flex items-center gap-2">
+            {isDrawing && (
+              <>
+                <button onClick={undoPoint} disabled={points.length === 0}
+                  className="h-10 px-3 rounded-lg bg-white/15 backdrop-blur-md text-white text-xs font-medium disabled:opacity-30 hover:bg-white/25 active:scale-95 transition-all">
+                  Undo
+                </button>
+                {points.length >= 3 && (
+                  <button onClick={finishDraw}
+                    className="h-10 px-4 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-lg hover:brightness-110 active:scale-95 transition-all">
+                    Close Shape
+                  </button>
+                )}
+              </>
+            )}
+            {!isDrawing && polygon && (
+              <button onClick={redraw}
+                className="h-10 px-3 rounded-lg bg-white/15 backdrop-blur-md text-white text-xs font-medium hover:bg-white/25 active:scale-95 transition-all">
+                Redraw
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Draw controls */}
-      <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
-        {!isDrawing && !polygon && (
-          <Button size="sm" onClick={startDraw} className="h-7 text-[11px] gap-1 shadow-md">
-            <Pencil size={11} /> Draw Boundary
-          </Button>
-        )}
-        {!isDrawing && polygon && (
-          <>
-            <Button size="sm" variant="outline" onClick={startDraw} className="h-7 text-[11px] gap-1 bg-card/90 backdrop-blur-sm shadow-md">
-              <Pencil size={11} /> Redraw
-            </Button>
-            <Button size="sm" variant="outline" onClick={clearDraw} className="h-7 text-[11px] gap-1 bg-card/90 backdrop-blur-sm shadow-md text-destructive hover:text-destructive">
-              <Trash2 size={11} /> Clear
-            </Button>
-          </>
-        )}
-        {isDrawing && (
-          <>
-            <Button size="sm" onClick={finishDraw} disabled={points.length < 3}
-              className="h-7 text-[11px] gap-1 shadow-md">
-              Close Shape ({points.length} pts)
-            </Button>
-            <Button size="sm" variant="outline" onClick={undoPoint} disabled={points.length === 0}
-              className="h-7 text-[11px] gap-1 bg-card/90 backdrop-blur-sm shadow-md">
-              <Undo2 size={11} />
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => { setIsDrawing(false); clearDraw(); }}
-              className="h-7 text-[11px] bg-card/90 backdrop-blur-sm shadow-md text-destructive hover:text-destructive">
-              Cancel
-            </Button>
-          </>
-        )}
-      </div>
-
-      {/* Acreage display */}
-      {polygon && acres > 0 && (
-        <div className="absolute bottom-3 left-3 rounded bg-card/90 backdrop-blur-sm px-3 py-1.5 shadow-md z-10">
-          <p className="text-xs text-muted-foreground">Calculated Area</p>
-          <p className="text-sm font-bold tabular-nums">{acres.toFixed(1)} acres</p>
-        </div>
-      )}
-
-      {/* Drawing instructions */}
-      {isDrawing && (
-        <div className="absolute bottom-3 right-3 rounded bg-card/90 backdrop-blur-sm px-3 py-1.5 shadow-md z-10 max-w-[200px]">
-          <p className="text-[11px] text-muted-foreground">Click to place points. Close the shape when done (min 3 points).</p>
-        </div>
-      )}
-
-      {/* Coordinates */}
-      {polygon && !isDrawing && (
-        <div className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded bg-card/90 backdrop-blur-sm px-2 py-1 text-[10px] font-mono text-muted-foreground z-10">
-          <MapIcon size={10} />
-          {getCentroid(polygon.coordinates[0]).lat.toFixed(4)}°N, {Math.abs(getCentroid(polygon.coordinates[0]).lng).toFixed(4)}°W
+      {/* Edit mode hint */}
+      {!isDrawing && polygon && !isDragging && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-md text-[11px] text-white/80 font-medium pointer-events-none">
+          Drag points to adjust boundary
         </div>
       )}
     </div>
