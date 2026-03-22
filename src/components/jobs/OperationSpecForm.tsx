@@ -624,6 +624,34 @@ function GrainHaulingSpecForm({ value, onChange }: { value: Partial<GrainHauling
   );
 }
 
+/** Validates required operation-specific fields. Returns list of missing field labels. */
+export function validateOperationSpecs(operationType: OperationType, specs: Record<string, any>): string[] {
+  const missing: string[] = [];
+  const req = (key: string, label: string) => {
+    const v = specs[key];
+    if (v === undefined || v === null || v === "" || v === 0) missing.push(label);
+  };
+
+  if (operationType === "spraying" || operationType === "fertilizing") {
+    req("productCategory", "Product category");
+    req("productBrandBlend", "Product / brand");
+    req("targetRate", "Target rate");
+    req("rateUnits", "Rate units");
+  } else if (operationType === "planting" || operationType === "seeding") {
+    req("seedBrand", "Seed brand");
+    req("targetPopulation", "Target population");
+  } else if (operationType === "harvest") {
+    req("cropType", "Crop type");
+  } else if (operationType === "grain_hauling") {
+    req("trucksNeeded", "Trucks needed");
+    req("deliveryLocationName", "Delivery location");
+  } else if (operationType === "rock_picking") {
+    req("estimatedDensity", "Rock density");
+  }
+
+  return missing;
+}
+
 export function OperationSpecForm({ operationType, value, onChange }: OperationSpecFormProps) {
   if (operationType === "planting" || operationType === "seeding") {
     return <PlantingSpecForm value={value} onChange={onChange} />;
