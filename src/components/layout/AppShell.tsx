@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Map, Briefcase, Store, DollarSign,
-  ChevronLeft, ChevronRight, Search, Bell, X, FolderOpen,
-  MessageSquare, Calendar, Package, LogOut, Truck, Bookmark,
+  ChevronLeft, ChevronRight, Search, Bell, X,
+  MessageSquare, Calendar, Package, LogOut, Bookmark,
   Link2, Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
