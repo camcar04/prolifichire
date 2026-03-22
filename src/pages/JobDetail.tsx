@@ -175,6 +175,19 @@ export default function JobDetail() {
 
           {/* Right column — sidebar */}
           <div className="space-y-5">
+            {/* Route context for operators */}
+            {activeMode === "operator" && operatorBase && fieldLocation && (
+              <div className="rounded-xl bg-card shadow-card p-4">
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><Truck size={15} /> Route Context</h3>
+                <RouteContextBadge operatorBase={operatorBase} fieldLocation={fieldLocation} />
+              </div>
+            )}
+
+            {/* AI Pricing */}
+            {["requested", "quoted"].includes(job.status) && (
+              <PricingSuggestionCard estimate={estimate} loading={pricingLoading} acreage={job.totalAcres} />
+            )}
+
             {/* Operator */}
             {job.operatorName && (
               <div className="rounded-xl bg-card shadow-card p-4">
