@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { DashboardSkeleton } from "@/components/shared/PageSkeleton";
 import { FirstJobOnboarding } from "@/components/onboarding/FirstJobOnboarding";
+import { ProfileScoreCard } from "@/components/shared/ProfileScoreCard";
 import { Link } from "react-router-dom";
 import {
   Map, Briefcase, DollarSign, TrendingUp, Plus, ArrowRight,
