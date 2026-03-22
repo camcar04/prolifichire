@@ -60,6 +60,10 @@ const App = () => (
             <Route path="/operators" element={<Dashboard />} />
             <Route path="/compliance" element={<Dashboard />} />
             <Route path="/settings" element={<Dashboard />} />
+            <Route path="/legal/privacy" element={<PrivacyPolicy />} />
+            <Route path="/legal/terms" element={<TermsOfService />} />
+            <Route path="/legal/cookies" element={<CookiePolicy />} />
+            <Route path="/legal/acceptable-use" element={<AcceptableUse />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
