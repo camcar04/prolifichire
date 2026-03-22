@@ -29,8 +29,8 @@ export function NextStepBanner() {
   const step = STEP_MAP[firstMissing];
 
   return (
-    <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 flex items-center gap-3 animate-fade-in">
-      <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+    <div className="rounded border border-primary/20 bg-primary/5 p-4 flex items-center gap-3 animate-fade-in">
+      <div className="h-9 w-9 rounded bg-primary/10 flex items-center justify-center shrink-0">
         <Sparkles size={18} className="text-primary" />
       </div>
       <div className="flex-1 min-w-0">

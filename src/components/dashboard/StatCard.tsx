@@ -14,7 +14,7 @@ export function StatCard({ label, value, change, changeType = "neutral", icon }:
       <div className="flex items-center justify-between mb-1.5">
         <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">{label}</p>
         {icon && (
-          <div className="h-7 w-7 rounded-lg bg-primary/6 flex items-center justify-center text-primary group-hover:bg-primary/10 transition-colors">
+          <div className="h-7 w-7 rounded bg-primary/6 flex items-center justify-center text-primary group-hover:bg-primary/10 transition-colors">
             {icon}
           </div>
         )}

@@ -69,7 +69,7 @@ export function PricingProfileEditor() {
 
   if (isLoading) {
     return (
-      <div className="rounded-lg bg-card border p-5 animate-pulse">
+      <div className="rounded bg-card border p-5 animate-pulse">
         <div className="h-4 bg-muted rounded w-40 mb-4" />
         <div className="space-y-3">
           <div className="h-8 bg-muted rounded" />
@@ -80,7 +80,7 @@ export function PricingProfileEditor() {
   }
 
   return (
-    <section className="rounded-lg bg-card border p-5">
+    <section className="rounded bg-card border p-5">
       <h2 className="text-sm font-semibold flex items-center gap-2 mb-1">
         <Calculator size={14} /> Private Costing Profile
       </h2>

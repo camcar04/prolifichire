@@ -40,7 +40,7 @@ function BidGate({ children, fallback }: { children: ReactNode; fallback?: React
 
 function GateMessage({ reason, link, label }: { reason: string; link: string; label: string }) {
   return (
-    <div className="rounded-lg border-2 border-dashed border-warning/30 bg-warning/5 p-4 text-center">
+    <div className="rounded border-2 border-dashed border-warning/30 bg-warning/5 p-4 text-center">
       <AlertTriangle size={20} className="text-warning mx-auto mb-2" />
       <p className="text-sm font-medium mb-1">{reason}</p>
       <Button size="sm" variant="outline" className="mt-2 gap-1" asChild>

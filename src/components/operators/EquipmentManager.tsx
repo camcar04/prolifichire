@@ -290,7 +290,7 @@ export function EquipmentManager({ operatorProfileId, readOnly = false }: Equipm
 
             return (
               <div key={eq.id} className={cn(
-                "rounded-lg border transition-all",
+                "rounded border transition-all",
                 eq.verification_status === "verified" ? "border-success/20" :
                 eq.verification_status === "rejected" ? "border-destructive/30" : "border-border",
               )}>
@@ -394,7 +394,7 @@ export function EquipmentManager({ operatorProfileId, readOnly = false }: Equipm
 
       {/* ── Add / Edit Form ─────────────────────────────────── */}
       {showForm && !readOnly && (
-        <div className="rounded-lg border-2 border-primary/20 bg-card p-4 space-y-4">
+        <div className="rounded border-2 border-primary/20 bg-card p-4 space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold">
               {editingId ? "Edit Equipment" : "Add Equipment"}

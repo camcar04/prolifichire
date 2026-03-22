@@ -58,14 +58,14 @@ function PlantingSpecForm({ value, onChange }: { value: Partial<PlantingSpec>; o
         <Label>Planting depth notes</Label>
         <Textarea value={value.plantingDepthNotes || ""} onChange={e => set("plantingDepthNotes", e.target.value)} placeholder="e.g. 2 inches, adjust for moisture" rows={2} />
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Variable-rate planting</p>
           <p className="text-xs text-muted-foreground">Requires prescription map</p>
         </div>
         <Switch checked={value.variableRate || false} onCheckedChange={v => set("variableRate", v)} />
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Prescription file required</p>
           <p className="text-xs text-muted-foreground">Upload in Files tab</p>
@@ -151,14 +151,14 @@ function ApplicationSpecForm({ value, onChange }: { value: Partial<ApplicationSp
           <Input value={value.passTiming || ""} onChange={e => set("passTiming", e.target.value)} placeholder="e.g. Pre-emerge, V4" />
         </div>
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Operator supplies product</p>
           <p className="text-xs text-muted-foreground">Material cost will be passed through</p>
         </div>
         <Switch checked={value.operatorSuppliesProduct || false} onCheckedChange={v => set("operatorSuppliesProduct", v)} />
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Prescription required</p>
           <p className="text-xs text-muted-foreground">Variable-rate or zone map</p>
@@ -204,27 +204,27 @@ function HarvestSpecForm({ value, onChange }: { value: Partial<HarvestSpec>; onC
         <Label>Unload / logistics notes</Label>
         <Textarea value={value.unloadLogisticsNotes || ""} onChange={e => set("unloadLogisticsNotes", e.target.value)} placeholder="e.g. Dump at bin site NE corner, truck hauling provided" rows={2} />
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Planting file attached</p>
           <p className="text-xs text-muted-foreground">For yield map context</p>
         </div>
         <Switch checked={value.plantingFileAttached || false} onCheckedChange={v => set("plantingFileAttached", v)} />
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Boundary file attached</p>
         </div>
         <Switch checked={value.boundaryFileAttached || false} onCheckedChange={v => set("boundaryFileAttached", v)} />
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Yield data sharing expected</p>
           <p className="text-xs text-muted-foreground">Operator will provide yield maps</p>
         </div>
         <Switch checked={value.yieldDataSharingExpected || false} onCheckedChange={v => set("yieldDataSharingExpected", v)} />
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Machine data delivery required</p>
           <p className="text-xs text-muted-foreground">ISOXML or raw machine files</p>
@@ -277,7 +277,7 @@ function MowingSpecForm({ value, onChange }: { value: Partial<MowingSpec>; onCha
           <Input value={value.swathWidth || ""} onChange={e => set("swathWidth", e.target.value)} placeholder="e.g. 14 ft" />
         </div>
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Conditioner required</p>
           <p className="text-xs text-muted-foreground">Crimps/crushes stems for faster drying</p>
@@ -290,14 +290,14 @@ function MowingSpecForm({ value, onChange }: { value: Partial<MowingSpec>; onCha
           <Input value={value.conditionerType || ""} onChange={e => set("conditionerType", e.target.value)} placeholder="e.g. Roller, Impeller" />
         </div>
       )}
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Tedding required</p>
           <p className="text-xs text-muted-foreground">Spread and flip for even drying</p>
         </div>
         <Switch checked={value.teddingRequired || false} onCheckedChange={v => set("teddingRequired", v)} />
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Raking required</p>
           <p className="text-xs text-muted-foreground">Windrow before baling</p>
@@ -312,7 +312,7 @@ function MowingSpecForm({ value, onChange }: { value: Partial<MowingSpec>; onCha
         <Label>Field condition notes</Label>
         <Textarea value={value.fieldConditionNotes || ""} onChange={e => set("fieldConditionNotes", e.target.value)} placeholder="e.g. Gopher mounds on east side, wet spot NW corner" rows={2} />
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Boundary file attached</p>
         </div>
@@ -376,7 +376,7 @@ function BalingSpecForm({ value, onChange }: { value: Partial<BalingSpec>; onCha
           <Input value={value.moistureTarget || ""} onChange={e => set("moistureTarget", e.target.value)} placeholder="e.g. 12–15%" />
         </div>
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Preservative required</p>
           <p className="text-xs text-muted-foreground">Propionic acid or similar for high-moisture baling</p>
@@ -389,7 +389,7 @@ function BalingSpecForm({ value, onChange }: { value: Partial<BalingSpec>; onCha
           <Input value={value.preservativeType || ""} onChange={e => set("preservativeType", e.target.value)} placeholder="e.g. Harvest Tec propionic acid" />
         </div>
       )}
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Stacking required</p>
           <p className="text-xs text-muted-foreground">Operator stacks bales after baling</p>
@@ -402,14 +402,14 @@ function BalingSpecForm({ value, onChange }: { value: Partial<BalingSpec>; onCha
           <Input value={value.stackingLocation || ""} onChange={e => set("stackingLocation", e.target.value)} placeholder="e.g. NE corner of field, by barn" />
         </div>
       )}
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Loading required</p>
           <p className="text-xs text-muted-foreground">Operator loads bales onto trailer</p>
         </div>
         <Switch checked={value.loadingRequired || false} onCheckedChange={v => set("loadingRequired", v)} />
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Hauling required</p>
           <p className="text-xs text-muted-foreground">Transport bales to destination</p>
@@ -426,7 +426,7 @@ function BalingSpecForm({ value, onChange }: { value: Partial<BalingSpec>; onCha
         <Label>Field condition notes</Label>
         <Textarea value={value.fieldConditionNotes || ""} onChange={e => set("fieldConditionNotes", e.target.value)} placeholder="e.g. Windrows ready, avoid wet area south side" rows={2} />
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Boundary file attached</p>
         </div>
@@ -495,7 +495,7 @@ function RockPickingSpecForm({ value, onChange }: { value: Partial<RockPickingSp
         <Label>Field condition notes</Label>
         <Textarea value={value.fieldConditionNotes || ""} onChange={e => set("fieldConditionNotes", e.target.value)} placeholder="e.g. Heavy rocks on east 40, mostly clear west side" rows={2} />
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Boundary file attached</p>
         </div>
@@ -586,7 +586,7 @@ function GrainHaulingSpecForm({ value, onChange }: { value: Partial<GrainHauling
         </div>
       </div>
 
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="flex items-center justify-between rounded border px-4 py-3">
         <div>
           <p className="text-sm font-medium">Scale ticket required</p>
           <p className="text-xs text-muted-foreground">Driver must weigh each load</p>
@@ -676,7 +676,7 @@ export function OperationSpecForm({ operationType, value, onChange }: OperationS
   }
 
   return (
-    <div className="rounded-lg border border-dashed bg-muted/30 p-6 text-center">
+    <div className="rounded border border-dashed bg-muted/30 p-6 text-center">
       <p className="text-sm text-muted-foreground">
         No structured spec form for <span className="font-medium capitalize">{operationType.replace("_", " ")}</span>. Use the notes field below.
       </p>

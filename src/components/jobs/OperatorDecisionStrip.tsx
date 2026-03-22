@@ -133,7 +133,7 @@ export function OperatorDecisionStrip({ job }: OperatorDecisionStripProps) {
   );
 
   return (
-    <div className="rounded-lg bg-card border">
+    <div className="rounded bg-card border">
       {/* At-a-glance strip */}
       <div className="flex flex-wrap gap-3 p-3 border-b bg-surface-2/50">
         {stats.map((s, i) => {

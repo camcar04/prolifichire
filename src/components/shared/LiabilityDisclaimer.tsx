@@ -17,7 +17,7 @@ export function LiabilityDisclaimer({ variant = "compact", className }: Liabilit
   }
 
   return (
-    <div className={cn("rounded-lg border bg-muted/30 p-3 space-y-1.5", className)}>
+    <div className={cn("rounded border bg-muted/30 p-3 space-y-1.5", className)}>
       <p className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
         <ShieldCheck size={10} /> Platform Disclaimer
       </p>

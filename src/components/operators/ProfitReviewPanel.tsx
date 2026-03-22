@@ -62,7 +62,7 @@ export function ProfitReviewPanel({ job }: Props) {
   };
 
   return (
-    <div className="rounded-lg border bg-card overflow-hidden">
+    <div className="rounded border bg-card overflow-hidden">
       <button
         onClick={() => setExpanded(!expanded)}
         className="flex items-center justify-between w-full px-3 py-2 border-b bg-surface-2/50 hover:bg-surface-2 transition-colors"
