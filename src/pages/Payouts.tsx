@@ -4,8 +4,8 @@ import { jobs, payouts } from "@/data/mock";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { DollarSign } from "lucide-react";
 
-const OPERATOR_ID = "usr-3";
-const myPayouts = payouts.filter(p => p.operatorId === OPERATOR_ID);
+// Show all payouts for demo (in production, filter by auth user's operator profile)
+const myPayouts = payouts;
 const totalGross = myPayouts.reduce((a, p) => a + p.grossAmount, 0);
 const totalNet = myPayouts.reduce((a, p) => a + p.netAmount, 0);
 const totalFees = myPayouts.reduce((a, p) => a + p.platformFee + p.processingFee, 0);
