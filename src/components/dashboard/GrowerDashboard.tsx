@@ -53,6 +53,7 @@ export default function GrowerDashboard() {
       <div className="grid lg:grid-cols-12 gap-4">
         {/* Left */}
         <div className="lg:col-span-3 space-y-4">
+          <ProfileScoreCard />
           <Panel title="Fields Needing Action" icon={<AlertTriangle size={13} />} count={fieldsNeedingAction.length} emptyText="All fields up to date.">
             {fieldsNeedingAction.map(f => (
               <Link key={f.id} to={`/fields/${f.id}`} className="flex items-center justify-between py-1.5 px-1 text-[13px] hover:bg-surface-2 rounded transition-colors">
