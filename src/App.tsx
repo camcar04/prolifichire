@@ -31,6 +31,7 @@ import CookieConsent from "./components/legal/CookieConsent";
 import { AIAssistant } from "./components/ai/AIAssistant";
 import OperatorProfile from "./pages/OperatorProfile";
 import Enterprise from "./pages/Enterprise";
+import CalendarView from "./pages/CalendarView";
 
 const queryClient = new QueryClient();
 
