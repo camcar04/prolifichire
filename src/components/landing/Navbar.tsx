@@ -49,6 +49,7 @@ export default function Navbar() {
             <a href="#features" className="text-sm py-2 px-2 rounded hover:bg-surface-2" onClick={() => setOpen(false)}>Features</a>
             <a href="#services" className="text-sm py-2 px-2 rounded hover:bg-surface-2" onClick={() => setOpen(false)}>Services</a>
             <a href="#how-it-works" className="text-sm py-2 px-2 rounded hover:bg-surface-2" onClick={() => setOpen(false)}>How It Works</a>
+            <Link to="/enterprise" className="text-sm py-2 px-2 rounded hover:bg-surface-2" onClick={() => setOpen(false)}>Enterprise</Link>
             <a href="#faq" className="text-sm py-2 px-2 rounded hover:bg-surface-2" onClick={() => setOpen(false)}>FAQ</a>
             <hr className="my-2" />
             <div className="flex gap-2">

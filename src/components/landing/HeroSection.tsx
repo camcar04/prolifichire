@@ -22,21 +22,21 @@ export default function HeroSection() {
             className="reveal text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] font-bold tracking-tight text-primary-foreground"
             style={{ lineHeight: 1.12, transitionDelay: "80ms" }}
           >
-            Hire fieldwork.{" "}
-            <span className="text-accent">Get it done.</span>
+            Run your farm work.{" "}
+            <span className="text-accent">Or power your entire network.</span>
           </h1>
 
           <p
-            className="reveal mt-4 text-[15px] md:text-base text-primary-foreground/65 max-w-sm leading-relaxed"
+            className="reveal mt-4 text-[15px] md:text-base text-primary-foreground/65 max-w-md leading-relaxed"
             style={{ transitionDelay: "160ms" }}
           >
-            The marketplace connecting growers with custom operators for spraying, planting, harvest, and more — organized around your fields.
+            Manage farm work, coordinate operators, and run your entire network — growers, crews, and logistics — all in one platform.
           </p>
 
           <div className="reveal mt-6 flex flex-wrap gap-2.5" style={{ transitionDelay: "240ms" }}>
             <Button variant="hero" size="default" asChild>
               <Link to="/signup">
-                Create Free Account
+                Post a Job
                 <ArrowRight size={14} className="ml-1" />
               </Link>
             </Button>
@@ -46,7 +46,15 @@ export default function HeroSection() {
               className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
               asChild
             >
-              <Link to="/marketplace">Browse Jobs</Link>
+              <Link to="/marketplace">Find Work</Link>
+            </Button>
+            <Button
+              variant="hero-outline"
+              size="default"
+              className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+              asChild
+            >
+              <Link to="/enterprise">Start a Network</Link>
             </Button>
           </div>
 
