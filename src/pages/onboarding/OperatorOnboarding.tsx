@@ -180,17 +180,17 @@ export default function OperatorOnboarding() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label>First name</Label>
+                    <Label>First name <span className="text-destructive">*</span></Label>
                     <Input value={form.firstName} onChange={e => set("firstName", e.target.value)} required />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Last name</Label>
+                    <Label>Last name <span className="text-destructive">*</span></Label>
                     <Input value={form.lastName} onChange={e => set("lastName", e.target.value)} required />
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Phone</Label>
-                  <Input value={form.phone} onChange={e => set("phone", e.target.value)} />
+                  <Label>Phone <span className="text-destructive">*</span></Label>
+                  <Input value={form.phone} onChange={e => set("phone", e.target.value)} required />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Preferred communication</Label>
