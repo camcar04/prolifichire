@@ -16,6 +16,8 @@ import Schedule from "./pages/Schedule";
 import Packets from "./pages/Packets";
 import Payouts from "./pages/Payouts";
 import NotFound from "./pages/NotFound";
+import GrowerOnboarding from "./pages/onboarding/GrowerOnboarding";
+import OperatorOnboarding from "./pages/onboarding/OperatorOnboarding";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +32,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/onboarding/grower" element={<GrowerOnboarding />} />
+            <Route path="/onboarding/operator" element={<OperatorOnboarding />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/fields" element={<Fields />} />
             <Route path="/fields/:fieldId" element={<FieldWorkspace />} />

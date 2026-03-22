@@ -53,6 +53,166 @@ export type Database = {
         }
         Relationships: []
       }
+      communication_preferences: {
+        Row: {
+          alternate_phone: string | null
+          id: string
+          notify_approvals: boolean | null
+          notify_contracts: boolean | null
+          notify_delays: boolean | null
+          notify_invoices: boolean | null
+          notify_packets: boolean | null
+          notify_payouts: boolean | null
+          notify_quotes: boolean | null
+          notify_scheduling: boolean | null
+          preferred_method: Database["public"]["Enums"]["comm_method"]
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alternate_phone?: string | null
+          id?: string
+          notify_approvals?: boolean | null
+          notify_contracts?: boolean | null
+          notify_delays?: boolean | null
+          notify_invoices?: boolean | null
+          notify_packets?: boolean | null
+          notify_payouts?: boolean | null
+          notify_quotes?: boolean | null
+          notify_scheduling?: boolean | null
+          preferred_method?: Database["public"]["Enums"]["comm_method"]
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alternate_phone?: string | null
+          id?: string
+          notify_approvals?: boolean | null
+          notify_contracts?: boolean | null
+          notify_delays?: boolean | null
+          notify_invoices?: boolean | null
+          notify_packets?: boolean | null
+          notify_payouts?: boolean | null
+          notify_quotes?: boolean | null
+          notify_scheduling?: boolean | null
+          preferred_method?: Database["public"]["Enums"]["comm_method"]
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      contract_signatures: {
+        Row: {
+          contract_id: string
+          created_at: string
+          id: string
+          ip_address: unknown
+          reminder_sent_at: string | null
+          signed_at: string | null
+          signer_id: string
+          signer_name: string
+          signer_role: string
+          status: Database["public"]["Enums"]["signature_status"]
+          user_agent: string | null
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          reminder_sent_at?: string | null
+          signed_at?: string | null
+          signer_id: string
+          signer_name: string
+          signer_role: string
+          status?: Database["public"]["Enums"]["signature_status"]
+          user_agent?: string | null
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          reminder_sent_at?: string | null
+          signed_at?: string | null
+          signer_id?: string
+          signer_name?: string
+          signer_role?: string
+          status?: Database["public"]["Enums"]["signature_status"]
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_signatures_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          content_html: string | null
+          content_json: Json | null
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          fields_included: string[] | null
+          fully_signed_at: string | null
+          id: string
+          job_id: string
+          status: Database["public"]["Enums"]["contract_status"]
+          terms: Json | null
+          title: string
+          type: Database["public"]["Enums"]["contract_type"]
+        }
+        Insert: {
+          content_html?: string | null
+          content_json?: Json | null
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          fields_included?: string[] | null
+          fully_signed_at?: string | null
+          id?: string
+          job_id: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          terms?: Json | null
+          title: string
+          type: Database["public"]["Enums"]["contract_type"]
+        }
+        Update: {
+          content_html?: string | null
+          content_json?: Json | null
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          fields_included?: string[] | null
+          fully_signed_at?: string | null
+          id?: string
+          job_id?: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          terms?: Json | null
+          title?: string
+          type?: Database["public"]["Enums"]["contract_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credentials: {
         Row: {
           created_at: string
@@ -956,6 +1116,62 @@ export type Database = {
           },
         ]
       }
+      locations: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          label: string
+          lat: number | null
+          lng: number | null
+          notes: string | null
+          organization_id: string
+          state: string | null
+          type: string
+          zip: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          label: string
+          lat?: number | null
+          lng?: number | null
+          notes?: string | null
+          organization_id: string
+          state?: string | null
+          type?: string
+          zip?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          label?: string
+          lat?: number | null
+          lng?: number | null
+          notes?: string | null
+          organization_id?: string
+          state?: string | null
+          type?: string
+          zip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_threads: {
         Row: {
           created_at: string
@@ -1069,6 +1285,41 @@ export type Database = {
         }
         Relationships: []
       }
+      operation_specs: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string
+          operation_type: Database["public"]["Enums"]["operation_type"]
+          spec_data: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id: string
+          operation_type: Database["public"]["Enums"]["operation_type"]
+          spec_data?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string
+          operation_type?: Database["public"]["Enums"]["operation_type"]
+          spec_data?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operation_specs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operator_profiles: {
         Row: {
           base_address: string | null
@@ -1077,10 +1328,15 @@ export type Database = {
           bio: string | null
           business_name: string
           completed_jobs: number | null
+          contract_signer_email: string | null
+          contract_signer_name: string | null
           created_at: string
+          crew_count: number | null
           id: string
           insurance_verified: boolean | null
           is_verified: boolean | null
+          machine_compatibility: string[] | null
+          onboarding_completed: boolean | null
           organization_id: string
           rating: number | null
           review_count: number | null
@@ -1099,10 +1355,15 @@ export type Database = {
           bio?: string | null
           business_name: string
           completed_jobs?: number | null
+          contract_signer_email?: string | null
+          contract_signer_name?: string | null
           created_at?: string
+          crew_count?: number | null
           id?: string
           insurance_verified?: boolean | null
           is_verified?: boolean | null
+          machine_compatibility?: string[] | null
+          onboarding_completed?: boolean | null
           organization_id: string
           rating?: number | null
           review_count?: number | null
@@ -1121,10 +1382,15 @@ export type Database = {
           bio?: string | null
           business_name?: string
           completed_jobs?: number | null
+          contract_signer_email?: string | null
+          contract_signer_name?: string | null
           created_at?: string
+          crew_count?: number | null
           id?: string
           insurance_verified?: boolean | null
           is_verified?: boolean | null
+          machine_compatibility?: string[] | null
+          onboarding_completed?: boolean | null
           organization_id?: string
           rating?: number | null
           review_count?: number | null
@@ -1330,38 +1596,62 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approval_contact_email: string | null
+          approval_contact_name: string | null
           avatar_url: string | null
+          billing_contact_email: string | null
+          billing_contact_name: string | null
           created_at: string
           email: string
           first_name: string
           id: string
           last_name: string
+          onboarding_completed: boolean | null
           organization_id: string | null
           phone: string | null
+          preferred_comm_method:
+            | Database["public"]["Enums"]["comm_method"]
+            | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          approval_contact_email?: string | null
+          approval_contact_name?: string | null
           avatar_url?: string | null
+          billing_contact_email?: string | null
+          billing_contact_name?: string | null
           created_at?: string
           email: string
           first_name?: string
           id?: string
           last_name?: string
+          onboarding_completed?: boolean | null
           organization_id?: string | null
           phone?: string | null
+          preferred_comm_method?:
+            | Database["public"]["Enums"]["comm_method"]
+            | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          approval_contact_email?: string | null
+          approval_contact_name?: string | null
           avatar_url?: string | null
+          billing_contact_email?: string | null
+          billing_contact_name?: string | null
           created_at?: string
           email?: string
           first_name?: string
           id?: string
           last_name?: string
+          onboarding_completed?: boolean | null
           organization_id?: string | null
           phone?: string | null
+          preferred_comm_method?:
+            | Database["public"]["Enums"]["comm_method"]
+            | null
           updated_at?: string
           user_id?: string
         }
@@ -1424,6 +1714,38 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_areas: {
+        Row: {
+          county: string | null
+          created_at: string
+          id: string
+          operator_profile_id: string
+          state: string
+        }
+        Insert: {
+          county?: string | null
+          created_at?: string
+          id?: string
+          operator_profile_id: string
+          state: string
+        }
+        Update: {
+          county?: string | null
+          created_at?: string
+          id?: string
+          operator_profile_id?: string
+          state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_areas_operator_profile_id_fkey"
+            columns: ["operator_profile_id"]
+            isOneToOne: false
+            referencedRelation: "operator_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1530,6 +1852,15 @@ export type Database = {
       }
     }
     Enums: {
+      comm_method: "in_app" | "email" | "sms" | "phone"
+      contract_status:
+        | "draft"
+        | "pending_signature"
+        | "partially_signed"
+        | "fully_signed"
+        | "expired"
+        | "voided"
+      contract_type: "work_authorization" | "payment_agreement"
       credential_type:
         | "insurance"
         | "license"
@@ -1650,12 +1981,20 @@ export type Database = {
         | "manage"
         | "admin"
       pricing_model: "per_acre" | "per_hour" | "flat_rate" | "negotiated"
+      product_form: "dry" | "liquid" | "gas" | "granular" | "other"
       quote_status:
         | "pending"
         | "accepted"
         | "declined"
         | "expired"
         | "countered"
+      rate_type:
+        | "flat"
+        | "split"
+        | "variable_rate"
+        | "zone_based"
+        | "see_and_spray"
+      signature_status: "pending" | "signed" | "declined" | "expired"
       user_role: "grower" | "operator" | "farm_manager" | "admin" | "finance"
     }
     CompositeTypes: {
@@ -1784,6 +2123,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      comm_method: ["in_app", "email", "sms", "phone"],
+      contract_status: [
+        "draft",
+        "pending_signature",
+        "partially_signed",
+        "fully_signed",
+        "expired",
+        "voided",
+      ],
+      contract_type: ["work_authorization", "payment_agreement"],
       credential_type: [
         "insurance",
         "license",
@@ -1909,7 +2258,16 @@ export const Constants = {
         "admin",
       ],
       pricing_model: ["per_acre", "per_hour", "flat_rate", "negotiated"],
+      product_form: ["dry", "liquid", "gas", "granular", "other"],
       quote_status: ["pending", "accepted", "declined", "expired", "countered"],
+      rate_type: [
+        "flat",
+        "split",
+        "variable_rate",
+        "zone_based",
+        "see_and_spray",
+      ],
+      signature_status: ["pending", "signed", "declined", "expired"],
       user_role: ["grower", "operator", "farm_manager", "admin", "finance"],
     },
   },
