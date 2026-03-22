@@ -123,14 +123,14 @@ export default function Signup() {
           </div>
 
           <form onSubmit={handleSignup} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="firstName">First name</Label>
-                <Input id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="lastName">Last name</Label>
-                <Input id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} required />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="firstName">First name</Label>
+                  <Input id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} required maxLength={100} autoComplete="given-name" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="lastName">Last name</Label>
+                  <Input id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} required maxLength={100} autoComplete="family-name" />
               </div>
             </div>
             <div className="space-y-1.5">
