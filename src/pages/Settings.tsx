@@ -570,3 +570,7 @@ function BlockedItem({ label, reason, link, cta }: { label: string; reason: stri
     </div>
   );
 }
+
+function OperatorPricingSection() {
+  return <PricingProfileEditor />;
+}
