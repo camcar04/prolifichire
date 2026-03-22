@@ -18,6 +18,7 @@ import Payouts from "./pages/Payouts";
 import NotFound from "./pages/NotFound";
 import GrowerOnboarding from "./pages/onboarding/GrowerOnboarding";
 import OperatorOnboarding from "./pages/onboarding/OperatorOnboarding";
+import Templates from "./pages/Templates";
 
 const queryClient = new QueryClient();
 
