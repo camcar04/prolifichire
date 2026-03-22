@@ -7,10 +7,11 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Users, Briefcase, DollarSign, Map, AlertTriangle,
-  ArrowRight, Activity, Shield, TrendingUp, BarChart3,
+  ArrowRight, Activity, Shield, TrendingUp, BarChart3, ShieldCheck,
 } from "lucide-react";
 import { formatCurrency, formatOperationType, formatDate, formatRelative } from "@/lib/format";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { CompliancePanel } from "@/components/admin/CompliancePanel";
 
 const STATUS_COLORS: Record<string, string> = {
   requested: "hsl(38, 92%, 50%)",
