@@ -3,6 +3,8 @@ import { MessageSquare, X, Send, Loader2, Sparkles, Briefcase, Wrench } from "lu
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { canPerformAction } from "@/lib/security";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
