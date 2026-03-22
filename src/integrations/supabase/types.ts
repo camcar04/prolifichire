@@ -451,44 +451,89 @@ export type Database = {
       }
       equipment: {
         Row: {
+          boom_width_ft: number | null
           capacity: string | null
           created_at: string
           gps_equipped: boolean | null
+          hauling_capacity_tons: number | null
+          hopper_capacity_bu: number | null
           id: string
           iso_compatible: boolean | null
           make: string
           model: string
+          notes: string | null
           operator_id: string
+          precision_compatible: string[] | null
+          row_count: number | null
+          row_spacing: number | null
+          see_and_spray: boolean | null
+          serial_number: string | null
           status: string
+          tank_size_gal: number | null
           type: string
+          unit_name: string | null
+          variable_rate: boolean | null
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
           width_ft: number | null
           year: number | null
         }
         Insert: {
+          boom_width_ft?: number | null
           capacity?: string | null
           created_at?: string
           gps_equipped?: boolean | null
+          hauling_capacity_tons?: number | null
+          hopper_capacity_bu?: number | null
           id?: string
           iso_compatible?: boolean | null
           make: string
           model: string
+          notes?: string | null
           operator_id: string
+          precision_compatible?: string[] | null
+          row_count?: number | null
+          row_spacing?: number | null
+          see_and_spray?: boolean | null
+          serial_number?: string | null
           status?: string
+          tank_size_gal?: number | null
           type: string
+          unit_name?: string | null
+          variable_rate?: boolean | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
           width_ft?: number | null
           year?: number | null
         }
         Update: {
+          boom_width_ft?: number | null
           capacity?: string | null
           created_at?: string
           gps_equipped?: boolean | null
+          hauling_capacity_tons?: number | null
+          hopper_capacity_bu?: number | null
           id?: string
           iso_compatible?: boolean | null
           make?: string
           model?: string
+          notes?: string | null
           operator_id?: string
+          precision_compatible?: string[] | null
+          row_count?: number | null
+          row_spacing?: number | null
+          see_and_spray?: boolean | null
+          serial_number?: string | null
           status?: string
+          tank_size_gal?: number | null
           type?: string
+          unit_name?: string | null
+          variable_rate?: boolean | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
           width_ft?: number | null
           year?: number | null
         }
@@ -498,6 +543,50 @@ export type Database = {
             columns: ["operator_id"]
             isOneToOne: false
             referencedRelation: "operator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_documents: {
+        Row: {
+          equipment_id: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: string
+          notes: string | null
+          uploaded_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          equipment_id: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          notes?: string | null
+          uploaded_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          equipment_id?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          notes?: string | null
+          uploaded_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_documents_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
             referencedColumns: ["id"]
           },
         ]
