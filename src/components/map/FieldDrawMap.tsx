@@ -71,8 +71,10 @@ export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, cent
   const [acres, setAcres] = useState(0);
   const [isDrawing, setIsDrawing] = useState(!initialGeojson);
   const [isDragging, setIsDragging] = useState(false);
+  const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const pointsRef = useRef<number[][]>([]);
   const markersRef = useRef<maplibregl.Marker[]>([]);
+  const userMarkerRef = useRef<maplibregl.Marker | null>(null);
   const dragIdxRef = useRef<number | null>(null);
   const liveAcresRef = useRef(0);
 
@@ -86,6 +88,34 @@ export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, cent
       setAcres(a);
       onBoundaryChange(polygon, a);
     }
+  }, [polygon]);
+
+  // Try to get user location for initial centering
+  const locateUser = useCallback(() => {
+    if (!("geolocation" in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserLoc(loc);
+        const map = mapRef.current;
+        if (map && !polygon && pointsRef.current.length === 0) {
+          map.flyTo({ center: [loc.lng, loc.lat], zoom: 15, duration: 1200 });
+        }
+        // Add/update user marker
+        if (map) {
+          if (!userMarkerRef.current) {
+            const el = document.createElement("div");
+            el.className = "w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-lg";
+            el.style.boxShadow = "0 0 0 6px rgba(59,130,246,0.2), 0 2px 8px rgba(0,0,0,0.3)";
+            userMarkerRef.current = new maplibregl.Marker({ element: el }).setLngLat([loc.lng, loc.lat]).addTo(map);
+          } else {
+            userMarkerRef.current.setLngLat([loc.lng, loc.lat]);
+          }
+        }
+      },
+      () => { /* denied or unavailable — no-op */ },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
   }, [polygon]);
 
   // Init map
