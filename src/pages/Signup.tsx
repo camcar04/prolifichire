@@ -24,18 +24,45 @@ export default function Signup() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!canPerformAction("signup", 3000)) {
+      toast.error("Please wait before trying again.");
+      return;
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedFirst = firstName.trim();
+    const trimmedLast = lastName.trim();
+
+    if (!trimmedFirst || trimmedFirst.length > 100) {
+      toast.error("Please enter a valid first name.");
+      return;
+    }
+    if (!trimmedLast || trimmedLast.length > 100) {
+      toast.error("Please enter a valid last name.");
+      return;
+    }
+    if (!trimmedEmail || trimmedEmail.length > 255) {
+      toast.error("Please enter a valid email.");
+      return;
+    }
+    if (password.length < 6 || password.length > 128) {
+      toast.error("Password must be 6-128 characters.");
+      return;
+    }
+
     setLoading(true);
     const { error } = await supabase.auth.signUp({
-      email,
+      email: trimmedEmail,
       password,
       options: {
-        data: { first_name: firstName, last_name: lastName },
+        data: { first_name: trimmedFirst, last_name: trimmedLast },
         emailRedirectTo: window.location.origin,
       },
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      toast.error("Could not create account. Please try again.");
     } else {
       localStorage.setItem("ph_active_mode", selectedRole);
       toast.success("Account created! Setting up your workspace...");
