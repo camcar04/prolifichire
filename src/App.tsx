@@ -33,6 +33,7 @@ import OperatorProfile from "./pages/OperatorProfile";
 import Enterprise from "./pages/Enterprise";
 import CalendarView from "./pages/CalendarView";
 import BidQueue from "./pages/BidQueue";
+import LaborMarketplace from "./pages/LaborMarketplace";
 
 const queryClient = new QueryClient();
 
