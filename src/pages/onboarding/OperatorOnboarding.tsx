@@ -210,7 +210,7 @@ export default function OperatorOnboarding() {
             {step === 1 && (
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label>Business name</Label>
+                  <Label>Business name <span className="text-destructive">*</span></Label>
                   <Input value={form.businessName} onChange={e => set("businessName", e.target.value)} placeholder="e.g. AgriPro Custom Services" required />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
