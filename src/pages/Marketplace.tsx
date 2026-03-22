@@ -18,6 +18,7 @@ import {
   CheckCircle2, AlertTriangle, Target, SlidersHorizontal,
 } from "lucide-react";
 import { useMarketplaceJobs } from "@/hooks/useJobs";
+import { useSavedJobIds, useToggleSaveJob } from "@/hooks/useSavedJobs";
 import {
   formatCurrency, formatAcres, formatOperationType, formatCropType,
   formatDateShort, formatPricingModel, formatRelative,
@@ -25,7 +26,6 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import type { OperationType } from "@/types/domain";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 const OP_FILTERS: (OperationType | "all")[] = [
   "all", "spraying", "planting", "harvest", "grain_hauling", "tillage",
@@ -35,11 +35,12 @@ const OP_FILTERS: (OperationType | "all")[] = [
 export default function Marketplace() {
   const { activeMode } = useAuth();
   const { data: allJobs = [], isLoading } = useMarketplaceJobs();
+  const savedJobIds = useSavedJobIds();
+  const toggleSaveMutation = useToggleSaveJob();
   const navigate = useNavigate();
 
   const [filter, setFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
   const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [sortBy, setSortBy] = useState<string>("newest");
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -47,12 +48,7 @@ export default function Marketplace() {
 
   const toggleSave = (jobId: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setSavedJobs(prev => {
-      const next = new Set(prev);
-      if (next.has(jobId)) { next.delete(jobId); toast("Removed from queue"); }
-      else { next.add(jobId); toast.success("Saved to bid queue"); }
-      return next;
-    });
+    toggleSaveMutation.mutate({ jobId, isSaved: savedJobIds.has(jobId) });
   };
 
   const filtered = useMemo(() => {
