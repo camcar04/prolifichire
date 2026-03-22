@@ -6,6 +6,7 @@ import AppShell from "@/components/layout/AppShell";
 import { DetailSkeleton } from "@/components/shared/PageSkeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { CredentialManager } from "@/components/operators/CredentialManager";
+import { EquipmentManager } from "@/components/operators/EquipmentManager";
 import { VerifiedBadge, deriveBadgesFromRows } from "@/components/operators/VerifiedBadge";
 import { formatOperationType } from "@/lib/format";
 import { MapPin, Briefcase, Wrench, Users, Award, Clock, Star, User } from "lucide-react";
