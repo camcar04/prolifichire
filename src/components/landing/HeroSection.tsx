@@ -28,8 +28,8 @@ export default function HeroSection() {
           </h1>
 
           <p
-            className="reveal mt-5 text-base md:text-lg text-white/90 max-w-md leading-relaxed"
-            style={{ transitionDelay: "160ms", textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}
+            className="reveal mt-5 text-base md:text-lg text-white max-w-md leading-relaxed font-medium"
+            style={{ transitionDelay: "160ms", textShadow: "0 1px 6px rgba(0,0,0,0.6)" }}
           >
             Manage farm work, coordinate operators, and run your entire network — growers, crews, and logistics — all in one platform.
           </p>
