@@ -12,7 +12,9 @@ import { RoleModeSwitcher } from "@/components/layout/RoleModeSwitcher";
 import { useNotifications } from "@/hooks/useNotifications";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { OfflineBanner, SyncStatusIndicator } from "@/components/offline/OfflineBanner";
+import { MobileBottomBar } from "@/components/layout/MobileBottomBar";
 import { getInitials } from "@/lib/format";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface NavItem {
   icon: typeof LayoutDashboard;
