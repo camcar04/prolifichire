@@ -1,23 +1,46 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard, Map, Briefcase, Store, Users, DollarSign,
-  Shield, Settings, ChevronLeft, ChevronRight, Search, Bell, X,
+  LayoutDashboard, Map, Briefcase, Store, DollarSign,
+  ChevronLeft, ChevronRight, Search, Bell, X, FolderOpen,
+  MessageSquare, Calendar, Package, LogOut, Truck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getUnreadNotifications } from "@/data/mock";
 import { formatRelative } from "@/lib/format";
+import { useAuth, type AppMode } from "@/contexts/AuthContext";
+import { RoleModeSwitcher } from "@/components/layout/RoleModeSwitcher";
+import { getInitials } from "@/lib/format";
 
-const navItems = [
+interface NavItem {
+  icon: typeof LayoutDashboard;
+  label: string;
+  to: string;
+}
+
+const growerNav: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", to: "/dashboard" },
   { icon: Map, label: "Fields", to: "/fields" },
   { icon: Briefcase, label: "Jobs", to: "/jobs" },
   { icon: Store, label: "Marketplace", to: "/marketplace" },
-  { icon: Users, label: "Operators", to: "/operators" },
-  { icon: DollarSign, label: "Finance", to: "/finance" },
-  { icon: Shield, label: "Compliance", to: "/compliance" },
-  { icon: Settings, label: "Settings", to: "/settings" },
+  { icon: DollarSign, label: "Financials", to: "/finance" },
+  { icon: FolderOpen, label: "Files", to: "/files" },
+  { icon: MessageSquare, label: "Messages", to: "/messages" },
 ];
+
+const operatorNav: NavItem[] = [
+  { icon: LayoutDashboard, label: "Dashboard", to: "/dashboard" },
+  { icon: Briefcase, label: "My Jobs", to: "/jobs" },
+  { icon: Calendar, label: "Schedule", to: "/schedule" },
+  { icon: Package, label: "Field Packets", to: "/packets" },
+  { icon: Store, label: "Marketplace", to: "/marketplace" },
+  { icon: DollarSign, label: "Payouts", to: "/payouts" },
+  { icon: MessageSquare, label: "Messages", to: "/messages" },
+];
+
+function getNavItems(mode: AppMode): NavItem[] {
+  return mode === "operator" ? operatorNav : growerNav;
+}
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -34,6 +57,12 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
   const notifications = getUnreadNotifications();
+  const { activeMode, profile, signOut } = useAuth();
+  const navItems = getNavItems(activeMode);
+
+  const initials = profile
+    ? getInitials(profile.firstName, profile.lastName)
+    : "??";
 
   useEffect(() => {
     if (searchOpen && searchRef.current) searchRef.current.focus();
@@ -54,6 +83,11 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login");
+  };
+
   return (
     <div className="flex min-h-screen bg-surface-2">
       {/* Sidebar */}
@@ -67,6 +101,11 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
           </div>
           {!collapsed && <span className="font-bold text-sidebar-foreground tracking-tight text-sm">ProlificHire</span>}
         </Link>
+
+        {/* Role mode switcher */}
+        <div className={cn("px-2 py-2.5 border-b border-sidebar-border", collapsed && "px-1")}>
+          <RoleModeSwitcher collapsed={collapsed} />
+        </div>
 
         <nav className="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => {
@@ -90,12 +129,26 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
           })}
         </nav>
 
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="h-10 flex items-center justify-center border-t border-sidebar-border text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
-        >
-          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-        </button>
+        {/* Bottom section */}
+        <div className="border-t border-sidebar-border">
+          <button
+            onClick={handleSignOut}
+            className={cn(
+              "flex items-center gap-3 w-full px-3 py-2.5 text-[13px] text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/30 transition-colors",
+              collapsed && "justify-center px-0"
+            )}
+            title="Sign out"
+          >
+            <LogOut size={15} className="shrink-0" />
+            {!collapsed && <span>Sign out</span>}
+          </button>
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="h-10 w-full flex items-center justify-center border-t border-sidebar-border text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
+          >
+            {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+          </button>
+        </div>
       </aside>
 
       {/* Main */}
@@ -157,7 +210,7 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
 
             {/* User */}
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
-              RW
+              {initials}
             </div>
 
             {actions}
