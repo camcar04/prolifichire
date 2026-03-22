@@ -71,8 +71,10 @@ export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, cent
   const [acres, setAcres] = useState(0);
   const [isDrawing, setIsDrawing] = useState(!initialGeojson);
   const [isDragging, setIsDragging] = useState(false);
+  const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const pointsRef = useRef<number[][]>([]);
   const markersRef = useRef<maplibregl.Marker[]>([]);
+  const userMarkerRef = useRef<maplibregl.Marker | null>(null);
   const dragIdxRef = useRef<number | null>(null);
   const liveAcresRef = useRef(0);
 
@@ -86,6 +88,34 @@ export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, cent
       setAcres(a);
       onBoundaryChange(polygon, a);
     }
+  }, [polygon]);
+
+  // Try to get user location for initial centering
+  const locateUser = useCallback(() => {
+    if (!("geolocation" in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserLoc(loc);
+        const map = mapRef.current;
+        if (map && !polygon && pointsRef.current.length === 0) {
+          map.flyTo({ center: [loc.lng, loc.lat], zoom: 15, duration: 1200 });
+        }
+        // Add/update user marker
+        if (map) {
+          if (!userMarkerRef.current) {
+            const el = document.createElement("div");
+            el.className = "w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-lg";
+            el.style.boxShadow = "0 0 0 6px rgba(59,130,246,0.2), 0 2px 8px rgba(0,0,0,0.3)";
+            userMarkerRef.current = new maplibregl.Marker({ element: el }).setLngLat([loc.lng, loc.lat]).addTo(map);
+          } else {
+            userMarkerRef.current.setLngLat([loc.lng, loc.lat]);
+          }
+        }
+      },
+      () => { /* denied or unavailable — no-op */ },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
   }, [polygon]);
 
   // Init map
@@ -146,11 +176,17 @@ export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, cent
         ring.forEach(c => bounds.extend(c as [number, number]));
         map.fitBounds(bounds, { padding: 80, maxZoom: 17 });
       }
+
+      // Auto-locate user if no center/polygon provided
+      if (!center && !polygon) {
+        locateUser();
+      }
     });
 
     mapRef.current = map;
     return () => {
       markersRef.current.forEach(m => m.remove());
+      userMarkerRef.current?.remove();
       map.remove();
       mapRef.current = null;
     };
@@ -378,6 +414,17 @@ export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, cent
           </div>
         </div>
       </div>
+
+      {/* Locate me button */}
+      <button
+        onClick={locateUser}
+        className="absolute top-4 right-4 z-20 h-9 w-9 rounded-lg bg-white/15 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/25 active:scale-95 transition-all"
+        title="Use my location"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
+        </svg>
+      </button>
 
       {/* Edit mode hint */}
       {!isDrawing && polygon && !isDragging && (
