@@ -55,7 +55,7 @@ export function DirectHireActions({ operatorUserId, operatorName, operatorProfil
       await supabase.from("messages").insert({
         thread_id: threadId,
         sender_id: user.id,
-        body: message.trim(),
+        content: message.trim(),
       });
 
       toast.success("Message sent");
