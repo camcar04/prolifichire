@@ -176,11 +176,17 @@ export function FieldDrawMap({ initialGeojson, onBoundaryChange, className, cent
         ring.forEach(c => bounds.extend(c as [number, number]));
         map.fitBounds(bounds, { padding: 80, maxZoom: 17 });
       }
+
+      // Auto-locate user if no center/polygon provided
+      if (!center && !polygon) {
+        locateUser();
+      }
     });
 
     mapRef.current = map;
     return () => {
       markersRef.current.forEach(m => m.remove());
+      userMarkerRef.current?.remove();
       map.remove();
       mapRef.current = null;
     };
