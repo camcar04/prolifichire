@@ -55,6 +55,7 @@ export default function OperatorDashboard() {
       <div className="grid lg:grid-cols-12 gap-4">
         {/* Left — Today's Route */}
         <div className="lg:col-span-3 space-y-4">
+          <ProfileScoreCard />
           <div className="rounded-lg bg-card shadow-card">
             <div className="flex items-center justify-between px-4 py-2.5 border-b">
               <h2 className="text-[13px] font-semibold flex items-center gap-1.5"><Truck size={13} /> Today's Route</h2>
