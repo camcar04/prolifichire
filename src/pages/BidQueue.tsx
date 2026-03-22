@@ -71,7 +71,7 @@ export default function BidQueue() {
               action={{ label: "Browse Marketplace", to: "/marketplace" }}
             />
           ) : (
-            <div className="rounded-lg border bg-card overflow-hidden divide-y">
+            <div className="rounded border bg-card overflow-hidden divide-y">
               {savedJobs.map((sj: any) => {
                 const job = sj.jobs;
                 if (!job) return null;
