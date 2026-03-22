@@ -8,9 +8,11 @@ import { FieldMap } from "@/components/map/FieldMap";
 import { WeatherPanel } from "@/components/weather/WeatherPanel";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { DetailSkeleton } from "@/components/shared/PageSkeleton";
+import { FieldFileUpload } from "@/components/fields/FieldFileUpload";
 import { useField } from "@/hooks/useFields";
 import { useJobsByField } from "@/hooks/useJobs";
 import { useDatasetsByField, useInvoicesByField } from "@/hooks/useDatasets";
+import { supabase } from "@/integrations/supabase/client";
 import {
   formatCurrency, formatAcres, formatOperationType, formatCropType,
   formatDate, formatPricingModel, formatFileSize, formatRelative,
@@ -39,6 +41,7 @@ export default function FieldWorkspace() {
   const { fieldId } = useParams();
   const { activeMode } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [showFileUpload, setShowFileUpload] = useState(false);
   const tabs = activeMode === "operator" ? operatorTabs : growerTabs;
 
   const { data: field, isLoading: fieldLoading } = useField(fieldId);
@@ -196,9 +199,11 @@ export default function FieldWorkspace() {
           />
         )}
         {activeTab === "jobs" && <JobsContent jobs={fieldJobs} isLoading={jobsLoading} />}
-        {activeTab === "files" && <FilesContent datasets={datasets} />}
+        {activeTab === "files" && <FilesContent datasets={datasets} fieldId={field.id} onUpload={() => setShowFileUpload(true)} />}
         {activeMode === "grower" && activeTab === "financials" && <FinancialsContent invoices={invoices} />}
       </div>
+
+      {field.id && <FieldFileUpload fieldId={field.id} open={showFileUpload} onOpenChange={setShowFileUpload} />}
     </AppShell>
   );
 }
@@ -301,18 +306,24 @@ function JobsContent({ jobs, isLoading }: { jobs: any[]; isLoading: boolean }) {
   );
 }
 
-function FilesContent({ datasets }: { datasets: any[] }) {
+function FilesContent({ datasets, fieldId, onUpload }: { datasets: any[]; fieldId: string; onUpload: () => void }) {
+  const handleDownload = async (ds: any) => {
+    const { data } = await supabase.storage.from("field-data").createSignedUrl(ds.storage_path, 300);
+    if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+  };
+
   return (
     <div className="rounded-lg bg-card border">
       <div className="flex items-center justify-between px-4 py-2.5 border-b">
         <h3 className="text-sm font-semibold">Files & Maps ({datasets.length})</h3>
-        <Button variant="outline" size="sm" className="h-7 text-xs"><Upload size={12} className="mr-1" /> Upload</Button>
+        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={onUpload}><Upload size={12} className="mr-1" /> Upload</Button>
       </div>
       {datasets.length === 0 ? (
         <div className="p-8 text-center">
           <Upload size={20} className="mx-auto mb-2 text-muted-foreground/30" />
           <p className="text-sm text-muted-foreground">No files uploaded yet.</p>
           <p className="text-xs text-muted-foreground mt-1">Upload boundary files, prescriptions, or other field data.</p>
+          <Button variant="outline" size="sm" className="mt-3 text-xs" onClick={onUpload}>Upload First File</Button>
         </div>
       ) : (
         <div className="divide-y">
@@ -332,7 +343,7 @@ function FilesContent({ datasets }: { datasets: any[] }) {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-xs text-muted-foreground">{formatRelative(ds.created_at)}</span>
-                <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDownload(ds)}>
                   <Download size={13} />
                 </Button>
               </div>

@@ -1693,6 +1693,7 @@ export type Database = {
           travel_eta: number | null
           updated_at: string
           urgency: string
+          visibility: string
         }
         Insert: {
           actual_end?: string | null
@@ -1736,6 +1737,7 @@ export type Database = {
           travel_eta?: number | null
           updated_at?: string
           urgency?: string
+          visibility?: string
         }
         Update: {
           actual_end?: string | null
@@ -1779,6 +1781,7 @@ export type Database = {
           travel_eta?: number | null
           updated_at?: string
           urgency?: string
+          visibility?: string
         }
         Relationships: [
           {
