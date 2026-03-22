@@ -78,7 +78,7 @@ export default function GrowerDashboard() {
         { label: "Approvals", value: String(pendingApprovals.length), sub: pendingApprovals.length > 0 ? "Action needed" : "Clear" },
         { label: "Fields", value: String(fields.length), sub: `${formatAcres(fields.reduce((a, f) => a + Number(f.acreage || 0), 0))}` },
         { label: "Spent YTD", value: formatCurrency(totalSpend), accent: true },
-      ]} className="rounded-lg border bg-card px-4 py-1" />
+      ]} className="rounded border bg-card px-3 py-1" />
 
       {/* Guidance rail */}
       {guidanceItems.length > 0 && (
