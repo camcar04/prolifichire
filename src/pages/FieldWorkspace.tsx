@@ -8,6 +8,7 @@ import { FieldMap } from "@/components/map/FieldMap";
 import { ActivityTimeline } from "@/components/shared/ActivityTimeline";
 import { FileRow } from "@/components/shared/FileRow";
 import { FieldPacketCard } from "@/components/shared/FieldPacketCard";
+import { WeatherPanel } from "@/components/weather/WeatherPanel";
 import {
   getFieldById, getJobsByField, getDatasetsByField, getAuditLogsByField,
   getFieldRequirements, getFieldAccess, fieldStats, getInvoicesByField,
@@ -155,7 +156,7 @@ export default function FieldWorkspace() {
         </div>
 
         {/* Content */}
-        {activeTab === "overview" && <OverviewContent field={field} stats={stats} activeJob={activeJob} packet={packet} auditLogs={fieldAuditLogs} />}
+        {activeTab === "overview" && <OverviewContent field={field} stats={stats} activeJob={activeJob} packet={packet} auditLogs={fieldAuditLogs} activeMode={activeMode} />}
         {activeTab === "jobs" && <JobsContent jobs={fieldJobs} />}
         {activeTab === "history" && <ActivityTimeline events={fieldAuditLogs} />}
         {activeTab === "files" && <FilesContent datasets={fieldDatasets} />}
@@ -178,9 +179,12 @@ function InfoBlock({ label, value, icon }: { label: string; value: React.ReactNo
   );
 }
 
-function OverviewContent({ field, stats, activeJob, packet, auditLogs }: any) {
+function OverviewContent({ field, stats, activeJob, packet, auditLogs, activeMode }: any) {
   return (
     <div className="grid md:grid-cols-2 gap-5">
+      <div className="md:col-span-2">
+        <WeatherPanel fieldId={field.id} lat={field.centroid?.lat} lng={field.centroid?.lng} operationType={activeJob?.operationType} />
+      </div>
       {activeJob && (
         <div className="rounded-xl bg-card shadow-card p-5">
           <h3 className="font-semibold mb-3">Active Job</h3>

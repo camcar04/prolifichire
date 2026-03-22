@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import AppShell from "@/components/layout/AppShell";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Link } from "react-router-dom";
-import { Calendar, MapPin, Clock, Navigation } from "lucide-react";
+import { Calendar, MapPin, Clock, Navigation, Cloud } from "lucide-react";
 import { jobs, operators } from "@/data/mock";
 import { formatOperationType, formatAcres } from "@/lib/format";
 import { cn } from "@/lib/utils";

@@ -4,12 +4,14 @@ import {
   LayoutDashboard, Map, Briefcase, Store, DollarSign,
   ChevronLeft, ChevronRight, Search, Bell, X, FolderOpen,
   MessageSquare, Calendar, Package, LogOut, Truck, Bookmark,
+  Link2, Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, type AppMode } from "@/contexts/AuthContext";
 import { RoleModeSwitcher } from "@/components/layout/RoleModeSwitcher";
 import { useNotifications } from "@/hooks/useNotifications";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import { OfflineBanner, SyncStatusIndicator } from "@/components/offline/OfflineBanner";
 import { getInitials } from "@/lib/format";
 
 interface NavItem {
@@ -27,6 +29,7 @@ const growerNav: NavItem[] = [
   { icon: DollarSign, label: "Financials", to: "/finance" },
   { icon: FolderOpen, label: "Files", to: "/files" },
   { icon: MessageSquare, label: "Messages", to: "/messages" },
+  { icon: Link2, label: "Integrations", to: "/integrations" },
 ];
 
 const operatorNav: NavItem[] = [
@@ -38,6 +41,7 @@ const operatorNav: NavItem[] = [
   { icon: Store, label: "Marketplace", to: "/marketplace" },
   { icon: DollarSign, label: "Payouts", to: "/payouts" },
   { icon: MessageSquare, label: "Messages", to: "/messages" },
+  { icon: Link2, label: "Integrations", to: "/integrations" },
 ];
 
 function getNavItems(mode: AppMode): NavItem[] {
@@ -155,12 +159,15 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
 
       {/* Main */}
       <div className={cn("flex-1 transition-[margin-left] duration-200 flex flex-col", collapsed ? "ml-16" : "ml-56")}>
+        <OfflineBanner />
         <header className="h-14 bg-background border-b flex items-center justify-between px-6 sticky top-0 z-30">
           <div className="flex items-center gap-4">
             {title && <h1 className="text-base font-semibold">{title}</h1>}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <SyncStatusIndicator />
+
             {/* Search trigger */}
             <button
               onClick={() => setSearchOpen(true)}

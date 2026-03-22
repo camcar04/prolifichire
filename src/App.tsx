@@ -20,6 +20,7 @@ import GrowerOnboarding from "./pages/onboarding/GrowerOnboarding";
 import OperatorOnboarding from "./pages/onboarding/OperatorOnboarding";
 import Templates from "./pages/Templates";
 import NotificationsPage from "./pages/Notifications";
+import Integrations from "./pages/Integrations";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/templates" element={<Templates />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/payouts" element={<Payouts />} />
+            <Route path="/integrations" element={<Integrations />} />
             <Route path="/finance" element={<Dashboard />} />
             <Route path="/files" element={<Dashboard />} />
             <Route path="/messages" element={<Dashboard />} />
