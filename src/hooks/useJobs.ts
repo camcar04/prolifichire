@@ -122,3 +122,33 @@ export function useMyBidQueue() {
     },
   });
 }
+
+export function useQuotesReceived() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["quotes-received", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      // Get jobs posted by this user, then get quotes on those jobs
+      const { data: myJobs } = await supabase
+        .from("jobs")
+        .select("id")
+        .eq("requested_by", user!.id);
+      if (!myJobs || myJobs.length === 0) return [];
+
+      const jobIds = myJobs.map(j => j.id);
+      const { data, error } = await supabase
+        .from("quotes")
+        .select(`
+          *,
+          jobs(id, title, operation_type, total_acres, base_rate, estimated_total, pricing_model, contract_mode,
+            job_fields(*, fields(name, crop, acreage)))
+        `)
+        .in("job_id", jobIds)
+        .order("submitted_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
