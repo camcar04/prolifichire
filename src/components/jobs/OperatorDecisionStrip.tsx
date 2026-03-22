@@ -147,6 +147,8 @@ export function OperatorDecisionStrip({ job }: OperatorDecisionStripProps) {
             <AlertTriangle size={9} /> {job.urgency}
           </span>
         )}
+        {/* Equipment match badge */}
+        <JobEquipmentMatch operationType={job.operation_type} operatorProfileId={job.operator_id || undefined} compact />
       </div>
 
       {/* Contract mode label + actions */}

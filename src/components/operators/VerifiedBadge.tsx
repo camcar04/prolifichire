@@ -60,7 +60,10 @@ export function deriveBadges(credentials: Array<{ type: string; is_verified: boo
 }
 
 // Overload for raw credential rows
-export function deriveBadgesFromRows(credentials: Array<{ type: string; is_verified: boolean; status: string; expires_at?: string | null; name: string }>): BadgeType[] {
+export function deriveBadgesFromRows(
+  credentials: Array<{ type: string; is_verified: boolean; status: string; expires_at?: string | null; name: string }>,
+  equipment?: Array<{ verification_status?: string }>
+): BadgeType[] {
   const badges: BadgeType[] = [];
   const now = new Date();
 
@@ -71,10 +74,12 @@ export function deriveBadgesFromRows(credentials: Array<{ type: string; is_verif
   const hasCDL = verified.some(c => c.name.toLowerCase().includes("cdl"));
   const hasLicense = verified.some(c => c.type === "license" || c.type === "certification");
   const hasInsurance = verified.some(c => c.type === "insurance");
+  const hasVerifiedEquipment = equipment?.some(e => e.verification_status === "verified") ?? false;
 
   if (hasCDL) badges.push("cdl_verified");
   if (hasLicense) badges.push("licensed_applicator");
   if (hasInsurance) badges.push("insurance_verified");
+  if (hasVerifiedEquipment) badges.push("equipment_verified");
   if (badges.length >= 2) badges.unshift("fully_verified");
 
   return [...new Set(badges)];
