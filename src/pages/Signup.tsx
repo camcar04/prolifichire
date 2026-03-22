@@ -135,7 +135,7 @@ export default function Signup() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
+              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required maxLength={255} autoComplete="email" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
