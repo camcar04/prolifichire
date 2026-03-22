@@ -37,7 +37,7 @@ export default function Signup() {
     } else {
       localStorage.setItem("ph_active_mode", selectedRole);
       toast.success("Check your email to confirm your account.");
-      navigate("/login");
+      navigate(selectedRole === "operator" ? "/onboarding/operator" : "/onboarding/grower");
     }
   };
 
