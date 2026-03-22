@@ -176,7 +176,7 @@ export default function GrowerOnboarding() {
             {step === 1 && (
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label>Organization / Farm name</Label>
+                  <Label>Organization / Farm name <span className="text-destructive">*</span></Label>
                   <Input value={form.orgName} onChange={e => set("orgName", e.target.value)} placeholder="e.g. Westfield Farms LLC" required />
                 </div>
                 <div className="space-y-1.5">
