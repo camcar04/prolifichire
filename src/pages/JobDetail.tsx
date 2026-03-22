@@ -21,6 +21,7 @@ import {
 
 export default function JobDetail() {
   const { jobId } = useParams();
+  const { activeMode } = useAuth();
   const job = getJobById(jobId || "job-1") || jobs[0];
   const field = getFieldById(job.fields[0]?.fieldId || "");
   const exceptions = getExceptionsByJob(job.id);
