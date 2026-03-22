@@ -29,45 +29,76 @@ const OPERATOR_ROLES = [
   { value: "member", label: "Member" },
 ];
 
+interface OrgMember {
+  id: string;
+  user_id: string;
+  org_role: string;
+  joined_at: string;
+  profile?: { first_name: string; last_name: string; email: string; user_id: string };
+}
+
+interface OrgInvite {
+  id: string;
+  email: string;
+  org_role: string;
+  status: string;
+  created_at: string;
+}
+
 export function TeamManagement() {
   const { user, profile, activeMode } = useAuth();
   const queryClient = useQueryClient();
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("member");
-  const orgId = profile?.organizationId;
   const roles = activeMode === "operator" ? OPERATOR_ROLES : FARM_ROLES;
+
+  // Get org_id from profile table directly
+  const { data: orgId } = useQuery({
+    queryKey: ["my-org-id"],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("organization_id")
+        .eq("user_id", user.id)
+        .single();
+      return data?.organization_id || null;
+    },
+    enabled: !!user,
+  });
 
   const { data: members = [], isLoading: loadingMembers } = useQuery({
     queryKey: ["org-members", orgId],
-    queryFn: async () => {
+    queryFn: async (): Promise<OrgMember[]> => {
       if (!orgId) return [];
       const { data } = await supabase
-        .from("organization_members")
+        .from("organization_members" as any)
         .select("*")
         .eq("organization_id", orgId);
       if (!data?.length) return [];
-      const userIds = data.map(m => m.user_id);
+      const rows = data as any[];
+      const userIds = rows.map((m: any) => m.user_id);
       const { data: profiles } = await supabase
         .from("profiles")
         .select("user_id, first_name, last_name, email")
         .in("user_id", userIds);
       const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
-      return data.map(m => ({ ...m, profile: profileMap.get(m.user_id) }));
+      return rows.map((m: any) => ({ ...m, profile: profileMap.get(m.user_id) }));
     },
     enabled: !!orgId,
   });
 
   const { data: invites = [] } = useQuery({
     queryKey: ["org-invites", orgId],
-    queryFn: async () => {
+    queryFn: async (): Promise<OrgInvite[]> => {
       if (!orgId) return [];
       const { data } = await supabase
-        .from("organization_invites")
+        .from("organization_invites" as any)
         .select("*")
         .eq("organization_id", orgId)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
-      return data || [];
+      return (data as any[]) || [];
     },
     enabled: !!orgId,
   });
@@ -76,12 +107,12 @@ export function TeamManagement() {
     mutationFn: async () => {
       if (!orgId || !user) throw new Error("No organization");
       if (!inviteEmail.trim()) throw new Error("Enter an email");
-      const { error } = await supabase.from("organization_invites").insert({
+      const { error } = await supabase.from("organization_invites" as any).insert({
         organization_id: orgId,
         email: inviteEmail.trim().toLowerCase(),
         org_role: inviteRole,
         invited_by: user.id,
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -95,7 +126,7 @@ export function TeamManagement() {
 
   const removeMutation = useMutation({
     mutationFn: async (memberId: string) => {
-      const { error } = await supabase.from("organization_members").delete().eq("id", memberId);
+      const { error } = await supabase.from("organization_members" as any).delete().eq("id", memberId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -252,9 +283,8 @@ export function TeamManagement() {
   );
 }
 
-function getDefaultPermissions(role: string, mode: string): Record<string, boolean> {
+function getDefaultPermissions(role: string, _mode: string): Record<string, boolean> {
   const all = { fields: true, jobs: true, quotes: true, financials: true, contracts: true, settings: true };
-  const none = { fields: false, jobs: false, quotes: false, financials: false, contracts: false, settings: false };
   switch (role) {
     case "owner": return all;
     case "admin": return all;
@@ -265,6 +295,6 @@ function getDefaultPermissions(role: string, mode: string): Record<string, boole
     case "office_manager": return { ...all, fields: false };
     case "accountant": return { fields: false, jobs: true, quotes: true, financials: true, contracts: true, settings: false };
     case "member": return { fields: true, jobs: true, quotes: false, financials: false, contracts: false, settings: false };
-    default: return none;
+    default: return { fields: false, jobs: false, quotes: false, financials: false, contracts: false, settings: false };
   }
 }
