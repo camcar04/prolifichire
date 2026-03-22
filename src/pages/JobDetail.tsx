@@ -195,6 +195,10 @@ export default function JobDetail() {
                 <RouteContextBadge operatorBase={operatorBase} fieldLocation={fieldLocation} />
               </div>
             )}
+            {/* Pickup route for operators */}
+            {activeMode === "operator" && inputs.length > 0 && (
+              <PickupRouteSummary inputs={inputs} />
+            )}
 
             {/* AI Pricing */}
             {["requested", "quoted"].includes(job.status) && (
