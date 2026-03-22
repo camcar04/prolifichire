@@ -88,8 +88,8 @@ export default function GrowerDashboard() {
       {/* Main work surface — dominant job table */}
       <div className="grid lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2.5 border-b bg-surface-2/50">
+           <div className="rounded border bg-card overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 border-b bg-surface-2/40">
               <h2 className="text-[13px] font-semibold tracking-tight">Active Jobs</h2>
               <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 px-2" asChild>
                 <Link to="/marketplace"><Plus size={10} /> New</Link>
