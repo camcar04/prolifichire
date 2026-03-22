@@ -14,7 +14,7 @@ export type JobStatus =
 export type OperationType =
   | "spraying" | "planting" | "harvest" | "tillage"
   | "hauling" | "scouting" | "soil_sampling" | "fertilizing"
-  | "seeding" | "mowing" | "baling" | "drainage" | "other";
+  | "seeding" | "mowing" | "baling" | "drainage" | "rock_picking" | "other";
 
 export type PricingModel = "per_acre" | "per_hour" | "flat_rate" | "negotiated";
 
