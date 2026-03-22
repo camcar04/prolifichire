@@ -12,8 +12,9 @@ import { WeatherPanel } from "@/components/weather/WeatherPanel";
 import { usePricingEngine } from "@/hooks/useIntelligence";
 import {
   getJobById, getFieldById, getExceptionsByJob, getQuotesByJob,
-  getFieldPacketByJob, jobs, auditLogs, operators,
+  getFieldPacketByJob, getInputsByJob, jobs, auditLogs, operators,
 } from "@/data/mock";
+import { MaterialInputsPanel, PickupRouteSummary } from "@/components/materials/MaterialInputsPanel";
 import {
   formatCurrency, formatAcres, formatOperationType, formatDate,
   formatPricingModel, formatDistance, formatCropType,
