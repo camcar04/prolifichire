@@ -46,6 +46,14 @@ export default function OperatorOnboarding() {
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [services, setServices] = useState<OperationType[]>([]);
+  const [form, setForm] = useState({
+    firstName: "", lastName: "", phone: "", preferredComm: "in_app",
+    businessName: "", contractSignerName: "", contractSignerEmail: "",
+    address: "", city: "", state: "", zip: "", county: "",
+    serviceRadius: "50", crewCount: "1",
+    equipmentMake: "", equipmentModel: "", equipmentType: "", equipmentYear: "",
+    hasInsurance: false, hasLicense: false,
+  });
 
   if (showWelcome) {
     return (
@@ -56,15 +64,6 @@ export default function OperatorOnboarding() {
       />
     );
   }
-
-  const [form, setForm] = useState({
-    firstName: "", lastName: "", phone: "", preferredComm: "in_app",
-    businessName: "", contractSignerName: "", contractSignerEmail: "",
-    address: "", city: "", state: "", zip: "", county: "",
-    serviceRadius: "50", crewCount: "1",
-    equipmentMake: "", equipmentModel: "", equipmentType: "", equipmentYear: "",
-    hasInsurance: false, hasLicense: false,
-  });
 
   const set = (key: string, val: string | boolean) => setForm(f => ({ ...f, [key]: val }));
 

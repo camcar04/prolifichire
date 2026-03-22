@@ -25,6 +25,14 @@ export default function GrowerOnboarding() {
   const [showWelcome, setShowWelcome] = useState(true);
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    firstName: "", lastName: "", phone: "", role: "owner",
+    orgName: "", orgType: "farm",
+    billingContactName: "", billingContactEmail: "",
+    approvalContactName: "", approvalContactEmail: "",
+    preferredComm: "in_app",
+    address: "", city: "", state: "", zip: "", county: "",
+  });
 
   if (showWelcome) {
     return (
@@ -35,15 +43,6 @@ export default function GrowerOnboarding() {
       />
     );
   }
-
-  const [form, setForm] = useState({
-    firstName: "", lastName: "", phone: "", role: "owner",
-    orgName: "", orgType: "farm",
-    billingContactName: "", billingContactEmail: "",
-    approvalContactName: "", approvalContactEmail: "",
-    preferredComm: "in_app",
-    address: "", city: "", state: "", zip: "", county: "",
-  });
 
   const set = (key: string, val: string) => setForm(f => ({ ...f, [key]: val }));
 
