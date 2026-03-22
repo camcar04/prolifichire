@@ -65,6 +65,10 @@ export function formatPricingModel(model: string): string {
     per_hour: "Per Hour",
     flat_rate: "Flat Rate",
     negotiated: "Negotiated",
+    per_load: "Per Load",
+    per_bushel: "Per Bushel",
+    per_mile: "Per Mile",
+    day_rate: "Day Rate",
   };
   return map[model] || model;
 }

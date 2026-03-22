@@ -24,6 +24,7 @@ const SERVICE_TYPES: { value: OperationType; label: string }[] = [
   { value: "spraying", label: "Spraying / Application" },
   { value: "planting", label: "Planting" },
   { value: "harvest", label: "Harvest" },
+  { value: "grain_hauling", label: "Grain Hauling / Semi Support" },
   { value: "tillage", label: "Tillage" },
   { value: "fertilizing", label: "Fertilizing" },
   { value: "hauling", label: "Hauling" },

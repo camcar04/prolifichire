@@ -752,7 +752,24 @@ export interface RockPickingSpec {
   boundaryFileAttached: boolean;
 }
 
-export type OperationSpecData = PlantingSpec | ApplicationSpec | HarvestSpec | MowingSpec | BalingSpec | RockPickingSpec;
+export interface GrainHaulingSpec {
+  cropType: CropType;
+  trucksNeeded: number;
+  truckType: "semi" | "hopper_bottom" | "end_dump" | "belly_dump" | "other";
+  scheduleModel: "full_day" | "hourly" | "time_block";
+  deliveryLocationName: string;
+  deliveryAddress: string;
+  estimatedDistanceMiles: number;
+  estimatedCycleMinutes: number;
+  expectedLoadsPerDay: number;
+  scaleTicketRequired: boolean;
+  unloadInstructions: string;
+  moistureNotes: string;
+  harvestConditions: string;
+  pricingPreference: "per_hour" | "per_load" | "per_bushel" | "per_mile" | "day_rate";
+}
+
+export type OperationSpecData = PlantingSpec | ApplicationSpec | HarvestSpec | MowingSpec | BalingSpec | RockPickingSpec | GrainHaulingSpec;
 
 export interface OperationSpec {
   id: string;
