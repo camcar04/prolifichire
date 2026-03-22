@@ -20,8 +20,8 @@ export default function HeroSection() {
       <div className="relative container py-20 md:py-28 lg:py-36">
         <div className="max-w-lg">
           <h1
-            className="reveal text-3xl sm:text-4xl md:text-[2.75rem] lg:text-5xl font-bold tracking-tight text-white"
-            style={{ lineHeight: 1.1, transitionDelay: "80ms", textShadow: "0 2px 8px rgba(0,0,0,0.5)" }}
+            className="reveal text-3xl sm:text-4xl md:text-[2.75rem] lg:text-5xl font-bold tracking-tight text-white drop-shadow-lg"
+            style={{ lineHeight: 1.1, transitionDelay: "80ms", textShadow: "0 2px 12px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5)" }}
           >
             Run your farm work.{" "}
             <span className="text-[hsl(83,55%,55%)]">Or power your entire network.</span>
