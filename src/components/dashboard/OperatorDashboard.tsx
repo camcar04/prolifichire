@@ -148,8 +148,8 @@ export default function OperatorDashboard() {
         {/* Right: Available jobs table + earnings + alerts */}
         <div className="lg:col-span-3 space-y-4">
           {/* Available jobs — dense table, dominant */}
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2.5 border-b bg-surface-2/50">
+           <div className="rounded border bg-card overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 border-b bg-surface-2/40">
               <h2 className="text-[13px] font-semibold tracking-tight">Available Jobs</h2>
               <Button variant="outline" size="sm" className="h-6 text-[11px] px-2" asChild>
                 <Link to="/marketplace">Browse All</Link>
