@@ -90,6 +90,7 @@ export default function JobDetail() {
                     state: "",
                     cropYear: 2026,
                     centroid: { lat: Number(fieldData.centroid_lat), lng: Number(fieldData.centroid_lng) },
+                    boundingBox: { north: 0, south: 0, east: 0, west: 0 },
                     acreage: Number(fieldData.acreage),
                     crop: fieldData.crop,
                     status: "active",
