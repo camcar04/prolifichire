@@ -131,6 +131,11 @@ export default function JobDetail() {
               </div>
             </div>
 
+            {/* Materials & Inputs */}
+            {inputs.length > 0 && (
+              <MaterialInputsPanel inputs={inputs} showPickupDetails={activeMode === "operator"} />
+            )}
+
             {/* Exceptions */}
             {exceptions.length > 0 && (
               <div className="rounded-xl bg-card shadow-card">
