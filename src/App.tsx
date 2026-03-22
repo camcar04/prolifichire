@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import FieldWorkspace from "./pages/FieldWorkspace";
 import Fields from "./pages/Fields";
 import Marketplace from "./pages/Marketplace";
+import JobDetail from "./pages/JobDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,8 +24,9 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/fields" element={<Fields />} />
           <Route path="/fields/:fieldId" element={<FieldWorkspace />} />
-          <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/jobs" element={<Dashboard />} />
+          <Route path="/jobs/:jobId" element={<JobDetail />} />
+          <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/operators" element={<Dashboard />} />
           <Route path="/finance" element={<Dashboard />} />
           <Route path="/compliance" element={<Dashboard />} />
