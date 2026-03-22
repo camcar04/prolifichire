@@ -6,10 +6,10 @@ import {
   MessageSquare, Calendar, Package, LogOut, Truck, Bookmark,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getUnreadNotifications } from "@/data/mock";
-import { formatRelative } from "@/lib/format";
 import { useAuth, type AppMode } from "@/contexts/AuthContext";
 import { RoleModeSwitcher } from "@/components/layout/RoleModeSwitcher";
+import { useNotifications } from "@/hooks/useNotifications";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { getInitials } from "@/lib/format";
 
 interface NavItem {
