@@ -44,7 +44,11 @@ export function formatFileSize(bytes: number): string {
 }
 
 export function formatOperationType(type: string): string {
-  return type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  const labels: Record<string, string> = {
+    mowing: "Mowing / Hay Cutting",
+    baling: "Baling",
+  };
+  return labels[type] || type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 }
 
 export function formatCropType(type: string): string {
