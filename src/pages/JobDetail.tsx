@@ -4,54 +4,46 @@ import AppShell from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { FieldMap } from "@/components/map/FieldMap";
-import { ActivityTimeline } from "@/components/shared/ActivityTimeline";
-import { FieldPacketCard } from "@/components/shared/FieldPacketCard";
-import { PricingSuggestionCard } from "@/components/intelligence/PricingSuggestionCard";
-import { RouteContextBadge } from "@/components/intelligence/RouteContext";
-import { WeatherPanel } from "@/components/weather/WeatherPanel";
-import { usePricingEngine } from "@/hooks/useIntelligence";
-import {
-  getJobById, getFieldById, getExceptionsByJob, getQuotesByJob,
-  getFieldPacketByJob, getInputsByJob, jobs, auditLogs, operators,
-} from "@/data/mock";
-import { MaterialInputsPanel, PickupRouteSummary } from "@/components/materials/MaterialInputsPanel";
+import { DetailSkeleton } from "@/components/shared/PageSkeleton";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { useJob } from "@/hooks/useJobs";
 import {
   formatCurrency, formatAcres, formatOperationType, formatDate,
-  formatPricingModel, formatDistance, formatCropType,
+  formatPricingModel, formatCropType,
 } from "@/lib/format";
 import {
   ChevronRight, Calendar, DollarSign, User, MapPin, AlertTriangle,
-  Clock, FileText, Truck, CheckCircle2, Sparkles, Cloud, Package,
+  Clock, FileText, Truck, CheckCircle2, Package,
 } from "lucide-react";
-import { useEffect } from "react";
 
 export default function JobDetail() {
   const { jobId } = useParams();
   const { activeMode } = useAuth();
-  const job = getJobById(jobId || "job-1") || jobs[0];
-  const field = getFieldById(job.fields[0]?.fieldId || "");
-  const exceptions = getExceptionsByJob(job.id);
-  const quotes = getQuotesByJob(job.id);
-  const packet = getFieldPacketByJob(job.id);
-  const inputs = getInputsByJob(job.id);
-  const jobEvents = auditLogs.filter(a => a.entityId === job.id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  const { estimate, loading: pricingLoading, getEstimate } = usePricingEngine();
+  const { data: job, isLoading } = useJob(jobId);
 
-  const operator = operators.find(o => o.userId === job.operatorId);
-  const operatorBase = operator?.baseLat ? { lat: operator.baseLat, lng: operator.baseLng! } : null;
-  const fieldLocation = field?.centroid ? { lat: field.centroid.lat, lng: field.centroid.lng } : null;
+  if (isLoading) {
+    return <AppShell title=""><DetailSkeleton /></AppShell>;
+  }
 
-  useEffect(() => {
-    if (job && ["requested", "quoted"].includes(job.status)) {
-      getEstimate({
-        operation_type: job.operationType,
-        acreage: job.totalAcres,
-        travel_distance: job.travelDistance,
-        urgency: job.urgency,
-        crop: job.fields[0]?.crop,
-      });
-    }
-  }, [job?.id]);
+  if (!job) {
+    return (
+      <AppShell title="">
+        <EmptyState
+          icon={<FileText size={24} />}
+          title="Job not found"
+          description="This job may have been removed or you don't have permission to view it."
+          action={{ label: "Back to Jobs", to: "/jobs" }}
+        />
+      </AppShell>
+    );
+  }
+
+  const jf = (job as any).job_fields?.[0];
+  const fieldData = jf?.fields;
+  const exceptions = (job as any).job_exceptions || [];
+  const packets = (job as any).field_packets || [];
+  const inputs = (job as any).job_inputs || [];
+  const invoices = (job as any).invoices || [];
 
   return (
     <AppShell title="">
@@ -59,7 +51,7 @@ export default function JobDetail() {
         <div className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
           <Link to="/jobs" className="hover:text-foreground transition-colors">Jobs</Link>
           <ChevronRight size={14} />
-          <span className="text-foreground font-medium">{job.displayId}</span>
+          <span className="text-foreground font-medium">{job.display_id}</span>
         </div>
 
         {/* Header */}
@@ -73,25 +65,33 @@ export default function JobDetail() {
                   <span className="text-xs font-bold text-destructive bg-destructive/10 px-2 py-0.5 rounded-full uppercase">{job.urgency}</span>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground">{job.displayId} · {formatOperationType(job.operationType)} · {formatAcres(job.totalAcres)}</p>
+              <p className="text-sm text-muted-foreground">{job.display_id} · {formatOperationType(job.operation_type)} · {formatAcres(Number(job.total_acres))}</p>
             </div>
-            <div className="flex gap-2">
-              {activeMode === "grower" && job.proofSubmitted && !job.proofApproved && <Button size="sm">Approve Completion</Button>}
-              {activeMode === "operator" && !job.proofSubmitted && ["in_progress", "completed"].includes(job.status) && <Button size="sm">Submit Proof of Work</Button>}
+            <div className="flex gap-2 flex-wrap">
+              {activeMode === "grower" && job.proof_submitted && !job.proof_approved && <Button size="sm">Approve Completion</Button>}
+              {activeMode === "operator" && !job.proof_submitted && ["in_progress", "completed"].includes(job.status) && <Button size="sm">Submit Proof of Work</Button>}
               {activeMode === "operator" && job.status === "requested" && <Button size="sm">Submit Quote</Button>}
               {activeMode === "operator" && job.status === "scheduled" && <Button size="sm" variant="outline">Start Job</Button>}
-              <Button size="sm" variant="outline">Actions</Button>
             </div>
           </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-5">
-          {/* Left column — main info */}
           <div className="lg:col-span-2 space-y-5">
             {/* Map */}
-            {field && (
+            {fieldData && (
               <div className="rounded-xl bg-card shadow-card overflow-hidden">
-                <FieldMap field={field} aspectRatio="21/9" />
+                <FieldMap
+                  field={{
+                    id: jf.field_id,
+                    name: fieldData.name,
+                    centroid: fieldData.centroid_lat ? { lat: Number(fieldData.centroid_lat), lng: Number(fieldData.centroid_lng) } : undefined,
+                    acreage: Number(fieldData.acreage),
+                    crop: fieldData.crop,
+                    status: "active",
+                  }}
+                  aspectRatio="21/9"
+                />
               </div>
             )}
 
@@ -101,39 +101,58 @@ export default function JobDetail() {
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><Calendar size={15} /> Schedule</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between"><span className="text-muted-foreground">Deadline</span><span className="font-medium">{formatDate(job.deadline)}</span></div>
-                  {job.scheduledStart && <div className="flex justify-between"><span className="text-muted-foreground">Scheduled</span><span className="font-medium">{formatDate(job.scheduledStart)} – {formatDate(job.scheduledEnd!)}</span></div>}
-                  {job.actualStart && <div className="flex justify-between"><span className="text-muted-foreground">Started</span><span className="font-medium">{formatDate(job.actualStart)}</span></div>}
-                  {job.actualEnd && <div className="flex justify-between"><span className="text-muted-foreground">Completed</span><span className="font-medium">{formatDate(job.actualEnd)}</span></div>}
+                  {job.scheduled_start && <div className="flex justify-between"><span className="text-muted-foreground">Scheduled</span><span className="font-medium">{formatDate(job.scheduled_start)} – {formatDate(job.scheduled_end!)}</span></div>}
+                  {job.actual_start && <div className="flex justify-between"><span className="text-muted-foreground">Started</span><span className="font-medium">{formatDate(job.actual_start)}</span></div>}
                 </div>
               </div>
 
               <div className="rounded-xl bg-card shadow-card p-4">
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><DollarSign size={15} /> Pricing</h3>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Model</span><span className="font-medium">{formatPricingModel(job.pricingModel)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Rate</span><span className="font-medium tabular">{formatCurrency(job.baseRate)}</span></div>
-                  <div className="flex justify-between border-t pt-2"><span className="text-muted-foreground">Estimated</span><span className="font-bold tabular">{formatCurrency(job.estimatedTotal)}</span></div>
-                  {job.approvedTotal && <div className="flex justify-between"><span className="text-muted-foreground">Approved</span><span className="font-medium tabular text-success">{formatCurrency(job.approvedTotal)}</span></div>}
+                  <div className="flex justify-between"><span className="text-muted-foreground">Model</span><span className="font-medium">{formatPricingModel(job.pricing_model)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Rate</span><span className="font-medium tabular">{formatCurrency(Number(job.base_rate))}</span></div>
+                  <div className="flex justify-between border-t pt-2"><span className="text-muted-foreground">Estimated</span><span className="font-bold tabular">{formatCurrency(Number(job.estimated_total))}</span></div>
+                  {job.approved_total && <div className="flex justify-between"><span className="text-muted-foreground">Approved</span><span className="font-medium tabular text-success">{formatCurrency(Number(job.approved_total))}</span></div>}
                 </div>
               </div>
             </div>
 
             {/* Fields */}
-            <div className="rounded-xl bg-card shadow-card">
-              <div className="p-4 border-b"><h3 className="font-semibold text-sm">Fields ({job.fields.length})</h3></div>
-              <div className="divide-y">
-                {job.fields.map(jf => (
-                  <Link key={jf.id} to={`/fields/${jf.fieldId}`} className="flex items-center justify-between p-4 hover:bg-surface-2 transition-colors">
-                    <div><p className="text-sm font-medium">{jf.fieldName}</p><p className="text-xs text-muted-foreground">{formatCropType(jf.crop)} · {formatAcres(jf.acreage)}</p></div>
-                    <StatusBadge status={jf.status === "completed" ? "completed" : jf.status === "in_progress" ? "in_progress" : "scheduled"} />
-                  </Link>
-                ))}
+            {(job as any).job_fields?.length > 0 && (
+              <div className="rounded-xl bg-card shadow-card">
+                <div className="p-4 border-b"><h3 className="font-semibold text-sm">Fields ({(job as any).job_fields.length})</h3></div>
+                <div className="divide-y">
+                  {(job as any).job_fields.map((jf: any) => (
+                    <Link key={jf.id} to={`/fields/${jf.field_id}`} className="flex items-center justify-between p-4 hover:bg-surface-2 transition-colors">
+                      <div><p className="text-sm font-medium">{jf.fields?.name}</p><p className="text-xs text-muted-foreground">{formatCropType(jf.crop)} · {formatAcres(Number(jf.acreage))}</p></div>
+                      <StatusBadge status={jf.status === "completed" ? "completed" : jf.status === "in_progress" ? "in_progress" : "scheduled"} />
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Materials & Inputs */}
+            {/* Materials */}
             {inputs.length > 0 && (
-              <MaterialInputsPanel inputs={inputs} showPickupDetails={activeMode === "operator"} />
+              <div className="rounded-xl bg-card shadow-card">
+                <div className="p-4 border-b"><h3 className="font-semibold text-sm flex items-center gap-2"><Package size={14} /> Materials ({inputs.length})</h3></div>
+                <div className="divide-y">
+                  {inputs.map((input: any) => (
+                    <div key={input.id} className="p-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium">{input.product_name}</p>
+                        <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${input.supplied_by === "operator" ? "bg-primary/8 text-primary" : "bg-secondary text-secondary-foreground"}`}>
+                          {input.supplied_by === "operator" ? "Operator supplies" : "Grower supplies"}
+                        </span>
+                      </div>
+                      {input.brand && <p className="text-xs text-muted-foreground mt-0.5">{input.brand}{input.variant ? ` · ${input.variant}` : ""}</p>}
+                      {input.pickup_required && (
+                        <p className="text-xs text-info mt-1 flex items-center gap-1"><Truck size={11} /> Pickup at {input.pickup_location_name || input.pickup_city}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
 
             {/* Exceptions */}
@@ -141,112 +160,77 @@ export default function JobDetail() {
               <div className="rounded-xl bg-card shadow-card">
                 <div className="p-4 border-b"><h3 className="font-semibold text-sm flex items-center gap-2"><AlertTriangle size={14} className="text-destructive" /> Exceptions ({exceptions.length})</h3></div>
                 <div className="divide-y">
-                  {exceptions.map(exc => (
+                  {exceptions.map((exc: any) => (
                     <div key={exc.id} className="p-4">
                       <div className="flex items-center gap-2 mb-1">
-                        <StatusBadge status={exc.status === "resolved" ? "completed" : exc.status === "open" ? "requested" : "in_progress"} />
+                        <StatusBadge status={exc.status === "resolved" ? "completed" : "requested"} />
                         <span className="text-xs font-medium uppercase text-muted-foreground">{exc.type.replace("_", " ")}</span>
                       </div>
                       <p className="text-sm">{exc.description}</p>
-                      <p className="text-xs text-muted-foreground mt-1">Raised by {exc.raisedByName} · {formatDate(exc.createdAt)}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{formatDate(exc.created_at)}</p>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-
-            {/* Quotes */}
-            {quotes.length > 0 && (
-              <div className="rounded-xl bg-card shadow-card">
-                <div className="p-4 border-b"><h3 className="font-semibold text-sm">Quotes ({quotes.length})</h3></div>
-                <div className="divide-y">
-                  {quotes.map(q => (
-                    <div key={q.id} className="p-4 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">{q.operatorName}</p>
-                        <p className="text-xs text-muted-foreground">{formatPricingModel(q.pricingModel)} · {formatCurrency(q.baseRate)}/ac + {formatCurrency(q.travelFee)} travel</p>
-                        {q.notes && <p className="text-xs text-muted-foreground mt-1 italic">"{q.notes}"</p>}
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold tabular">{formatCurrency(q.totalQuote)}</p>
-                        <StatusBadge status={q.status === "accepted" ? "accepted" : q.status === "declined" ? "cancelled" : "requested"} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Field Packet */}
-            {packet && <FieldPacketCard packet={packet} />}
           </div>
 
-          {/* Right column — sidebar */}
+          {/* Sidebar */}
           <div className="space-y-5">
-            {/* Weather */}
-            {field && (
-              <WeatherPanel fieldId={field.id} lat={field.centroid?.lat} lng={field.centroid?.lng} operationType={job.operationType} />
-            )}
-
-            {/* Route context for operators */}
-            {activeMode === "operator" && operatorBase && fieldLocation && (
-              <div className="rounded-xl bg-card shadow-card p-4">
-                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><Truck size={15} /> Route Context</h3>
-                <RouteContextBadge operatorBase={operatorBase} fieldLocation={fieldLocation} />
-              </div>
-            )}
-            {/* Pickup route for operators */}
-            {activeMode === "operator" && inputs.length > 0 && (
-              <PickupRouteSummary inputs={inputs} />
-            )}
-
-            {/* AI Pricing */}
-            {["requested", "quoted"].includes(job.status) && (
-              <PricingSuggestionCard estimate={estimate} loading={pricingLoading} acreage={job.totalAcres} />
-            )}
-
-            {/* Operator */}
-            {job.operatorName && (
-              <div className="rounded-xl bg-card shadow-card p-4">
-                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><User size={15} /> Operator</h3>
-                <p className="text-sm font-medium">{job.operatorName}</p>
-                {job.travelDistance && (
-                  <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                    <Truck size={13} />
-                    <span>{formatDistance(job.travelDistance)} · {job.travelEta} min ETA</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Split payment */}
-            {job.splitPayment && job.splitRules && (
-              <div className="rounded-xl bg-card shadow-card p-4">
-                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><DollarSign size={15} /> Split Payment</h3>
-                <div className="space-y-2">
-                  {job.splitRules.map(sr => (
-                    <div key={sr.id} className="flex items-center justify-between text-sm">
-                      <div><p className="font-medium">{sr.payerName}</p><p className="text-xs text-muted-foreground capitalize">{sr.payerRole}</p></div>
-                      <div className="text-right"><p className="font-bold tabular">{sr.percentage}%</p><p className="text-xs text-muted-foreground tabular">{formatCurrency(job.estimatedTotal * sr.percentage / 100)}</p></div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Proof of work status */}
+            {/* Proof of work */}
             <div className="rounded-xl bg-card shadow-card p-4">
               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><CheckCircle2 size={15} /> Proof of Work</h3>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">Submitted</span>{job.proofSubmitted ? <span className="text-success font-medium">Yes</span> : <span className="text-muted-foreground">Pending</span>}</div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Approved</span>{job.proofApproved ? <span className="text-success font-medium">Yes</span> : <span className="text-muted-foreground">Pending</span>}</div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Submitted</span>{job.proof_submitted ? <span className="text-success font-medium">Yes</span> : <span className="text-muted-foreground">Pending</span>}</div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Approved</span>{job.proof_approved ? <span className="text-success font-medium">Yes</span> : <span className="text-muted-foreground">Pending</span>}</div>
               </div>
             </div>
 
-            {/* Activity */}
+            {/* Invoices */}
+            {invoices.length > 0 && (
+              <div className="rounded-xl bg-card shadow-card p-4">
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><FileText size={15} /> Invoices</h3>
+                <div className="space-y-2">
+                  {invoices.map((inv: any) => (
+                    <div key={inv.id} className="flex items-center justify-between text-sm">
+                      <span className="font-medium">{inv.display_id}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="tabular">{formatCurrency(Number(inv.total))}</span>
+                        <StatusBadge status={inv.status} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Field Packets */}
+            {packets.length > 0 && (
+              <div className="rounded-xl bg-card shadow-card p-4">
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><Package size={15} /> Field Packets</h3>
+                <div className="space-y-2">
+                  {packets.map((p: any) => (
+                    <div key={p.id} className="flex items-center justify-between text-sm bg-surface-2 rounded-lg p-2.5">
+                      <div>
+                        <p className="font-medium">v{p.version}</p>
+                        <p className="text-xs text-muted-foreground">{p.field_packet_files?.length || 0} files</p>
+                      </div>
+                      <StatusBadge status={p.status} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Timing */}
             <div className="rounded-xl bg-card shadow-card p-4">
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><Clock size={15} /> Activity</h3>
-              <ActivityTimeline events={jobEvents} maxItems={8} />
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><Clock size={15} /> Timeline</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between"><span className="text-muted-foreground">Created</span><span className="font-medium">{formatDate(job.created_at)}</span></div>
+                {job.scheduled_start && <div className="flex justify-between"><span className="text-muted-foreground">Scheduled</span><span className="font-medium">{formatDate(job.scheduled_start)}</span></div>}
+                {job.actual_start && <div className="flex justify-between"><span className="text-muted-foreground">Started</span><span className="font-medium">{formatDate(job.actual_start)}</span></div>}
+                {job.actual_end && <div className="flex justify-between"><span className="text-muted-foreground">Completed</span><span className="font-medium">{formatDate(job.actual_end)}</span></div>}
+              </div>
             </div>
           </div>
         </div>
