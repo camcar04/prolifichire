@@ -88,7 +88,7 @@ export default function OperatorDashboard() {
         { label: "To Quote", value: String(jobsToQuote.length), sub: "Available now" },
         { label: "Active", value: String(activeJobs.length) },
         { label: "Earned", value: formatCurrency(totalEarned), accent: true, sub: `${completedJobs.length} completed` },
-      ]} className="rounded-lg border bg-card px-4 py-1" />
+      ]} className="rounded border bg-card px-3 py-1" />
 
       {/* Guidance rail */}
       {guidanceItems.length > 0 && (
