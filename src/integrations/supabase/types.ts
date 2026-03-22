@@ -1793,6 +1793,148 @@ export type Database = {
           },
         ]
       }
+      labor_applications: {
+        Row: {
+          applied_at: string
+          cover_note: string | null
+          id: string
+          labor_job_id: string
+          reviewed_at: string | null
+          status: Database["public"]["Enums"]["labor_application_status"]
+          worker_id: string
+        }
+        Insert: {
+          applied_at?: string
+          cover_note?: string | null
+          id?: string
+          labor_job_id: string
+          reviewed_at?: string | null
+          status?: Database["public"]["Enums"]["labor_application_status"]
+          worker_id: string
+        }
+        Update: {
+          applied_at?: string
+          cover_note?: string | null
+          id?: string
+          labor_job_id?: string
+          reviewed_at?: string | null
+          status?: Database["public"]["Enums"]["labor_application_status"]
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "labor_applications_labor_job_id_fkey"
+            columns: ["labor_job_id"]
+            isOneToOne: false
+            referencedRelation: "labor_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      labor_jobs: {
+        Row: {
+          applicant_count: number | null
+          compensation_max: number | null
+          compensation_min: number | null
+          compensation_type: string
+          created_at: string
+          description: string | null
+          end_date: string | null
+          equipment_required: string[] | null
+          experience_level: string | null
+          farm_id: string | null
+          hours_per_day: number | null
+          housing_provided: boolean | null
+          id: string
+          job_type: Database["public"]["Enums"]["labor_job_type"]
+          location_address: string | null
+          location_city: string | null
+          location_lat: number | null
+          location_lng: number | null
+          location_state: string | null
+          posted_by: string
+          required_certifications: string[] | null
+          required_skills: string[] | null
+          responsibilities: string | null
+          schedule_flexibility: string | null
+          start_date: string | null
+          status: string
+          title: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          applicant_count?: number | null
+          compensation_max?: number | null
+          compensation_min?: number | null
+          compensation_type?: string
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          equipment_required?: string[] | null
+          experience_level?: string | null
+          farm_id?: string | null
+          hours_per_day?: number | null
+          housing_provided?: boolean | null
+          id?: string
+          job_type?: Database["public"]["Enums"]["labor_job_type"]
+          location_address?: string | null
+          location_city?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          location_state?: string | null
+          posted_by: string
+          required_certifications?: string[] | null
+          required_skills?: string[] | null
+          responsibilities?: string | null
+          schedule_flexibility?: string | null
+          start_date?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          applicant_count?: number | null
+          compensation_max?: number | null
+          compensation_min?: number | null
+          compensation_type?: string
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          equipment_required?: string[] | null
+          experience_level?: string | null
+          farm_id?: string | null
+          hours_per_day?: number | null
+          housing_provided?: boolean | null
+          id?: string
+          job_type?: Database["public"]["Enums"]["labor_job_type"]
+          location_address?: string | null
+          location_city?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          location_state?: string | null
+          posted_by?: string
+          required_certifications?: string[] | null
+          required_skills?: string[] | null
+          responsibilities?: string | null
+          schedule_flexibility?: string | null
+          start_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "labor_jobs_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       locations: {
         Row: {
           address: string | null
@@ -3199,6 +3341,84 @@ export type Database = {
         }
         Relationships: []
       }
+      worker_profiles: {
+        Row: {
+          availability_status: string
+          available_from: string | null
+          available_to: string | null
+          base_address: string | null
+          base_city: string | null
+          base_lat: number | null
+          base_lng: number | null
+          base_state: string | null
+          bio: string | null
+          certifications: string[] | null
+          created_at: string
+          display_name: string
+          equipment_experience: string[] | null
+          flexibility: string | null
+          hours_per_day: number | null
+          id: string
+          skills: string[] | null
+          travel_radius: number | null
+          updated_at: string
+          user_id: string
+          visibility: string
+          work_preferences: string[] | null
+          years_experience: number | null
+        }
+        Insert: {
+          availability_status?: string
+          available_from?: string | null
+          available_to?: string | null
+          base_address?: string | null
+          base_city?: string | null
+          base_lat?: number | null
+          base_lng?: number | null
+          base_state?: string | null
+          bio?: string | null
+          certifications?: string[] | null
+          created_at?: string
+          display_name?: string
+          equipment_experience?: string[] | null
+          flexibility?: string | null
+          hours_per_day?: number | null
+          id?: string
+          skills?: string[] | null
+          travel_radius?: number | null
+          updated_at?: string
+          user_id: string
+          visibility?: string
+          work_preferences?: string[] | null
+          years_experience?: number | null
+        }
+        Update: {
+          availability_status?: string
+          available_from?: string | null
+          available_to?: string | null
+          base_address?: string | null
+          base_city?: string | null
+          base_lat?: number | null
+          base_lng?: number | null
+          base_state?: string | null
+          bio?: string | null
+          certifications?: string[] | null
+          created_at?: string
+          display_name?: string
+          equipment_experience?: string[] | null
+          flexibility?: string | null
+          hours_per_day?: number | null
+          id?: string
+          skills?: string[] | null
+          travel_radius?: number | null
+          updated_at?: string
+          user_id?: string
+          visibility?: string
+          work_preferences?: string[] | null
+          years_experience?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -3317,6 +3537,13 @@ export type Database = {
         | "closed"
         | "cancelled"
         | "disputed"
+      labor_application_status:
+        | "applied"
+        | "reviewing"
+        | "accepted"
+        | "rejected"
+        | "withdrawn"
+      labor_job_type: "full_time" | "seasonal" | "part_time" | "task"
       network_member_status: "invited" | "active" | "suspended" | "removed"
       network_type:
         | "retailer"
@@ -3609,6 +3836,14 @@ export const Constants = {
         "cancelled",
         "disputed",
       ],
+      labor_application_status: [
+        "applied",
+        "reviewing",
+        "accepted",
+        "rejected",
+        "withdrawn",
+      ],
+      labor_job_type: ["full_time", "seasonal", "part_time", "task"],
       network_member_status: ["invited", "active", "suspended", "removed"],
       network_type: [
         "retailer",
