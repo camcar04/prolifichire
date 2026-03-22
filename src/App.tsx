@@ -28,6 +28,7 @@ import CookiePolicy from "./pages/legal/CookiePolicy";
 import AcceptableUse from "./pages/legal/AcceptableUse";
 import CookieConsent from "./components/legal/CookieConsent";
 import { AIAssistant } from "./components/ai/AIAssistant";
+import OperatorProfile from "./pages/OperatorProfile";
 const queryClient = new QueryClient();
 
 const App = () => (
