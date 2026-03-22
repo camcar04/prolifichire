@@ -26,24 +26,25 @@ const growerNav: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", to: "/dashboard" },
   { icon: Map, label: "Fields", to: "/fields" },
   { icon: Briefcase, label: "Jobs", to: "/jobs" },
-  { icon: Bookmark, label: "Templates", to: "/templates" },
   { icon: Store, label: "Marketplace", to: "/marketplace" },
+  { icon: Bookmark, label: "Templates", to: "/templates" },
   { icon: DollarSign, label: "Financials", to: "/finance" },
-  { icon: FolderOpen, label: "Files", to: "/files" },
   { icon: MessageSquare, label: "Messages", to: "/messages" },
   { icon: Link2, label: "Integrations", to: "/integrations" },
+  { icon: Settings, label: "Settings", to: "/settings" },
 ];
 
 const operatorNav: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", to: "/dashboard" },
   { icon: Briefcase, label: "My Jobs", to: "/jobs" },
-  { icon: Bookmark, label: "Templates", to: "/templates" },
   { icon: Calendar, label: "Schedule", to: "/schedule" },
   { icon: Package, label: "Field Packets", to: "/packets" },
   { icon: Store, label: "Marketplace", to: "/marketplace" },
+  { icon: Bookmark, label: "Templates", to: "/templates" },
   { icon: DollarSign, label: "Payouts", to: "/payouts" },
   { icon: MessageSquare, label: "Messages", to: "/messages" },
   { icon: Link2, label: "Integrations", to: "/integrations" },
+  { icon: Settings, label: "Settings", to: "/settings" },
 ];
 
 function getNavItems(mode: AppMode): NavItem[] {
