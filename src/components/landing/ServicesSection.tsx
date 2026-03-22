@@ -47,7 +47,7 @@ export default function ServicesSection() {
             Hire custom farming services near you
           </h2>
           <p className="reveal mt-3 text-muted-foreground text-[15px]" style={{ transitionDelay: "80ms" }}>
-            Spraying, planting, harvest, fertilizer, rock picking — matched to your fields.
+            Spraying, planting, harvest, grain hauling, fertilizer, rock picking — matched to your fields.
           </p>
         </div>
 
