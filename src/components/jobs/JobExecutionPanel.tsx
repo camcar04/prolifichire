@@ -65,7 +65,7 @@ export function JobExecutionPanel({ jobId, jobStatus, isOperator, isGrowerView }
   };
 
   return (
-    <div className="rounded-lg bg-card border">
+    <div className="rounded bg-card border">
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between px-3 py-2.5 border-b hover:bg-surface-2 transition-colors"

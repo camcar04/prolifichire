@@ -32,7 +32,7 @@ export function ExecutionChecklist({ job, packets }: Props) {
   const completed = items.filter(i => i.done).length;
 
   return (
-    <div className="rounded-lg border bg-card">
+    <div className="rounded border bg-card">
       <div className="px-3 py-2 border-b flex items-center justify-between">
         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
           Execution Checklist

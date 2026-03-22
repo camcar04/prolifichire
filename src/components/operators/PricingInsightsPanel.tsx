@@ -37,7 +37,7 @@ export function PricingInsightsPanel() {
   );
 
   return (
-    <div className="rounded-lg border bg-card overflow-hidden">
+    <div className="rounded border bg-card overflow-hidden">
       <div className="flex items-center justify-between px-3 py-2 border-b bg-surface-2/50">
         <div className="flex items-center gap-1.5">
           <BarChart3 size={11} className="text-muted-foreground" />

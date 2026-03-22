@@ -19,7 +19,7 @@ export function FieldPacketCard({ packet, className }: FieldPacketCardProps) {
     <div className={cn("rounded-xl bg-card shadow-card", className)}>
       <div className="p-4 border-b flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+          <div className="h-10 w-10 rounded bg-primary/10 flex items-center justify-center">
             <Package size={20} className="text-primary" />
           </div>
           <div>

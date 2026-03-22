@@ -48,7 +48,7 @@ export default function OperatorDashboard() {
   }
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-3 animate-fade-in">
       <NextStepBanner />
 
       {/* Command strip — operational, not promotional */}
@@ -96,9 +96,9 @@ export default function OperatorDashboard() {
       )}
 
       {/* Main work surface — 2-column dispatch layout */}
-      <div className="grid lg:grid-cols-5 gap-4">
+      <div className="grid lg:grid-cols-5 gap-3">
         {/* Left: Today's route + quick actions */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-3">
            <div className="rounded border bg-card overflow-hidden">
             <div className="flex items-center justify-between px-3 py-2 border-b bg-surface-2/40">
               <div className="flex items-center gap-1.5">
@@ -146,7 +146,7 @@ export default function OperatorDashboard() {
         </div>
 
         {/* Right: Available jobs table + earnings + alerts */}
-        <div className="lg:col-span-3 space-y-4">
+        <div className="lg:col-span-3 space-y-3">
           {/* Available jobs — dense table, dominant */}
            <div className="rounded border bg-card overflow-hidden">
             <div className="flex items-center justify-between px-3 py-2 border-b bg-surface-2/40">

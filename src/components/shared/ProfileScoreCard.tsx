@@ -52,7 +52,7 @@ export function ProfileScoreCard({ compact = false }: { compact?: boolean }) {
   }
 
   return (
-    <div className="rounded-lg bg-card border p-4">
+    <div className="rounded bg-card border p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold">Profile Completion</h3>
         <span className={cn("text-lg font-bold tabular-nums", color)}>{score.total}%</span>

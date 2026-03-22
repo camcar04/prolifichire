@@ -151,7 +151,7 @@ export default function Settings() {
             <ProfileScoreCard />
 
             {score && score.missing.length > 0 && (
-              <section className="rounded-lg border border-warning/20 bg-warning/5 p-4">
+              <section className="rounded border border-warning/20 bg-warning/5 p-4">
                 <h3 className="text-sm font-semibold flex items-center gap-2 mb-2">
                   <AlertTriangle size={13} className="text-warning" /> Setup Required
                 </h3>
@@ -166,7 +166,7 @@ export default function Settings() {
               </section>
             )}
 
-            <section className="rounded-lg bg-card border p-5">
+            <section className="rounded bg-card border p-4">
               <h2 className="text-sm font-semibold flex items-center gap-2 mb-4">
                 <Briefcase size={14} /> Account Types
               </h2>
@@ -195,7 +195,7 @@ export default function Settings() {
 
           {/* ── Profile ── */}
           <TabsContent value="profile" className="space-y-6">
-            <section className="rounded-lg bg-card border p-5">
+            <section className="rounded bg-card border p-4">
               <h2 className="text-sm font-semibold flex items-center gap-2 mb-4"><User size={14} /> Profile</h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
@@ -219,7 +219,7 @@ export default function Settings() {
                 {savingProfile ? <><Loader2 size={12} className="animate-spin" /> Saving…</> : <><Save size={12} /> Save Changes</>}
               </Button>
             </section>
-            <section className="rounded-lg bg-card border p-5">
+            <section className="rounded bg-card border p-4">
               <h2 className="text-sm font-semibold flex items-center gap-2 mb-4"><CreditCard size={14} /> Billing</h2>
               <p className="text-[13px] text-muted-foreground">Payment method and billing settings will be available when Stripe Connect is configured.</p>
             </section>
@@ -228,14 +228,14 @@ export default function Settings() {
           {/* ── Hire Work Section ── */}
           {hasRole("grower") && (
             <TabsContent value="hirework" className="space-y-5">
-              <section className="rounded-lg bg-card border p-5">
+              <section className="rounded bg-card border p-4">
                 <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><Wheat size={14} /> Farms & Fields</h2>
                 <p className="text-[13px] text-muted-foreground mb-3">Manage your farms, fields, and boundaries.</p>
                 <Button size="sm" variant="outline" className="h-8 text-xs gap-1" asChild>
                   <Link to="/fields">Manage Fields <ArrowRight size={11} /></Link>
                 </Button>
               </section>
-              <section className="rounded-lg bg-card border p-5">
+              <section className="rounded bg-card border p-4">
                 <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><Briefcase size={14} /> Job Preferences</h2>
                 <p className="text-[13px] text-muted-foreground">Default hiring mode, timing preferences, and job templates.</p>
                 <Button size="sm" variant="outline" className="h-8 text-xs gap-1 mt-3" asChild>
@@ -262,7 +262,7 @@ export default function Settings() {
 
           {/* ── Notifications ── */}
           <TabsContent value="notifications">
-            <section className="rounded-lg bg-card border p-5">
+            <section className="rounded bg-card border p-4">
               <h2 className="text-sm font-semibold flex items-center gap-2 mb-4"><Bell size={14} /> Notification Preferences</h2>
               <div className="space-y-3">
                 {[
@@ -286,7 +286,7 @@ export default function Settings() {
 
           {/* ── Security ── */}
           <TabsContent value="security">
-            <section className="rounded-lg bg-card border p-5">
+            <section className="rounded bg-card border p-4">
               <h2 className="text-sm font-semibold flex items-center gap-2 mb-4"><Shield size={14} /> Security</h2>
               <div className="space-y-3">
                 <div>
@@ -353,7 +353,7 @@ function EnsureOperatorProfile() {
 
   if (isLoading || creating) {
     return (
-      <div className="rounded-lg bg-card border p-5 flex items-center gap-3">
+      <div className="rounded bg-card border p-4 flex items-center gap-3">
         <Loader2 size={14} className="animate-spin text-primary" />
         <p className="text-sm text-muted-foreground">Setting up operator profile…</p>
       </div>
@@ -410,7 +410,7 @@ function OperatorLocationSection() {
 
   if (!opProfile) {
     return (
-      <section className="rounded-lg bg-card border p-5">
+      <section className="rounded bg-card border p-4">
         <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><MapPin size={14} /> Location & Service Area</h2>
         <p className="text-[13px] text-muted-foreground">Operator profile is being created. Please wait a moment…</p>
         <Loader2 size={14} className="animate-spin text-muted-foreground mt-2" />
@@ -422,7 +422,7 @@ function OperatorLocationSection() {
   const hasRadius = !!opProfile.service_radius;
 
   return (
-    <section className="rounded-lg bg-card border p-5">
+    <section className="rounded bg-card border p-4">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold flex items-center gap-2"><MapPin size={14} /> Location & Service Area</h2>
         <div className="flex items-center gap-2">
@@ -492,7 +492,7 @@ function OperatorServicesSection() {
   if (!opProfile) return null;
 
   return (
-    <section className="rounded-lg bg-card border p-5">
+    <section className="rounded bg-card border p-4">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold flex items-center gap-2"><Target size={14} /> Service Types</h2>
         {selectedServices.length > 0 && (
@@ -503,7 +503,7 @@ function OperatorServicesSection() {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {SERVICE_TYPE_OPTIONS.map(svc => (
           <label key={svc} className={cn(
-            "flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer transition-colors text-[12px]",
+            "flex items-center gap-2 rounded border px-3 py-2 cursor-pointer transition-colors text-[12px]",
             selectedServices.includes(svc) ? "border-primary/40 bg-primary/5 text-foreground" : "border-border hover:bg-surface-2 text-muted-foreground"
           )}>
             <Checkbox checked={selectedServices.includes(svc)} onCheckedChange={() => toggleService(svc)} />
@@ -533,7 +533,7 @@ function OperatorEquipmentSection() {
 
   if (!opProfile) {
     return (
-      <section className="rounded-lg bg-card border p-5">
+      <section className="rounded bg-card border p-4">
         <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><Wrench size={14} /> Equipment</h2>
         <p className="text-[13px] text-muted-foreground">Operator profile is being created…</p>
         <Loader2 size={14} className="animate-spin text-muted-foreground mt-2" />
@@ -542,7 +542,7 @@ function OperatorEquipmentSection() {
   }
 
   return (
-    <section className="rounded-lg bg-card border p-5">
+    <section className="rounded bg-card border p-4">
       <EquipmentManager operatorProfileId={opProfile.id} />
     </section>
   );
@@ -563,7 +563,7 @@ function OperatorCredentialsSection() {
 
   if (!opProfile) {
     return (
-      <section className="rounded-lg bg-card border p-5">
+      <section className="rounded bg-card border p-4">
         <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><Shield size={14} /> Credentials & Insurance</h2>
         <p className="text-[13px] text-muted-foreground">Operator profile is being created…</p>
         <Loader2 size={14} className="animate-spin text-muted-foreground mt-2" />
@@ -572,7 +572,7 @@ function OperatorCredentialsSection() {
   }
 
   return (
-    <section className="rounded-lg bg-card border p-5">
+    <section className="rounded bg-card border p-4">
       <CredentialManager operatorProfileId={opProfile.id} />
     </section>
   );
@@ -586,7 +586,7 @@ function RoleCard({ icon, title, desc, enabled, isPrimary, onEnable, enabling }:
 }) {
   return (
     <div className={cn(
-      "rounded-lg border-2 p-4 transition-colors",
+      "rounded border-2 p-4 transition-colors",
       enabled ? "border-primary/30 bg-primary/5" : "border-border"
     )}>
       <div className="flex items-center gap-2 mb-2">

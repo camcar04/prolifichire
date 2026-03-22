@@ -117,7 +117,7 @@ export default function AdminDashboard() {
       {/* Charts row */}
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Jobs by type */}
-        <div className="rounded-lg bg-card border p-4">
+        <div className="rounded bg-card border p-4">
           <h3 className="text-[13px] font-semibold mb-3 flex items-center gap-1.5"><BarChart3 size={13} /> Jobs by Operation Type</h3>
           {data.typeChartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={180}>
@@ -134,7 +134,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Jobs by status */}
-        <div className="rounded-lg bg-card border p-4">
+        <div className="rounded bg-card border p-4">
           <h3 className="text-[13px] font-semibold mb-3 flex items-center gap-1.5"><TrendingUp size={13} /> Jobs by Status</h3>
           {data.statusChartData.length > 0 ? (
             <div className="flex items-center gap-4">
@@ -168,7 +168,7 @@ export default function AdminDashboard() {
 
       {/* Disputes alert */}
       {data.openDisputes.length > 0 && (
-        <div className="rounded-lg bg-destructive/5 border border-destructive/15 px-4 py-3">
+        <div className="rounded bg-destructive/5 border border-destructive/15 px-4 py-3">
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle size={13} className="text-destructive" />
             <h3 className="text-[12px] font-semibold">Open Disputes ({data.openDisputes.length})</h3>
@@ -189,7 +189,7 @@ export default function AdminDashboard() {
 
       {/* Recent jobs + audit */}
       <div className="grid lg:grid-cols-2 gap-4">
-        <div className="rounded-lg bg-card border">
+        <div className="rounded bg-card border">
           <div className="flex items-center justify-between px-4 py-2.5 border-b">
             <h3 className="text-[13px] font-semibold flex items-center gap-1.5"><Briefcase size={13} /> Recent Jobs</h3>
             <Button variant="ghost" size="sm" className="h-6 text-[11px]" asChild>
@@ -215,7 +215,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="rounded-lg bg-card border">
+        <div className="rounded bg-card border">
           <div className="px-4 py-2.5 border-b">
             <h3 className="text-[13px] font-semibold flex items-center gap-1.5"><Activity size={13} /> Audit Log</h3>
           </div>

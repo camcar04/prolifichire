@@ -30,7 +30,7 @@ export function PrivateCostCalculator({ job, compact = false }: PrivateCostCalcu
 
   if (isLoading) {
     return (
-      <div className="rounded-lg border border-dashed p-3 animate-pulse">
+      <div className="rounded border border-dashed p-3 animate-pulse">
         <div className="h-3 bg-muted rounded w-24 mb-2" />
         <div className="h-6 bg-muted rounded w-32" />
       </div>
@@ -39,7 +39,7 @@ export function PrivateCostCalculator({ job, compact = false }: PrivateCostCalcu
 
   if (!profile) {
     return (
-      <div className="rounded-lg border border-dashed border-muted-foreground/30 p-3">
+      <div className="rounded border border-dashed border-muted-foreground/30 p-3">
         <div className="flex items-center gap-2 mb-1.5">
           <Calculator size={13} className="text-muted-foreground" />
           <p className="text-[11px] font-semibold text-muted-foreground">Private Costing</p>
@@ -65,7 +65,7 @@ export function PrivateCostCalculator({ job, compact = false }: PrivateCostCalcu
 
   if (compact) {
     return (
-      <div className={cn("rounded-lg border p-2.5", v.bg)}>
+      <div className={cn("rounded border p-2.5", v.bg)}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <VerdictIcon size={12} className={v.color} />
@@ -86,7 +86,7 @@ export function PrivateCostCalculator({ job, compact = false }: PrivateCostCalcu
   }
 
   return (
-    <div className="rounded-lg border bg-card">
+    <div className="rounded border bg-card">
       <div className="px-3 py-2 border-b flex items-center justify-between">
         <h3 className="text-[11px] font-semibold flex items-center gap-1.5 text-muted-foreground uppercase tracking-wider">
           <Calculator size={11} /> Private Costing

@@ -39,7 +39,7 @@ export default function GrowerDashboard() {
   }
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-3 animate-fade-in">
       <NextStepBanner />
 
       {/* Command strip — not a hero, an operational signal */}
@@ -86,7 +86,7 @@ export default function GrowerDashboard() {
       )}
 
       {/* Main work surface — dominant job table */}
-      <div className="grid lg:grid-cols-3 gap-4">
+      <div className="grid lg:grid-cols-3 gap-3">
         <div className="lg:col-span-2">
            <div className="rounded border bg-card overflow-hidden">
             <div className="flex items-center justify-between px-3 py-2 border-b bg-surface-2/40">

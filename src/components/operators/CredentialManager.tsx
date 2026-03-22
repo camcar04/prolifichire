@@ -135,7 +135,7 @@ export function CredentialManager({ operatorProfileId, readOnly = false }: Crede
 
             return (
               <div key={cred.id} className={cn(
-                "rounded-lg border p-3 transition-colors",
+                "rounded border p-3 transition-colors",
                 expired ? "border-destructive/30 bg-destructive/5" :
                 expiringSoon ? "border-warning/30 bg-warning/5" :
                 cred.is_verified ? "border-success/20 bg-success/5" : "bg-card"

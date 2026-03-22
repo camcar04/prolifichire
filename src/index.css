@@ -180,7 +180,7 @@
 
   /* Section header — replaces card headers */
   .section-header {
-    @apply text-[11px] font-semibold uppercase tracking-wider text-muted-foreground;
+    @apply text-[10px] font-semibold uppercase tracking-wider text-muted-foreground;
     letter-spacing: 0.06em;
   }
 
@@ -188,4 +188,47 @@
   .flat-panel {
     @apply border-b pb-3;
   }
+
+  /* Profit verdict colors */
+  .verdict-profitable {
+    @apply text-success bg-success/8;
+  }
+  .verdict-marginal {
+    @apply text-warning bg-warning/8;
+  }
+  .verdict-unprofitable {
+    @apply text-destructive bg-destructive/8;
+  }
+
+  /* Data row — consistent dense row */
+  .data-row {
+    @apply flex items-center justify-between text-[12px] py-1;
+  }
+  .data-row > :first-child {
+    @apply text-muted-foreground;
+  }
+  .data-row > :last-child {
+    @apply font-medium tabular-nums;
+  }
+
+  /* Panel header — tighter than section-header, used inside cards */
+  .panel-header {
+    @apply flex items-center justify-between px-3 py-1.5 border-b bg-surface-2/40;
+  }
+  .panel-header h3, .panel-header h2 {
+    @apply text-[11px] font-semibold tracking-tight m-0;
+  }
+
+  /* No scrollbar utility */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Operational status indicator dots */
+  .status-dot {
+    @apply h-1.5 w-1.5 rounded-full shrink-0;
+  }
+  .status-dot-active { @apply bg-success; }
+  .status-dot-warning { @apply bg-warning; }
+  .status-dot-error { @apply bg-destructive; }
+  .status-dot-idle { @apply bg-muted-foreground/30; }
 }

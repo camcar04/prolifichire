@@ -28,7 +28,7 @@ export function ContractModeSelector({ value, onChange }: ContractModeSelectorPr
               type="button"
               onClick={() => onChange(m.value)}
               className={cn(
-                "rounded-lg border p-3 text-left transition-all",
+                "rounded border p-3 text-left transition-all",
                 selected
                   ? "border-primary bg-primary/5 ring-1 ring-primary/20"
                   : "border-border hover:border-primary/40 hover:bg-surface-2"

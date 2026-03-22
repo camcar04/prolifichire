@@ -126,7 +126,7 @@ export function QuoteComparisonTable({ jobId, onAccept }: QuoteComparisonTablePr
   const hasVerified = quotes.some(q => q.badges?.includes("fully_verified"));
 
   return (
-    <div className="rounded-lg bg-card border overflow-hidden">
+    <div className="rounded bg-card border overflow-hidden">
       <div className="px-4 py-2.5 border-b flex items-center justify-between">
         <h3 className="text-[13px] font-semibold">Quotes ({quotes.length})</h3>
         <span className="text-[10px] text-muted-foreground">Best: {formatCurrency(bestPrice)}</span>

@@ -114,7 +114,7 @@ export default function JobDetail() {
             {/* LEFT — Map + location (dominant) */}
             <div className="lg:col-span-5 space-y-3">
               {mapField ? (
-                <div className="rounded-lg border overflow-hidden bg-card">
+                <div className="rounded border overflow-hidden bg-card">
                   <div style={{ height: "340px" }}>
                     <FieldMap field={mapField} aspectRatio="auto" showControls />
                   </div>
@@ -141,7 +141,7 @@ export default function JobDetail() {
                   </div>
                 </div>
               ) : (
-                <div className="rounded-lg border bg-card p-8 text-center">
+                <div className="rounded border bg-card p-8 text-center">
                   <MapPin size={24} className="mx-auto text-muted-foreground/30 mb-2" />
                   <p className="text-xs text-muted-foreground">No field location data available</p>
                 </div>
@@ -154,7 +154,7 @@ export default function JobDetail() {
             {/* CENTER — Packet + instructions + controls */}
             <div className="lg:col-span-4 space-y-3">
               {/* Field Packet */}
-              <div className="rounded-lg border bg-card">
+              <div className="rounded border bg-card">
                 <div className="px-3 py-2 border-b flex items-center justify-between">
                   <h3 className="text-[11px] font-semibold flex items-center gap-1.5">
                     <Package size={12} className="text-primary" /> Field Packet
@@ -197,7 +197,7 @@ export default function JobDetail() {
 
               {/* Operation details */}
               {(specs.length > 0 || inputs.length > 0) && (
-                <div className="rounded-lg border bg-card">
+                <div className="rounded border bg-card">
                   <div className="px-3 py-2 border-b">
                     <h3 className="text-[11px] font-semibold flex items-center gap-1.5"><Compass size={12} /> Operation Details</h3>
                   </div>
@@ -232,7 +232,7 @@ export default function JobDetail() {
 
               {/* Notes */}
               {(job.description || job.notes || job.requirements) && (
-                <div className="rounded-lg border bg-card p-3 space-y-2">
+                <div className="rounded border bg-card p-3 space-y-2">
                   {job.description && <div><p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-0.5">Description</p><p className="text-[12px]">{job.description}</p></div>}
                   {job.requirements && <div><p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-0.5">Requirements</p><p className="text-[12px]">{job.requirements}</p></div>}
                   {job.notes && <div><p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-0.5">Notes</p><p className="text-[12px]">{job.notes}</p></div>}
@@ -243,7 +243,7 @@ export default function JobDetail() {
             {/* RIGHT — Status, timeline, cost, actions */}
             <div className="lg:col-span-3 space-y-3">
               {/* Quick job info */}
-              <div className="rounded-lg border bg-card p-3">
+              <div className="rounded border bg-card p-3">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Job Info</p>
                 <div className="space-y-1.5 text-[12px]">
                   <Row label="Type" value={formatOperationType(job.operation_type)} />
@@ -256,7 +256,7 @@ export default function JobDetail() {
               </div>
 
               {/* Status timeline */}
-              <div className="rounded-lg border bg-card p-3">
+              <div className="rounded border bg-card p-3">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Timeline</p>
                 <div className="space-y-1.5 text-[12px]">
                   <Row label="Created" value={formatDate(job.created_at)} />
@@ -267,7 +267,7 @@ export default function JobDetail() {
               </div>
 
               {/* Proof of work */}
-              <div className="rounded-lg border bg-card p-3">
+              <div className="rounded border bg-card p-3">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Proof of Work</p>
                 <div className="flex gap-3 text-[12px]">
                   <div className="flex items-center gap-1">
@@ -285,7 +285,7 @@ export default function JobDetail() {
               <PrivateCostCalculator job={job} />
 
               {/* Qualifications */}
-              <div className="rounded-lg border bg-card p-3">
+              <div className="rounded border bg-card p-3">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Qualifications</p>
                 <JobCredentialMatch operationType={job.operation_type} />
                 <div className="mt-2"><JobEquipmentMatch operationType={job.operation_type} compact /></div>
@@ -293,7 +293,7 @@ export default function JobDetail() {
 
               {/* Invoices */}
               {invoices.length > 0 && (
-                <div className="rounded-lg border bg-card p-3">
+                <div className="rounded border bg-card p-3">
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Invoices</p>
                   {invoices.map((inv: any) => (
                     <div key={inv.id} className="flex items-center justify-between text-[12px] py-1">
@@ -309,7 +309,7 @@ export default function JobDetail() {
 
               {/* Contracts */}
               {contracts.length > 0 && (
-                <div className="rounded-lg border bg-card p-3">
+                <div className="rounded border bg-card p-3">
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
                     <FileText size={10} /> Contracts
                   </p>
@@ -339,7 +339,7 @@ export default function JobDetail() {
 
               {/* Exceptions */}
               {exceptions.length > 0 && (
-                <div className="rounded-lg border border-destructive/20 bg-card p-3">
+                <div className="rounded border border-destructive/20 bg-card p-3">
                   <p className="text-[10px] font-semibold text-destructive uppercase tracking-wider mb-2 flex items-center gap-1">
                     <AlertTriangle size={10} /> Exceptions ({exceptions.length})
                   </p>
@@ -398,7 +398,7 @@ export default function JobDetail() {
 
         {/* Cancelled banner */}
         {isCancelled && (
-          <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-3 mb-3 flex items-start gap-2">
+          <div className="rounded bg-destructive/5 border border-destructive/20 p-3 mb-3 flex items-start gap-2">
             <Ban size={16} className="text-destructive shrink-0 mt-0.5" />
             <div>
               <p className="text-[13px] font-semibold text-destructive">Job Cancelled</p>
@@ -438,7 +438,7 @@ export default function JobDetail() {
           <div className="lg:col-span-2 space-y-4">
             {/* Map */}
             {mapField && (
-              <div className="rounded-lg border overflow-hidden bg-card">
+              <div className="rounded border overflow-hidden bg-card">
                 <FieldMap field={mapField} aspectRatio="21/9" />
               </div>
             )}
@@ -449,7 +449,7 @@ export default function JobDetail() {
             )}
 
             {/* KPI row */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-px rounded-lg border overflow-hidden bg-border">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-px rounded border overflow-hidden bg-border">
               {[
                 { label: "Deadline", value: formatDate(job.deadline), icon: Calendar },
                 { label: "Rate", value: `${formatCurrency(Number(job.base_rate))} ${formatPricingModel(job.pricing_model)}`, icon: DollarSign },
@@ -465,7 +465,7 @@ export default function JobDetail() {
 
             {/* Fields table */}
             {(job as any).job_fields?.length > 0 && (
-              <div className="rounded-lg border bg-card overflow-hidden">
+              <div className="rounded border bg-card overflow-hidden">
                 <table className="w-full text-[12px]">
                   <thead><tr className="text-left text-[10px] text-muted-foreground uppercase tracking-wider border-b bg-muted/30">
                     <th className="px-3 py-1.5 font-medium">Field</th>
@@ -489,7 +489,7 @@ export default function JobDetail() {
 
             {/* Materials as list */}
             {inputs.length > 0 && (
-              <div className="rounded-lg border bg-card overflow-hidden">
+              <div className="rounded border bg-card overflow-hidden">
                 <div className="px-3 py-2 border-b"><h3 className="text-[11px] font-semibold flex items-center gap-1.5 text-muted-foreground uppercase tracking-wider"><Package size={10} /> Materials</h3></div>
                 <div className="divide-y">
                   {inputs.map((input: any) => (
@@ -512,7 +512,7 @@ export default function JobDetail() {
 
             {/* Exceptions */}
             {exceptions.length > 0 && (
-              <div className="rounded-lg border border-destructive/20 bg-card overflow-hidden">
+              <div className="rounded border border-destructive/20 bg-card overflow-hidden">
                 <div className="px-3 py-2 border-b"><h3 className="text-[11px] font-semibold flex items-center gap-1.5 text-destructive uppercase tracking-wider"><AlertTriangle size={10} /> Exceptions</h3></div>
                 <div className="divide-y">
                   {exceptions.map((exc: any) => (
@@ -538,7 +538,7 @@ export default function JobDetail() {
           <div className="space-y-3">
             {/* Credential match - operator */}
             {isOperatorView && (
-              <div className="rounded-lg border bg-card p-3">
+              <div className="rounded border bg-card p-3">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Qualifications</p>
                 <JobCredentialMatch operationType={job.operation_type} />
                 <div className="mt-2"><JobEquipmentMatch operationType={job.operation_type} compact /></div>
@@ -546,7 +546,7 @@ export default function JobDetail() {
             )}
 
             {/* Proof of work */}
-            <div className="rounded-lg border bg-card p-3">
+            <div className="rounded border bg-card p-3">
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Proof of Work</p>
               <div className="space-y-1.5 text-[12px]">
                 <div className="flex justify-between"><span className="text-muted-foreground">Submitted</span>{job.proof_submitted ? <span className="text-success font-medium">Yes</span> : <span className="text-muted-foreground">Pending</span>}</div>
@@ -561,7 +561,7 @@ export default function JobDetail() {
 
             {/* Field Packets */}
             {packets.length > 0 && (
-              <div className="rounded-lg border bg-card p-3">
+              <div className="rounded border bg-card p-3">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Field Packets</p>
                 {packets.map((p: any) => (
                   <div key={p.id} className="flex items-center justify-between text-[12px] py-1">
@@ -574,7 +574,7 @@ export default function JobDetail() {
 
             {/* Invoices */}
             {invoices.length > 0 && (
-              <div className="rounded-lg border bg-card p-3">
+              <div className="rounded border bg-card p-3">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Invoices</p>
                 {invoices.map((inv: any) => (
                   <div key={inv.id} className="flex items-center justify-between text-[12px] py-1">
@@ -589,7 +589,7 @@ export default function JobDetail() {
             )}
 
             {/* Timeline */}
-            <div className="rounded-lg border bg-card p-3">
+            <div className="rounded border bg-card p-3">
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Timeline</p>
               <div className="space-y-1.5 text-[12px]">
                 <div className="flex justify-between"><span className="text-muted-foreground">Created</span><span>{formatDate(job.created_at)}</span></div>
@@ -604,7 +604,7 @@ export default function JobDetail() {
 
             {/* Description in sidebar for non-active */}
             {(job.description || job.notes) && (
-              <div className="rounded-lg border bg-card p-3 space-y-2">
+              <div className="rounded border bg-card p-3 space-y-2">
                 {job.description && <div><p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5 font-medium">Description</p><p className="text-[12px]">{job.description}</p></div>}
                 {job.notes && <div><p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5 font-medium">Notes</p><p className="text-[12px]">{job.notes}</p></div>}
               </div>

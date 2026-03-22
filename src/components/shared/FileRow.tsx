@@ -56,7 +56,7 @@ export function FileRow({ fileName, category, fileSize, version, uploadedBy, cro
   return (
     <div className={cn("flex items-center justify-between py-3 px-4 hover:bg-surface-2 transition-colors group", className)}>
       <div className="flex items-center gap-3 min-w-0">
-        <div className="h-9 w-9 rounded-lg bg-primary/8 flex items-center justify-center shrink-0">
+        <div className="h-9 w-9 rounded bg-primary/8 flex items-center justify-center shrink-0">
           <Icon size={16} className="text-primary" />
         </div>
         <div className="min-w-0">
