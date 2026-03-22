@@ -21,7 +21,7 @@ import {
 } from "@/lib/format";
 import {
   ChevronRight, Calendar, DollarSign, User, MapPin, AlertTriangle,
-  Clock, FileText, Truck, CheckCircle2, Sparkles, Cloud,
+  Clock, FileText, Truck, CheckCircle2, Sparkles, Cloud, Package,
 } from "lucide-react";
 import { useEffect } from "react";
 
