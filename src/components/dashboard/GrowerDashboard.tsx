@@ -3,6 +3,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { DashboardSkeleton } from "@/components/shared/PageSkeleton";
+import { FirstJobOnboarding } from "@/components/onboarding/FirstJobOnboarding";
 import { Link } from "react-router-dom";
 import {
   Map, Briefcase, DollarSign, TrendingUp, Plus, ArrowRight,
@@ -32,15 +33,9 @@ export default function GrowerDashboard() {
   const recentAlerts = notifications.filter(n => !n.read).slice(0, 5);
   const totalSpend = jobs.reduce((a, j) => a + Number(j.paid_total || 0), 0);
 
+  // Show first-job onboarding if user has no fields and no jobs
   if (fields.length === 0 && jobs.length === 0) {
-    return (
-      <EmptyState
-        icon={<Map size={20} />}
-        title="Welcome to ProlificHire"
-        description="Add your first field to get started, then post work to the marketplace."
-        action={{ label: "Add Field", to: "/fields" }}
-      />
-    );
+    return <FirstJobOnboarding />;
   }
 
   return (
