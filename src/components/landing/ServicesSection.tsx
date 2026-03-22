@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { useScrollRevealAll } from "@/hooks/useScrollReveal";
-import { SprayCan, Sprout, Wheat, Tractor, Mountain } from "lucide-react";
+import { SprayCan, Sprout, Wheat, Tractor, Mountain, Truck } from "lucide-react";
 
 const services = [
   {
@@ -17,6 +17,11 @@ const services = [
     icon: Wheat,
     title: "Custom Harvesting",
     desc: "Combines, grain carts, and trucking coordinated through one platform. Yield data sharing, moisture tracking, and field-by-field accounting.",
+  },
+  {
+    icon: Truck,
+    title: "Grain Hauling / Semi Support",
+    desc: "Find trucks when you need them most. Post hauling jobs during harvest, match with nearby truckers, and coordinate loads, routes, and delivery destinations in real time.",
   },
   {
     icon: Tractor,
