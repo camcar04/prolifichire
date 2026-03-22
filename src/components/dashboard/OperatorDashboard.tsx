@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { DashboardSkeleton } from "@/components/shared/PageSkeleton";
 import { ProfileScoreCard } from "@/components/shared/ProfileScoreCard";
+import { NextStepBanner } from "@/components/dashboard/NextStepBanner";
 import { Link } from "react-router-dom";
 import {
   Briefcase, DollarSign, ArrowRight, Package,
@@ -43,6 +44,7 @@ export default function OperatorDashboard() {
 
   return (
     <div className="space-y-4 animate-fade-in">
+      <NextStepBanner />
       {/* Summary strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label="Today's Jobs" value={String(todayRoute.length)} change={`${jobsNeedingAction.length} need action`} changeType={jobsNeedingAction.length > 0 ? "negative" : "positive"} icon={<Briefcase size={15} />} />

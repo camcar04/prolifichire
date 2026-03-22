@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { DashboardSkeleton } from "@/components/shared/PageSkeleton";
 import { FirstJobOnboarding } from "@/components/onboarding/FirstJobOnboarding";
 import { ProfileScoreCard } from "@/components/shared/ProfileScoreCard";
+import { NextStepBanner } from "@/components/dashboard/NextStepBanner";
 import { Link } from "react-router-dom";
 import {
   Map, Briefcase, DollarSign, TrendingUp, Plus, ArrowRight,
@@ -41,6 +42,7 @@ export default function GrowerDashboard() {
 
   return (
     <div className="space-y-4 animate-fade-in">
+      <NextStepBanner />
       {/* Summary strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label="Active Jobs" value={String(activeJobs.length)} change={`${inProgress.length} in progress`} changeType="neutral" icon={<Briefcase size={15} />} />
