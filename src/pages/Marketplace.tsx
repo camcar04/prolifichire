@@ -247,6 +247,8 @@ export default function Marketplace() {
                         <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground">
                           <span className="flex items-center gap-0.5"><MapPin size={8} />{fieldName}</span>
                           <span>·</span>
+                          <span className="truncate max-w-[100px]">{locationSummary}</span>
+                          <span>·</span>
                           <span>{formatAcres(Number(job.total_acres))}</span>
                           <span>·</span>
                           <span>by {formatDateShort(job.deadline)}</span>
