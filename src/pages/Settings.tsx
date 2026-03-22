@@ -412,7 +412,8 @@ function OperatorLocationSection() {
     return (
       <section className="rounded-lg bg-card border p-5">
         <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><MapPin size={14} /> Location & Service Area</h2>
-        <p className="text-[13px] text-muted-foreground">Complete operator onboarding to set your location.</p>
+        <p className="text-[13px] text-muted-foreground">Operator profile is being created. Please wait a moment…</p>
+        <Loader2 size={14} className="animate-spin text-muted-foreground mt-2" />
       </section>
     );
   }
