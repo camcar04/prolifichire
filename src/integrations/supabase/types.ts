@@ -502,6 +502,63 @@ export type Database = {
           },
         ]
       }
+      external_connections: {
+        Row: {
+          access_token_encrypted: string | null
+          created_at: string
+          display_name: string
+          id: string
+          last_sync_at: string | null
+          metadata: Json | null
+          provider: string
+          provider_account_id: string | null
+          refresh_token_encrypted: string | null
+          scopes: string[] | null
+          status: string
+          sync_error: string | null
+          sync_status: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token_encrypted?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          last_sync_at?: string | null
+          metadata?: Json | null
+          provider: string
+          provider_account_id?: string | null
+          refresh_token_encrypted?: string | null
+          scopes?: string[] | null
+          status?: string
+          sync_error?: string | null
+          sync_status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token_encrypted?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          last_sync_at?: string | null
+          metadata?: Json | null
+          provider?: string
+          provider_account_id?: string | null
+          refresh_token_encrypted?: string | null
+          scopes?: string[] | null
+          status?: string
+          sync_error?: string | null
+          sync_status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       farms: {
         Row: {
           county: string | null
@@ -2023,6 +2080,56 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_logs: {
+        Row: {
+          completed_at: string | null
+          connection_id: string
+          created_at: string
+          direction: string
+          entity_count: number | null
+          entity_type: string
+          error_message: string | null
+          id: string
+          started_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          connection_id: string
+          created_at?: string
+          direction?: string
+          entity_count?: number | null
+          entity_type: string
+          error_message?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          connection_id?: string
+          created_at?: string
+          direction?: string
+          entity_count?: number | null
+          entity_type?: string
+          error_message?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_logs_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "external_connections"
             referencedColumns: ["id"]
           },
         ]
