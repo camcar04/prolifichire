@@ -552,6 +552,14 @@ export default function JobDetail() {
 
           {/* Sidebar */}
           <div className="space-y-3">
+            {/* Funding Prompt — grower sees funding CTA, operator sees status */}
+            {["accepted", "scheduled", "in_progress", "completed", "approved"].includes(job.status) && (
+              <FundingPrompt job={job} isGrowerView={activeMode === "grower"} />
+            )}
+
+            {/* Quote Negotiation History */}
+            <QuoteNegotiationHistory jobId={job.id} />
+
             {/* Credential match - operator */}
             {isOperatorView && (
               <div className="rounded border bg-card p-3">
