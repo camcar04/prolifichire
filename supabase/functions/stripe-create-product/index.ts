@@ -76,7 +76,7 @@ serve(async (req) => {
 
     // ── Parse + validate body ──
     const body = await req.json();
-    const { name, description, amount_cents, currency, pricing_type } = body;
+    const { name, description, amount_cents, currency, pricing_type, operation_type, platform_fee_percent } = body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return new Response(
@@ -146,6 +146,7 @@ serve(async (req) => {
       metadata: {
         created_by: user.id,
         connected_account_id: connectedAccountId || "none",
+        operation_type: operation_type || "other",
       },
     });
 
@@ -168,6 +169,8 @@ serve(async (req) => {
         amount_cents,
         currency: validCurrency,
         pricing_type: validPricingType,
+        operation_type: operation_type || "other",
+        platform_fee_percent: platform_fee_percent != null ? Number(platform_fee_percent) : null,
       })
       .select()
       .single();

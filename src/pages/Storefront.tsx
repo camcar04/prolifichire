@@ -38,6 +38,8 @@ interface StorefrontProduct {
   amount_cents: number;
   currency: string;
   pricing_type: string;
+  operation_type: string | null;
+  platform_fee_percent: number | null;
   stripe_product_id: string;
   stripe_price_id: string | null;
   connected_account_id: string | null;
@@ -203,6 +205,13 @@ function ProductCard({
               Operator {product.connected_account_id.slice(0, 12)}…
             </span>
           </div>
+        )}
+
+        {/* Operation type badge */}
+        {product.operation_type && product.operation_type !== "other" && (
+          <span className="inline-block text-[10px] font-medium px-2 py-0.5 rounded-sm bg-accent/10 text-accent-foreground mr-1">
+            {product.operation_type.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+          </span>
         )}
 
         {/* Pricing type badge */}
