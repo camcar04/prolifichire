@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useQuotesReceived } from "@/hooks/useJobs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSetAgreedPrice, useLogQuoteAction } from "@/hooks/usePaymentFlow";
 import {
   formatCurrency, formatAcres, formatOperationType, formatDateShort,
   formatRelative,
