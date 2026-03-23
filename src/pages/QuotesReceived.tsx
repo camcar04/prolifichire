@@ -108,8 +108,8 @@ export default function QuotesReceived() {
                     <QuoteReceivedRow
                       key={q.id}
                       quote={q}
-                      onAccept={() => updateQuoteMutation.mutate({ quoteId: q.id, status: "accepted" })}
-                      onReject={() => updateQuoteMutation.mutate({ quoteId: q.id, status: "rejected" })}
+                      onAccept={() => updateQuoteMutation.mutate({ quoteId: q.id, status: "accepted", quote: q })}
+                      onReject={() => updateQuoteMutation.mutate({ quoteId: q.id, status: "rejected", quote: q })}
                       isPending={updateQuoteMutation.isPending}
                     />
                   ))}
