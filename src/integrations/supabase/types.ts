@@ -2859,6 +2859,8 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          operation_type: string | null
+          platform_fee_percent: number | null
           pricing_type: string
           stripe_price_id: string | null
           stripe_product_id: string
@@ -2874,6 +2876,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          operation_type?: string | null
+          platform_fee_percent?: number | null
           pricing_type?: string
           stripe_price_id?: string | null
           stripe_product_id: string
@@ -2889,6 +2893,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          operation_type?: string | null
+          platform_fee_percent?: number | null
           pricing_type?: string
           stripe_price_id?: string | null
           stripe_product_id?: string
