@@ -21,8 +21,12 @@ import { ContractSignatureDialog } from "@/components/contracts/ContractSignatur
 import { VerifiedJobBadge, deriveJobBadges } from "@/components/trust/VerifiedJobBadge";
 import { PosterStatsCard } from "@/components/trust/PosterStatsCard";
 import { ReportJobDialog } from "@/components/trust/ReportJobDialog";
+import { FundingPrompt } from "@/components/payments/FundingPrompt";
+import { FundingStatusBadge } from "@/components/payments/FundingStatusBadge";
+import { QuoteNegotiationHistory } from "@/components/payments/QuoteNegotiationHistory";
 import { formatContractMode } from "@/components/jobs/ContractModeSelector";
 import { canCancelJob, canEditJob } from "@/hooks/useJobActions";
+import { canStartExecution, deriveAgreedPrice } from "@/hooks/usePaymentFlow";
 import { useJob } from "@/hooks/useJobs";
 import { usePostJobUpdate, type JobUpdateStatus, UPDATE_STATUS_LABELS } from "@/hooks/useJobExecution";
 import {
@@ -97,6 +101,7 @@ export default function JobDetail() {
             {job.urgency !== "normal" && (
               <span className="text-[9px] font-bold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded-full uppercase">{job.urgency}</span>
             )}
+            <FundingStatusBadge status={(job as any).funding_status || "unfunded"} />
             <div className="ml-auto flex items-center gap-3 text-[11px]">
               <span className="font-semibold">{formatOperationType(job.operation_type)}</span>
               <span className="text-muted-foreground">·</span>
@@ -254,9 +259,13 @@ export default function JobDetail() {
                   <Row label="Acres" value={formatAcres(Number(job.total_acres))} />
                   <Row label="Deadline" value={formatDate(job.deadline)} />
                   <Row label="Rate" value={`${formatCurrency(Number(job.base_rate))} ${formatPricingModel(job.pricing_model)}`} />
-                  <Row label="Payout" value={formatCurrency(Number(job.estimated_total))} bold />
+                  <Row label={deriveAgreedPrice(job) ? "Agreed Price" : "Payout"} value={formatCurrency(deriveAgreedPrice(job) || Number(job.estimated_total))} bold />
                 </div>
               </div>
+
+              {/* Funding Status */}
+              <FundingPrompt job={job} isGrowerView={false} />
+
 
               {/* Status timeline */}
               <div className="rounded border bg-card p-3">
@@ -543,6 +552,14 @@ export default function JobDetail() {
 
           {/* Sidebar */}
           <div className="space-y-3">
+            {/* Funding Prompt — grower sees funding CTA, operator sees status */}
+            {["accepted", "scheduled", "in_progress", "completed", "approved"].includes(job.status) && (
+              <FundingPrompt job={job} isGrowerView={activeMode === "grower"} />
+            )}
+
+            {/* Quote Negotiation History */}
+            <QuoteNegotiationHistory jobId={job.id} />
+
             {/* Credential match - operator */}
             {isOperatorView && (
               <div className="rounded border bg-card p-3">

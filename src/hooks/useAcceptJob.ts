@@ -11,13 +11,21 @@ export function useAcceptJob() {
 
   return useMutation({
     mutationFn: async ({ jobId, job }: { jobId: string; job: any }) => {
-      // Update job status to accepted and assign operator
+      // Derive agreed price from job data
+      const agreedPrice = Number(job.approved_total || job.estimated_total || 0);
+      const feeRate = 0.05;
+      const feeAmount = agreedPrice > 0 ? Math.round(agreedPrice * feeRate * 100) / 100 : 0;
+
+      // Update job status to accepted, assign operator, and set funding_required
       const { error } = await supabase
         .from("jobs")
         .update({
           status: "accepted" as any,
           operator_id: user!.id,
-        })
+          agreed_price: agreedPrice > 0 ? agreedPrice : null,
+          platform_fee_amount: feeAmount > 0 ? feeAmount : null,
+          funding_status: agreedPrice > 0 ? "funding_required" : "unfunded",
+        } as any)
         .eq("id", jobId);
 
       if (error) throw error;
@@ -54,7 +62,7 @@ export function useAcceptJob() {
       qc.invalidateQueries({ queryKey: ["job", jobId] });
       qc.invalidateQueries({ queryKey: ["jobs"] });
       qc.invalidateQueries({ queryKey: ["marketplace-jobs"] });
-      toast.success("Job accepted! Contract and field packets generated.");
+      toast.success("Job accepted! Grower will be prompted to fund the agreed amount.");
     },
     onError: () => {
       toast.error("Failed to accept job");

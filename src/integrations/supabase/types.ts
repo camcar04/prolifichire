@@ -1736,6 +1736,7 @@ export type Database = {
         Row: {
           actual_end: string | null
           actual_start: string | null
+          agreed_price: number | null
           approved_total: number | null
           base_rate: number
           cancel_fee_amount: number | null
@@ -1751,6 +1752,9 @@ export type Database = {
           estimated_total: number
           exception_count: number | null
           farm_id: string
+          funded_amount: number | null
+          funded_at: string | null
+          funding_status: Database["public"]["Enums"]["funding_status"]
           id: string
           invoiced_total: number | null
           last_edited_at: string | null
@@ -1759,6 +1763,8 @@ export type Database = {
           operation_type: Database["public"]["Enums"]["operation_type"]
           operator_id: string | null
           paid_total: number | null
+          platform_fee_amount: number | null
+          platform_fee_rate: number
           pricing_model: Database["public"]["Enums"]["pricing_model"]
           proof_approved: boolean | null
           proof_submitted: boolean | null
@@ -1780,6 +1786,7 @@ export type Database = {
         Insert: {
           actual_end?: string | null
           actual_start?: string | null
+          agreed_price?: number | null
           approved_total?: number | null
           base_rate?: number
           cancel_fee_amount?: number | null
@@ -1795,6 +1802,9 @@ export type Database = {
           estimated_total?: number
           exception_count?: number | null
           farm_id: string
+          funded_amount?: number | null
+          funded_at?: string | null
+          funding_status?: Database["public"]["Enums"]["funding_status"]
           id?: string
           invoiced_total?: number | null
           last_edited_at?: string | null
@@ -1803,6 +1813,8 @@ export type Database = {
           operation_type: Database["public"]["Enums"]["operation_type"]
           operator_id?: string | null
           paid_total?: number | null
+          platform_fee_amount?: number | null
+          platform_fee_rate?: number
           pricing_model?: Database["public"]["Enums"]["pricing_model"]
           proof_approved?: boolean | null
           proof_submitted?: boolean | null
@@ -1824,6 +1836,7 @@ export type Database = {
         Update: {
           actual_end?: string | null
           actual_start?: string | null
+          agreed_price?: number | null
           approved_total?: number | null
           base_rate?: number
           cancel_fee_amount?: number | null
@@ -1839,6 +1852,9 @@ export type Database = {
           estimated_total?: number
           exception_count?: number | null
           farm_id?: string
+          funded_amount?: number | null
+          funded_at?: string | null
+          funding_status?: Database["public"]["Enums"]["funding_status"]
           id?: string
           invoiced_total?: number | null
           last_edited_at?: string | null
@@ -1847,6 +1863,8 @@ export type Database = {
           operation_type?: Database["public"]["Enums"]["operation_type"]
           operator_id?: string | null
           paid_total?: number | null
+          platform_fee_amount?: number | null
+          platform_fee_rate?: number
           pricing_model?: Database["public"]["Enums"]["pricing_model"]
           proof_approved?: boolean | null
           proof_submitted?: boolean | null
@@ -3067,6 +3085,54 @@ export type Database = {
           },
         ]
       }
+      quote_history: {
+        Row: {
+          action: string
+          actor_id: string
+          amount: number
+          created_at: string
+          id: string
+          job_id: string
+          notes: string | null
+          quote_id: string
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          amount: number
+          created_at?: string
+          id?: string
+          job_id: string
+          notes?: string | null
+          quote_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          amount?: number
+          created_at?: string
+          id?: string
+          job_id?: string
+          notes?: string | null
+          quote_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_history_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_history_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotes: {
         Row: {
           base_rate: number
@@ -3598,6 +3664,16 @@ export type Database = {
         | "zip"
         | "isoxml"
         | "other"
+      funding_status:
+        | "not_required"
+        | "unfunded"
+        | "funding_required"
+        | "funded"
+        | "payout_ready"
+        | "payout_released"
+        | "disputed"
+        | "refunded"
+        | "cancelled"
       invoice_status:
         | "draft"
         | "sent"
@@ -3901,6 +3977,17 @@ export const Constants = {
         "zip",
         "isoxml",
         "other",
+      ],
+      funding_status: [
+        "not_required",
+        "unfunded",
+        "funding_required",
+        "funded",
+        "payout_ready",
+        "payout_released",
+        "disputed",
+        "refunded",
+        "cancelled",
       ],
       invoice_status: ["draft", "sent", "viewed", "paid", "overdue", "voided"],
       job_status: [

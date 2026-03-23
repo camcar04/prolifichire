@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useQuotesReceived } from "@/hooks/useJobs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSetAgreedPrice, useLogQuoteAction } from "@/hooks/usePaymentFlow";
 import {
   formatCurrency, formatAcres, formatOperationType, formatDateShort,
   formatRelative,
@@ -38,18 +39,43 @@ export default function QuotesReceived() {
   const [counterOpen, setCounterOpen] = useState(false);
   const [counterQuoteId, setCounterQuoteId] = useState<string | null>(null);
   const [counterRate, setCounterRate] = useState("");
+  const setAgreedPrice = useSetAgreedPrice();
+  const logQuoteAction = useLogQuoteAction();
 
   const updateQuoteMutation = useMutation({
-    mutationFn: async ({ quoteId, status }: { quoteId: string; status: string }) => {
-      // Use RLS-safe approach: update via job owner check
+    mutationFn: async ({ quoteId, status, quote }: { quoteId: string; status: string; quote?: any }) => {
       const { error } = await supabase
         .from("quotes")
         .update({ status } as any)
         .eq("id", quoteId);
       if (error) throw error;
+
+      // When accepting a quote, set the agreed price and trigger funding_required
+      if (status === "accepted" && quote) {
+        await setAgreedPrice.mutateAsync({
+          jobId: quote.job_id,
+          agreedPrice: Number(quote.total_quote),
+          quoteId,
+        });
+        // Log to history
+        await logQuoteAction.mutateAsync({
+          quoteId,
+          jobId: quote.job_id,
+          action: "accepted",
+          amount: Number(quote.total_quote),
+        });
+      }
+      if (status === "rejected" && quote) {
+        await logQuoteAction.mutateAsync({
+          quoteId,
+          jobId: quote.job_id,
+          action: "rejected",
+          amount: Number(quote.total_quote),
+        });
+      }
     },
     onSuccess: (_, { status }) => {
-      toast.success(status === "accepted" ? "Quote accepted!" : "Quote declined");
+      toast.success(status === "accepted" ? "Quote accepted! You'll be prompted to fund the job." : "Quote declined");
       queryClient.invalidateQueries({ queryKey: ["quotes-received"] });
       queryClient.invalidateQueries({ queryKey: ["my-quotes"] });
     },
@@ -82,8 +108,8 @@ export default function QuotesReceived() {
                     <QuoteReceivedRow
                       key={q.id}
                       quote={q}
-                      onAccept={() => updateQuoteMutation.mutate({ quoteId: q.id, status: "accepted" })}
-                      onReject={() => updateQuoteMutation.mutate({ quoteId: q.id, status: "rejected" })}
+                      onAccept={() => updateQuoteMutation.mutate({ quoteId: q.id, status: "accepted", quote: q })}
+                      onReject={() => updateQuoteMutation.mutate({ quoteId: q.id, status: "rejected", quote: q })}
                       isPending={updateQuoteMutation.isPending}
                     />
                   ))}
