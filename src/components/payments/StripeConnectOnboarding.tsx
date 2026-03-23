@@ -8,24 +8,47 @@ import {
   CreditCard, CheckCircle2, AlertTriangle, ExternalLink, Loader2, XCircle,
 } from "lucide-react";
 
+/**
+ * Stripe Connect account status — returned by stripe-account-status edge function.
+ *
+ * V2 fields:
+ * - ready_to_receive_payments: true when stripe_transfers capability is active
+ * - onboarding_complete: true when no currently_due or past_due requirements
+ * - transfers_status: "active" | "pending" | etc.
+ * - requirements_status: "currently_due" | "past_due" | "met" | etc.
+ *
+ * Legacy V1 compatibility fields (always present for backwards compat):
+ * - charges_enabled, payouts_enabled, details_submitted
+ */
 interface StripeStatus {
   has_account: boolean;
   account_id?: string;
-  charges_enabled: boolean;
-  payouts_enabled: boolean;
-  details_submitted: boolean;
+  // V2 status fields
+  ready_to_receive_payments: boolean;
+  onboarding_complete: boolean;
+  transfers_status?: string;
+  requirements_status?: string;
+  // Requirements detail
   requirements?: {
     currently_due: string[];
-    eventually_due: string[];
     past_due: string[];
   } | null;
+  // Legacy V1 compat
+  charges_enabled?: boolean;
+  payouts_enabled?: boolean;
+  details_submitted?: boolean;
 }
 
 export function StripeConnectOnboarding() {
   const { session } = useAuth();
   const [starting, setStarting] = useState(false);
 
-  // Fetch live status from Stripe via edge function
+  /**
+   * Fetch live status from Stripe via our edge function.
+   * The function uses V2 API: stripeClient.v2.core.accounts.retrieve()
+   * with include: ["configuration.recipient", "requirements"]
+   * to get real-time onboarding status without database caching.
+   */
   const {
     data: status,
     isLoading,
@@ -44,7 +67,12 @@ export function StripeConnectOnboarding() {
     refetchOnWindowFocus: true,
   });
 
-  // Start onboarding — creates account + redirects to Stripe
+  /**
+   * Start onboarding — creates V2 account + generates V2 account link.
+   * The edge function uses:
+   * - stripeClient.v2.core.accounts.create() for account creation
+   * - stripeClient.v2.core.accountLinks.create() for onboarding link
+   */
   const handleOnboard = async () => {
     setStarting(true);
     try {
@@ -111,20 +139,21 @@ export function StripeConnectOnboarding() {
     );
   }
 
-  // ── Determine overall status ──
+  /**
+   * Determine overall onboarding state using V2 fields.
+   *
+   * isFullyOnboarded: account exists AND can receive payments AND onboarding is complete
+   * hasPendingRequirements: there are currently_due or past_due items
+   */
   const isFullyOnboarded =
     status?.has_account &&
-    status.charges_enabled &&
-    status.payouts_enabled &&
-    status.details_submitted;
-
-  const isPartial =
-    status?.has_account && status.details_submitted && !isFullyOnboarded;
+    status.ready_to_receive_payments &&
+    status.onboarding_complete;
 
   const hasPendingRequirements =
     status?.requirements &&
-    (status.requirements.currently_due.length > 0 ||
-      status.requirements.past_due.length > 0);
+    ((status.requirements.currently_due?.length ?? 0) > 0 ||
+      (status.requirements.past_due?.length ?? 0) > 0);
 
   return (
     <section className="rounded bg-card border p-4">
@@ -161,8 +190,8 @@ export function StripeConnectOnboarding() {
       {/* ── Fully onboarded ── */}
       {isFullyOnboarded && (
         <div className="space-y-2">
-          <div className="rounded border border-success/20 bg-success/5 p-3">
-            <p className="text-[13px] font-medium text-success flex items-center gap-1.5">
+          <div className="rounded border border-primary/20 bg-primary/5 p-3">
+            <p className="text-[13px] font-medium text-primary flex items-center gap-1.5">
               <CheckCircle2 size={13} /> Payment account active
             </p>
             <p className="text-[11px] text-muted-foreground mt-1">
@@ -171,12 +200,12 @@ export function StripeConnectOnboarding() {
           </div>
           <div className="flex gap-3 text-[11px] text-muted-foreground">
             <span className="flex items-center gap-1">
-              <CheckCircle2 size={10} className="text-success" /> Charges
-              enabled
+              <CheckCircle2 size={10} className="text-primary" /> Transfers{" "}
+              {status.transfers_status}
             </span>
             <span className="flex items-center gap-1">
-              <CheckCircle2 size={10} className="text-success" /> Payouts
-              enabled
+              <CheckCircle2 size={10} className="text-primary" /> Requirements
+              met
             </span>
           </div>
           <Button
@@ -197,21 +226,22 @@ export function StripeConnectOnboarding() {
         </div>
       )}
 
-      {/* ── Partial / pending ── */}
+      {/* ── Partial / pending onboarding ── */}
       {status?.has_account && !isFullyOnboarded && (
         <div className="space-y-2">
-          <div className="rounded border border-warning/20 bg-warning/5 p-3">
-            <p className="text-[13px] font-medium text-warning-foreground flex items-center gap-1.5">
-              <AlertTriangle size={13} className="text-warning" /> Onboarding
+          <div className="rounded border border-accent/20 bg-accent/5 p-3">
+            <p className="text-[13px] font-medium flex items-center gap-1.5">
+              <AlertTriangle size={13} className="text-accent" /> Onboarding
               incomplete
             </p>
             <p className="text-[11px] text-muted-foreground mt-1">
-              {isPartial
-                ? "Your details have been submitted but some capabilities are not yet enabled."
-                : "Complete the Stripe onboarding process to start receiving payments."}
+              {status.onboarding_complete
+                ? "Your details have been submitted but transfers are not yet active."
+                : "Complete the onboarding process to start receiving payments."}
             </p>
           </div>
 
+          {/* Show specific pending requirements */}
           {hasPendingRequirements && (
             <div className="text-[11px] text-muted-foreground space-y-0.5">
               {(status.requirements?.past_due?.length ?? 0) > 0 && (
@@ -229,30 +259,23 @@ export function StripeConnectOnboarding() {
             </div>
           )}
 
+          {/* Status indicators */}
           <div className="flex gap-3 text-[11px] text-muted-foreground">
             <span className="flex items-center gap-1">
-              {status.charges_enabled ? (
-                <CheckCircle2 size={10} className="text-success" />
+              {status.ready_to_receive_payments ? (
+                <CheckCircle2 size={10} className="text-primary" />
               ) : (
                 <XCircle size={10} className="text-muted-foreground" />
               )}{" "}
-              Charges
+              Transfers
             </span>
             <span className="flex items-center gap-1">
-              {status.payouts_enabled ? (
-                <CheckCircle2 size={10} className="text-success" />
+              {status.onboarding_complete ? (
+                <CheckCircle2 size={10} className="text-primary" />
               ) : (
                 <XCircle size={10} className="text-muted-foreground" />
               )}{" "}
-              Payouts
-            </span>
-            <span className="flex items-center gap-1">
-              {status.details_submitted ? (
-                <CheckCircle2 size={10} className="text-success" />
-              ) : (
-                <XCircle size={10} className="text-muted-foreground" />
-              )}{" "}
-              Details
+              Requirements
             </span>
           </div>
 
