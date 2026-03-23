@@ -2848,6 +2848,54 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_products: {
+        Row: {
+          amount_cents: number
+          connected_account_id: string | null
+          created_at: string
+          created_by: string
+          currency: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          pricing_type: string
+          stripe_price_id: string | null
+          stripe_product_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents?: number
+          connected_account_id?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          pricing_type?: string
+          stripe_price_id?: string | null
+          stripe_product_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          connected_account_id?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          pricing_type?: string
+          stripe_price_id?: string | null
+          stripe_product_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pricing_estimates: {
         Row: {
           acreage: number
@@ -2944,6 +2992,8 @@ export type Database = {
             | Database["public"]["Enums"]["comm_method"]
             | null
           primary_account_type: string | null
+          stripe_account_id: string | null
+          stripe_onboarded: boolean | null
           updated_at: string
           user_id: string
         }
@@ -2967,6 +3017,8 @@ export type Database = {
             | Database["public"]["Enums"]["comm_method"]
             | null
           primary_account_type?: string | null
+          stripe_account_id?: string | null
+          stripe_onboarded?: boolean | null
           updated_at?: string
           user_id: string
         }
@@ -2990,6 +3042,8 @@ export type Database = {
             | Database["public"]["Enums"]["comm_method"]
             | null
           primary_account_type?: string | null
+          stripe_account_id?: string | null
+          stripe_onboarded?: boolean | null
           updated_at?: string
           user_id?: string
         }

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { PricingProfileEditor } from "@/components/operators/PricingProfileEditor";
 import { useSearchParams } from "react-router-dom";
 import { StripeConnectOnboarding } from "@/components/payments/StripeConnectOnboarding";
+import { ProductManager } from "@/components/payments/ProductManager";
 import AppShell from "@/components/layout/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -222,6 +223,9 @@ export default function Settings() {
             </section>
             <section className="rounded bg-card border p-4">
               <StripeConnectOnboarding />
+            </section>
+            <section className="rounded bg-card border p-4">
+              <ProductManager />
             </section>
           </TabsContent>
 
