@@ -207,6 +207,13 @@ function ProductCard({
           </div>
         )}
 
+        {/* Operation type badge */}
+        {product.operation_type && product.operation_type !== "other" && (
+          <span className="inline-block text-[10px] font-medium px-2 py-0.5 rounded-sm bg-accent/10 text-accent-foreground mr-1">
+            {product.operation_type.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+          </span>
+        )}
+
         {/* Pricing type badge */}
         <span className="inline-block text-[10px] font-medium px-2 py-0.5 rounded-sm bg-secondary text-secondary-foreground">
           {product.pricing_type === "recurring" ? "Monthly" : "One-time"}
