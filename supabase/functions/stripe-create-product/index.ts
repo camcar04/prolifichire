@@ -4,6 +4,14 @@
  * Creates a product + default price on the PLATFORM Stripe account.
  * Stores a mapping to the user's connected account ID in platform_products.
  *
+ * ── Product Creation ──
+ * Uses stripeClient.products.create() with default_price_data to create
+ * both the product and its price in a single API call.
+ *
+ * The product is created on the PLATFORM account (not the connected account).
+ * The connected_account_id is stored in both Stripe metadata and our DB
+ * to link the product to the operator who will receive funds.
+ *
  * POST body: {
  *   name: string,
  *   description?: string,
@@ -16,7 +24,7 @@
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
+import Stripe from "https://esm.sh/stripe@20.4.1?target=deno";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -73,18 +81,27 @@ serve(async (req) => {
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return new Response(
         JSON.stringify({ error: "Product name is required." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
     if (!amount_cents || typeof amount_cents !== "number" || amount_cents < 50) {
       return new Response(
-        JSON.stringify({ error: "Amount must be at least 50 cents ($0.50)." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Amount must be at least 50 cents ($0.50).",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     const validCurrency = (currency || "usd").toLowerCase();
-    const validPricingType = pricing_type === "recurring" ? "recurring" : "one_time";
+    const validPricingType =
+      pricing_type === "recurring" ? "recurring" : "one_time";
 
     // ── Look up user's connected account ID (for mapping only) ──
     const { data: profile } = await supabase
@@ -95,43 +112,57 @@ serve(async (req) => {
 
     const connectedAccountId = profile?.stripe_account_id || null;
 
-    // ── Create product on the PLATFORM account (not connected account) ──
-    const stripe = new Stripe(stripeKey, {
-      apiVersion: "2023-10-16",
-      httpClient: Stripe.createFetchHttpClient(),
-    });
+    // ── Create the Stripe Client ──
+    const stripeClient = new Stripe(stripeKey);
 
-    const stripeProduct = await stripe.products.create({
+    /**
+     * Create product on the PLATFORM account with default_price_data.
+     *
+     * Using default_price_data creates both the product and its default
+     * price in a single API call (instead of two separate calls).
+     *
+     * The product is on the platform account, NOT the connected account.
+     * When a checkout session is created, we use destination charges
+     * to route funds to the connected account.
+     *
+     * Metadata stores:
+     * - created_by: the user ID in our system
+     * - connected_account_id: the operator's Stripe account that will receive funds
+     */
+    const defaultPriceData: Record<string, any> = {
+      unit_amount: amount_cents,
+      currency: validCurrency,
+    };
+
+    // For recurring pricing, add the billing interval
+    if (validPricingType === "recurring") {
+      defaultPriceData.recurring = { interval: "month" };
+    }
+
+    const stripeProduct = await stripeClient.products.create({
       name: name.trim(),
       description: description?.trim() || undefined,
+      default_price_data: defaultPriceData,
       metadata: {
         created_by: user.id,
         connected_account_id: connectedAccountId || "none",
       },
     });
 
-    // ── Create a default price for the product ──
-    const priceParams: Stripe.PriceCreateParams = {
-      product: stripeProduct.id,
-      unit_amount: amount_cents,
-      currency: validCurrency,
-    };
+    // The default price ID is returned on the product object
+    const stripePriceId =
+      typeof stripeProduct.default_price === "string"
+        ? stripeProduct.default_price
+        : stripeProduct.default_price?.id || null;
 
-    // For recurring products, add interval (default monthly)
-    if (validPricingType === "recurring") {
-      priceParams.recurring = { interval: "month" };
-    }
-
-    const stripePrice = await stripe.prices.create(priceParams);
-
-    // ── Store mapping in platform_products ──
+    // ── Store mapping in platform_products table ──
     const { data: product, error: insertError } = await supabase
       .from("platform_products")
       .insert({
         created_by: user.id,
         connected_account_id: connectedAccountId,
         stripe_product_id: stripeProduct.id,
-        stripe_price_id: stripePrice.id,
+        stripe_price_id: stripePriceId,
         name: name.trim(),
         description: description?.trim() || null,
         amount_cents,

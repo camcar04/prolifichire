@@ -3,25 +3,29 @@
  *
  * Creates a Stripe Checkout Session using DESTINATION CHARGES.
  *
- * ── How destination charges work ──
- * 1. The customer pays the PLATFORM account.
- * 2. Stripe automatically transfers funds to the CONNECTED account (the operator).
- * 3. The platform keeps an application_fee_amount (commission).
+ * ── Destination Charges Flow ──
+ * 1. Customer clicks "Buy" on the storefront.
+ * 2. Frontend calls this function with the platform_products.id.
+ * 3. We create a Checkout Session with:
+ *    - price_data (inline pricing, not a stored price reference)
+ *    - payment_intent_data.transfer_data.destination → connected account
+ *    - payment_intent_data.application_fee_amount → platform commission
+ * 4. Customer is redirected to Stripe's hosted checkout page.
+ * 5. On success, Stripe automatically:
+ *    - Charges the customer on the platform account
+ *    - Retains the application_fee_amount for the platform
+ *    - Transfers the remaining amount to the connected account
  *
- * Flow:
- *   Customer clicks "Buy" → frontend calls this function →
- *   returns Checkout Session URL → customer is redirected to Stripe-hosted page →
- *   on success, Stripe moves funds minus fee to connected account.
+ * ── Commission ──
+ * PLATFORM_FEE_PERCENT controls the platform's take (default 10%).
+ * Can be overridden via environment variable.
  *
- * POST body: {
- *   product_id: string   // platform_products.id (our DB id, not Stripe id)
- * }
- *
- * Response: { url: string }  // Stripe Checkout Session URL
+ * POST body: { product_id: string }
+ * Response: { url: string }
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
+import Stripe from "https://esm.sh/stripe@20.4.1?target=deno";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -31,17 +35,15 @@ const corsHeaders = {
 
 /**
  * PLATFORM_FEE_PERCENT — the percentage the platform keeps on every sale.
- * Example: 0.10 = 10%.  Change this constant to adjust commission.
  *
- * In production you might read from Deno.env.get("PLATFORM_FEE_PERCENT")
- * so it can be changed without redeploying.
+ * Default: 0.10 (10%).  Override with the PLATFORM_FEE_PERCENT env var.
+ * Example: 0.10 on a $100 product → platform keeps $10, operator gets $90.
  */
 const PLATFORM_FEE_PERCENT = parseFloat(
   Deno.env.get("PLATFORM_FEE_PERCENT") || "0.10"
 );
 
 serve(async (req) => {
-  // ── CORS preflight ──
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -118,7 +120,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           error:
-            "This product has no connected account. The seller must complete Stripe onboarding.",
+            "This product has no connected account. The seller must complete payment onboarding.",
         }),
         {
           status: 400,
@@ -128,41 +130,55 @@ serve(async (req) => {
     }
 
     // ── Calculate the platform fee ──
-    // application_fee_amount is what the PLATFORM keeps.
-    // The rest is automatically transferred to the connected account.
+    // application_fee_amount = what the PLATFORM keeps
+    // The remaining amount is auto-transferred to the connected account
     const applicationFee = Math.round(
       product.amount_cents * PLATFORM_FEE_PERCENT
     );
 
-    // ── Build the success/cancel URLs ──
-    // Use the Origin header so it works in any environment (preview, prod, etc.)
+    // ── Build return URLs ──
     const origin =
       req.headers.get("origin") || req.headers.get("referer") || "";
     const successUrl = `${origin}/storefront?session_id={CHECKOUT_SESSION_ID}&status=success`;
     const cancelUrl = `${origin}/storefront?status=cancelled`;
 
-    // ── Create the Stripe Checkout Session ──
-    const stripe = new Stripe(stripeKey, {
-      apiVersion: "2023-10-16",
-      httpClient: Stripe.createFetchHttpClient(),
-    });
+    // ── Create the Stripe Client ──
+    const stripeClient = new Stripe(stripeKey);
 
     /**
-     * Destination charge params:
-     * - payment_intent_data.transfer_data.destination → the connected account
-     * - payment_intent_data.application_fee_amount    → what platform keeps
+     * Create Checkout Session with destination charges.
      *
-     * The customer pays the full price.  Stripe splits: fee → platform, rest → operator.
+     * Using price_data (inline) instead of a stored price reference.
+     * This approach:
+     * - Doesn't require a pre-created Price object
+     * - Allows dynamic pricing per session if needed
+     * - Still creates a real PaymentIntent on the platform account
+     *
+     * payment_intent_data configures the destination charge:
+     * - application_fee_amount: cents the platform keeps
+     * - transfer_data.destination: connected account receiving the rest
      */
-    const sessionParams: Stripe.Checkout.SessionCreateParams = {
-      mode:
-        product.pricing_type === "recurring" ? "subscription" : "payment",
+    const session = await stripeClient.checkout.sessions.create({
+      mode: "payment",
       line_items: [
         {
-          price: product.stripe_price_id,
+          price_data: {
+            currency: product.currency || "usd",
+            product_data: {
+              name: product.name,
+              description: product.description || undefined,
+            },
+            unit_amount: product.amount_cents,
+          },
           quantity: 1,
         },
       ],
+      payment_intent_data: {
+        application_fee_amount: applicationFee,
+        transfer_data: {
+          destination: product.connected_account_id,
+        },
+      },
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: {
@@ -170,29 +186,8 @@ serve(async (req) => {
         buyer_id: user.id,
         seller_connected_account: product.connected_account_id,
       },
-    };
+    });
 
-    // Destination charges are configured via payment_intent_data for one-time,
-    // or subscription_data for recurring.
-    if (product.pricing_type === "recurring") {
-      sessionParams.subscription_data = {
-        application_fee_percent: PLATFORM_FEE_PERCENT * 100, // Stripe wants a percentage for subscriptions
-        transfer_data: {
-          destination: product.connected_account_id,
-        },
-      };
-    } else {
-      sessionParams.payment_intent_data = {
-        application_fee_amount: applicationFee,
-        transfer_data: {
-          destination: product.connected_account_id,
-        },
-      };
-    }
-
-    const session = await stripe.checkout.sessions.create(sessionParams);
-
-    // ── Return the hosted checkout URL ──
     return new Response(JSON.stringify({ url: session.url }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

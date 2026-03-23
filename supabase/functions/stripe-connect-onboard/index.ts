@@ -1,17 +1,27 @@
 /**
  * stripe-connect-onboard
- * 
- * Creates a Stripe Connect Express account for the authenticated user
- * and returns an onboarding link. If the user already has a connected
- * account ID stored in their profile, it skips account creation and
- * just generates a fresh onboarding/login link.
+ *
+ * Creates a Stripe Connect account using the V2 API and returns an
+ * onboarding link via V2 Account Links.
+ *
+ * ── V2 Account Creation ──
+ * Uses stripeClient.v2.core.accounts.create() with:
+ *   - dashboard: 'express'
+ *   - responsibilities: platform collects fees and covers losses
+ *   - capabilities: stripe_balance.stripe_transfers requested
+ *   - No top-level `type` parameter (V2 requirement)
+ *
+ * ── V2 Account Links ──
+ * Uses stripeClient.v2.core.accountLinks.create() with:
+ *   - use_case.type: 'account_onboarding'
+ *   - configurations: ['recipient']
  *
  * POST body: { return_url?: string, refresh_url?: string }
  * Response:  { url: string, account_id: string }
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
+import Stripe from "https://esm.sh/stripe@20.4.1?target=deno";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,11 +36,12 @@ serve(async (req) => {
   }
 
   try {
-    // ── Env checks ──
+    // ── Environment checks ──
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
       throw new Error(
-        "STRIPE_SECRET_KEY is not configured. Add it in project secrets."
+        "STRIPE_SECRET_KEY is not configured. " +
+          "Add it in project secrets (Dashboard → Settings → Secrets)."
       );
     }
 
@@ -40,7 +51,7 @@ serve(async (req) => {
       throw new Error("Missing Supabase environment variables.");
     }
 
-    // ── Auth: extract user from JWT ──
+    // ── Authenticate the user via JWT ──
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Missing authorization" }), {
@@ -63,7 +74,7 @@ serve(async (req) => {
       });
     }
 
-    // ── Parse optional body ──
+    // ── Parse optional body for return/refresh URLs ──
     let returnUrl = "";
     let refreshUrl = "";
     try {
@@ -81,37 +92,91 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .single();
 
-    const stripe = new Stripe(stripeKey, {
-      apiVersion: "2023-10-16",
-      httpClient: Stripe.createFetchHttpClient(),
-    });
+    // ── Create the Stripe Client (used for ALL Stripe requests) ──
+    const stripeClient = new Stripe(stripeKey);
 
     let accountId = profile?.stripe_account_id;
 
-    // ── Create connected account if none exists ──
+    // ── Create V2 connected account if none exists ──
     if (!accountId) {
-      const account = await stripe.accounts.create({
-        type: "express",
-        email: user.email,
-        metadata: { user_id: user.id },
+      /**
+       * V2 Account Creation
+       *
+       * Key differences from V1:
+       * - No top-level `type` parameter (no 'express', 'standard', 'custom')
+       * - Use `dashboard: 'express'` for express-like experience
+       * - Platform responsibilities defined in `defaults.responsibilities`
+       * - Capabilities requested in `configuration.recipient`
+       *
+       * The platform is responsible for:
+       * - fees_collector: 'application' — platform sets and collects fees
+       * - losses_collector: 'application' — platform covers negative balances
+       */
+      const account = await stripeClient.v2.core.accounts.create({
+        display_name: user.user_metadata?.first_name
+          ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ""}`.trim()
+          : user.email || "Operator",
+        contact_email: user.email || undefined,
+        identity: {
+          country: "us",
+        },
+        dashboard: "express",
+        defaults: {
+          responsibilities: {
+            fees_collector: "application",
+            losses_collector: "application",
+          },
+        },
+        configuration: {
+          recipient: {
+            capabilities: {
+              stripe_balance: {
+                stripe_transfers: {
+                  requested: true,
+                },
+              },
+            },
+          },
+        },
+        metadata: {
+          user_id: user.id,
+        },
       });
+
       accountId = account.id;
 
-      // Store the account ID in the user's profile
+      // Store the V2 account ID in the user's profile for future lookups
       await supabase
         .from("profiles")
         .update({ stripe_account_id: accountId })
         .eq("user_id", user.id);
     }
 
-    // ── Generate onboarding link ──
-    const accountLink = await stripe.accountLinks.create({
+    // ── Generate V2 onboarding link ──
+    /**
+     * V2 Account Links
+     *
+     * Uses a structured `use_case` object instead of flat parameters.
+     * - use_case.type: 'account_onboarding' — starts the onboarding flow
+     * - configurations: ['recipient'] — onboard for the recipient configuration
+     * - return_url: where user returns after completing onboarding
+     * - refresh_url: where user goes if the link expires or they need to restart
+     */
+    const origin = req.headers.get("origin") || "";
+    const accountLink = await stripeClient.v2.core.accountLinks.create({
       account: accountId,
-      refresh_url:
-        refreshUrl || `${req.headers.get("origin") || ""}/settings?tab=profile&stripe=refresh`,
-      return_url:
-        returnUrl || `${req.headers.get("origin") || ""}/settings?tab=profile&stripe=complete`,
-      type: "account_onboarding",
+      use_case: {
+        type: "account_onboarding",
+        account_onboarding: {
+          configurations: ["recipient"],
+          refresh_url:
+            refreshUrl ||
+            `${origin}/settings?tab=profile&stripe=refresh`,
+          return_url:
+            returnUrl ||
+            `${origin}/settings?tab=profile&stripe=complete`,
+        },
+      },
     });
 
     return new Response(
