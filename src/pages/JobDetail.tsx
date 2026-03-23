@@ -265,8 +265,7 @@ export default function JobDetail() {
 
               {/* Funding Status */}
               <FundingPrompt job={job} isGrowerView={false} />
-                </div>
-              </div>
+
 
               {/* Status timeline */}
               <div className="rounded border bg-card p-3">
