@@ -224,6 +224,9 @@ export default function Settings() {
             <section className="rounded bg-card border p-4">
               <StripeConnectOnboarding />
             </section>
+            <section className="rounded bg-card border p-4">
+              <ProductManager />
+            </section>
           </TabsContent>
 
           {/* ── Hire Work Section ── */}
