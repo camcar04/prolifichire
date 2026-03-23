@@ -1,6 +1,7 @@
 /**
  * ProductManager — UI for creating and listing platform-level Stripe products.
  * Products are created on the platform account with a mapping to the user's connected account.
+ * Each product can specify an operation type which determines the platform fee rate.
  */
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -14,9 +15,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EmptyState } from "@/components/shared/EmptyState";
 import { formatCurrency } from "@/lib/format";
 import {
-  Package, Plus, Loader2, CheckCircle2, AlertTriangle, XCircle,
+  Package, Plus, Loader2, CheckCircle2, AlertTriangle, XCircle, Percent,
 } from "lucide-react";
 import { toast } from "sonner";
+
+/**
+ * Fee schedule — mirrors the OPERATION_FEE_SCHEDULE in stripe-checkout.
+ * Displayed to operators so they know the platform commission for each type.
+ */
+const OPERATION_FEE_DEFAULTS: Record<string, number> = {
+  spraying: 0.12, fertilizing: 0.12,
+  planting: 0.10, seeding: 0.10, harvest: 0.10,
+  tillage: 0.08, hauling: 0.08, grain_hauling: 0.08,
+  scouting: 0.15, soil_sampling: 0.15,
+  drainage: 0.10, mowing: 0.10, baling: 0.10, rock_picking: 0.08,
+  other: 0.10,
+};
+
+const OPERATION_LABELS: Record<string, string> = {
+  spraying: "Spraying", fertilizing: "Fertilizing",
+  planting: "Planting", seeding: "Seeding", harvest: "Harvest",
+  tillage: "Tillage", hauling: "Hauling", grain_hauling: "Grain Hauling",
+  scouting: "Scouting", soil_sampling: "Soil Sampling",
+  drainage: "Drainage", mowing: "Mowing", baling: "Baling",
+  rock_picking: "Rock Picking", other: "Other",
+};
 
 interface PlatformProduct {
   id: string;
@@ -25,6 +48,8 @@ interface PlatformProduct {
   amount_cents: number;
   currency: string;
   pricing_type: string;
+  operation_type: string | null;
+  platform_fee_percent: number | null;
   stripe_product_id: string;
   stripe_price_id: string | null;
   connected_account_id: string | null;
@@ -37,7 +62,6 @@ export function ProductManager() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
 
-  // ── Fetch user's products from the database ──
   const { data: products = [], isLoading } = useQuery<PlatformProduct[]>({
     queryKey: ["platform-products", user?.id],
     enabled: !!user,
@@ -52,13 +76,14 @@ export function ProductManager() {
     },
   });
 
-  // ── Create product mutation ──
   const createProduct = useMutation({
     mutationFn: async (params: {
       name: string;
       description: string;
       amount_cents: number;
       pricing_type: string;
+      operation_type: string;
+      platform_fee_percent: number | null;
     }) => {
       const { data, error } = await supabase.functions.invoke(
         "stripe-create-product",
@@ -70,6 +95,7 @@ export function ProductManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["platform-products"] });
+      queryClient.invalidateQueries({ queryKey: ["storefront-products"] });
       setShowForm(false);
       toast.success("Product created successfully");
     },
@@ -80,7 +106,6 @@ export function ProductManager() {
 
   return (
     <section className="space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold flex items-center gap-2">
           <Package size={14} /> Products
@@ -97,7 +122,6 @@ export function ProductManager() {
         )}
       </div>
 
-      {/* Create form */}
       {showForm && (
         <CreateProductForm
           onSubmit={(params) => createProduct.mutate(params)}
@@ -106,7 +130,6 @@ export function ProductManager() {
         />
       )}
 
-      {/* Product list */}
       {isLoading ? (
         <div className="space-y-2">
           <Skeleton className="h-14 w-full" />
@@ -141,6 +164,8 @@ function CreateProductForm({
     description: string;
     amount_cents: number;
     pricing_type: string;
+    operation_type: string;
+    platform_fee_percent: number | null;
   }) => void;
   onCancel: () => void;
   isSubmitting: boolean;
@@ -149,9 +174,15 @@ function CreateProductForm({
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [pricingType, setPricingType] = useState("one_time");
+  const [operationType, setOperationType] = useState("other");
+  const [customFee, setCustomFee] = useState("");
 
   const amountCents = Math.round(parseFloat(amount || "0") * 100);
   const isValid = name.trim().length > 0 && amountCents >= 50;
+
+  // Show the default fee for the selected operation type
+  const defaultFee = OPERATION_FEE_DEFAULTS[operationType] ?? 0.10;
+  const effectiveFee = customFee ? parseFloat(customFee) / 100 : defaultFee;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,6 +192,8 @@ function CreateProductForm({
       description: description.trim(),
       amount_cents: amountCents,
       pricing_type: pricingType,
+      operation_type: operationType,
+      platform_fee_percent: customFee ? parseFloat(customFee) / 100 : null,
     });
   };
 
@@ -233,6 +266,54 @@ function CreateProductForm({
         </div>
       </div>
 
+      {/* Operation type — determines default platform fee */}
+      <div className="grid sm:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label className="text-xs">Operation Type</Label>
+          <Select value={operationType} onValueChange={(v) => { setOperationType(v); setCustomFee(""); }}>
+            <SelectTrigger className="h-8 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(OPERATION_LABELS).map(([key, label]) => (
+                <SelectItem key={key} value={key}>
+                  {label} ({(OPERATION_FEE_DEFAULTS[key] * 100).toFixed(0)}% fee)
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs">Custom Fee Override (%)</Label>
+          <div className="relative">
+            <Input
+              type="number"
+              value={customFee}
+              onChange={(e) => setCustomFee(e.target.value)}
+              placeholder={`Default: ${(defaultFee * 100).toFixed(0)}%`}
+              className="h-8 text-sm pr-7"
+              min="1"
+              max="50"
+              step="0.5"
+            />
+            <Percent size={11} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            Leave blank to use the default {(defaultFee * 100).toFixed(0)}% rate for {OPERATION_LABELS[operationType]?.toLowerCase()}.
+          </p>
+        </div>
+      </div>
+
+      {/* Fee preview */}
+      {amountCents >= 50 && (
+        <div className="text-[11px] text-muted-foreground bg-secondary/50 rounded px-3 py-2">
+          Platform fee: {formatCurrency(amountCents * effectiveFee / 100)} ({(effectiveFee * 100).toFixed(1)}%)
+          {" · "}
+          Operator receives: {formatCurrency(amountCents * (1 - effectiveFee) / 100)}
+        </div>
+      )}
+
       <div className="flex items-center gap-2 pt-1">
         <Button
           type="submit"
@@ -267,12 +348,21 @@ function CreateProductForm({
 
 /* ── Product Row ── */
 function ProductRow({ product }: { product: PlatformProduct }) {
+  const opType = product.operation_type || "other";
+  const feeRate = product.platform_fee_percent ?? OPERATION_FEE_DEFAULTS[opType] ?? 0.10;
+
   return (
     <div className="flex items-center justify-between px-4 py-3">
       <div className="min-w-0">
         <p className="text-sm font-medium truncate">{product.name}</p>
         <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span>{OPERATION_LABELS[opType] || opType}</span>
+          <span>·</span>
           <span>{product.pricing_type === "recurring" ? "Monthly" : "One-time"}</span>
+          <span>·</span>
+          <span className="flex items-center gap-0.5">
+            <Percent size={8} /> {(feeRate * 100).toFixed(0)}% fee
+          </span>
           {product.connected_account_id && (
             <>
               <span>·</span>
@@ -281,23 +371,17 @@ function ProductRow({ product }: { product: PlatformProduct }) {
               </span>
             </>
           )}
-          {product.description && (
-            <>
-              <span>·</span>
-              <span className="truncate max-w-[200px]">{product.description}</span>
-            </>
-          )}
         </div>
       </div>
       <div className="flex items-center gap-3 shrink-0">
-        <p className="text-sm font-medium tabular">
+        <p className="text-sm font-medium tabular-nums">
           {formatCurrency(product.amount_cents / 100)}
           {product.pricing_type === "recurring" && (
             <span className="text-[10px] text-muted-foreground">/mo</span>
           )}
         </p>
         {product.is_active ? (
-          <span className="text-[10px] text-success flex items-center gap-0.5">
+          <span className="text-[10px] text-primary flex items-center gap-0.5">
             <CheckCircle2 size={9} /> Active
           </span>
         ) : (

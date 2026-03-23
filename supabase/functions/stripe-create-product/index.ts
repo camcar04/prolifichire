@@ -169,6 +169,8 @@ serve(async (req) => {
         amount_cents,
         currency: validCurrency,
         pricing_type: validPricingType,
+        operation_type: operation_type || "other",
+        platform_fee_percent: platform_fee_percent != null ? Number(platform_fee_percent) : null,
       })
       .select()
       .single();

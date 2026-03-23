@@ -3,11 +3,24 @@
  *
  * Creates a Stripe Checkout Session using DESTINATION CHARGES.
  *
+ * ── Fee Schedule ──
+ * The platform takes a configurable percentage on each transaction.
+ * Fee rates are determined in this priority order:
+ *   1. Per-product override  → platform_products.platform_fee_percent
+ *   2. Operation-type default → OPERATION_FEE_SCHEDULE map below
+ *   3. Global fallback       → DEFAULT_FEE_PERCENT (10%)
+ *
+ * This lets you charge different commissions for different job types:
+ *   - Hauling/grain hauling: 8%  (high volume, lower margin)
+ *   - Spraying/fertilizing: 12%  (specialized, higher value)
+ *   - Harvest: 10%               (standard rate)
+ *   - etc.
+ *
  * ── Destination Charges Flow ──
  * 1. Customer clicks "Buy" on the storefront.
  * 2. Frontend calls this function with the platform_products.id.
  * 3. We create a Checkout Session with:
- *    - price_data (inline pricing, not a stored price reference)
+ *    - price_data (inline pricing)
  *    - payment_intent_data.transfer_data.destination → connected account
  *    - payment_intent_data.application_fee_amount → platform commission
  * 4. Customer is redirected to Stripe's hosted checkout page.
@@ -15,10 +28,6 @@
  *    - Charges the customer on the platform account
  *    - Retains the application_fee_amount for the platform
  *    - Transfers the remaining amount to the connected account
- *
- * ── Commission ──
- * PLATFORM_FEE_PERCENT controls the platform's take (default 10%).
- * Can be overridden via environment variable.
  *
  * POST body: { product_id: string }
  * Response: { url: string }
@@ -34,14 +43,74 @@ const corsHeaders = {
 };
 
 /**
- * PLATFORM_FEE_PERCENT — the percentage the platform keeps on every sale.
- *
- * Default: 0.10 (10%).  Override with the PLATFORM_FEE_PERCENT env var.
- * Example: 0.10 on a $100 product → platform keeps $10, operator gets $90.
+ * DEFAULT_FEE_PERCENT — global fallback when no per-product or per-type fee is set.
+ * Override with the PLATFORM_FEE_PERCENT env var (e.g. "0.10" for 10%).
  */
-const PLATFORM_FEE_PERCENT = parseFloat(
+const DEFAULT_FEE_PERCENT = parseFloat(
   Deno.env.get("PLATFORM_FEE_PERCENT") || "0.10"
 );
+
+/**
+ * OPERATION_FEE_SCHEDULE — platform commission rates by operation type.
+ *
+ * Adjust these percentages to control how much the platform earns
+ * on each type of agricultural service. Any operation type not listed
+ * here falls back to DEFAULT_FEE_PERCENT.
+ *
+ * To change rates: edit this map or move to a database table for
+ * runtime configurability.
+ */
+const OPERATION_FEE_SCHEDULE: Record<string, number> = {
+  // ── Field Operations ──
+  spraying:      0.12,   // 12% — specialized equipment, higher value
+  fertilizing:   0.12,   // 12% — chemical handling premium
+  planting:      0.10,   // 10% — standard rate
+  seeding:       0.10,   // 10% — standard rate
+  harvest:       0.10,   // 10% — standard rate
+  tillage:       0.08,   // 8%  — commodity service, volume play
+
+  // ── Hauling ──
+  hauling:       0.08,   // 8%  — high volume, thin margins
+  grain_hauling: 0.08,   // 8%  — same as hauling
+
+  // ── Specialty ──
+  scouting:      0.15,   // 15% — data/advisory premium
+  soil_sampling: 0.15,   // 15% — data/advisory premium
+  drainage:      0.10,   // 10% — standard rate
+
+  // ── General ──
+  mowing:        0.10,   // 10%
+  baling:        0.10,   // 10%
+  rock_picking:  0.08,   // 8%
+  other:         0.10,   // 10% — fallback for unlisted types
+};
+
+/**
+ * Resolve the platform fee rate for a given product.
+ *
+ * Priority:
+ * 1. Product-level override (platform_fee_percent column)
+ * 2. Operation-type schedule (OPERATION_FEE_SCHEDULE)
+ * 3. Global default (DEFAULT_FEE_PERCENT)
+ */
+function resolveFeeRate(product: any): number {
+  // 1. Per-product override (explicitly set, not null, and > 0)
+  if (
+    product.platform_fee_percent != null &&
+    Number(product.platform_fee_percent) > 0
+  ) {
+    return Number(product.platform_fee_percent);
+  }
+
+  // 2. Operation-type schedule
+  const opType = (product.operation_type || "other").toLowerCase();
+  if (OPERATION_FEE_SCHEDULE[opType] != null) {
+    return OPERATION_FEE_SCHEDULE[opType];
+  }
+
+  // 3. Global default
+  return DEFAULT_FEE_PERCENT;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -129,11 +198,14 @@ serve(async (req) => {
       );
     }
 
-    // ── Calculate the platform fee ──
-    // application_fee_amount = what the PLATFORM keeps
-    // The remaining amount is auto-transferred to the connected account
-    const applicationFee = Math.round(
-      product.amount_cents * PLATFORM_FEE_PERCENT
+    // ── Calculate the platform fee using the fee schedule ──
+    const feeRate = resolveFeeRate(product);
+    const applicationFee = Math.round(product.amount_cents * feeRate);
+
+    console.log(
+      `[stripe-checkout] Product ${product.id}: ` +
+        `type=${product.operation_type}, fee_rate=${(feeRate * 100).toFixed(1)}%, ` +
+        `amount=${product.amount_cents}¢, app_fee=${applicationFee}¢`
     );
 
     // ── Build return URLs ──
@@ -148,14 +220,8 @@ serve(async (req) => {
     /**
      * Create Checkout Session with destination charges.
      *
-     * Using price_data (inline) instead of a stored price reference.
-     * This approach:
-     * - Doesn't require a pre-created Price object
-     * - Allows dynamic pricing per session if needed
-     * - Still creates a real PaymentIntent on the platform account
-     *
      * payment_intent_data configures the destination charge:
-     * - application_fee_amount: cents the platform keeps
+     * - application_fee_amount: cents the platform keeps (based on fee schedule)
      * - transfer_data.destination: connected account receiving the rest
      */
     const session = await stripeClient.checkout.sessions.create({
@@ -185,6 +251,9 @@ serve(async (req) => {
         platform_product_id: product.id,
         buyer_id: user.id,
         seller_connected_account: product.connected_account_id,
+        operation_type: product.operation_type || "other",
+        fee_rate: String(feeRate),
+        fee_amount_cents: String(applicationFee),
       },
     });
 
