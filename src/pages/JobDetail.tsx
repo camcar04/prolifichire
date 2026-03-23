@@ -101,6 +101,7 @@ export default function JobDetail() {
             {job.urgency !== "normal" && (
               <span className="text-[9px] font-bold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded-full uppercase">{job.urgency}</span>
             )}
+            <FundingStatusBadge status={(job as any).funding_status || "unfunded"} />
             <div className="ml-auto flex items-center gap-3 text-[11px]">
               <span className="font-semibold">{formatOperationType(job.operation_type)}</span>
               <span className="text-muted-foreground">·</span>
