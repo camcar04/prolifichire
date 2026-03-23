@@ -259,7 +259,12 @@ export default function JobDetail() {
                   <Row label="Acres" value={formatAcres(Number(job.total_acres))} />
                   <Row label="Deadline" value={formatDate(job.deadline)} />
                   <Row label="Rate" value={`${formatCurrency(Number(job.base_rate))} ${formatPricingModel(job.pricing_model)}`} />
-                  <Row label="Payout" value={formatCurrency(Number(job.estimated_total))} bold />
+                  <Row label={deriveAgreedPrice(job) ? "Agreed Price" : "Payout"} value={formatCurrency(deriveAgreedPrice(job) || Number(job.estimated_total))} bold />
+                </div>
+              </div>
+
+              {/* Funding Status */}
+              <FundingPrompt job={job} isGrowerView={false} />
                 </div>
               </div>
 
