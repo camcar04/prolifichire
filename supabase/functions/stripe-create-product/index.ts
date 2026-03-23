@@ -146,6 +146,7 @@ serve(async (req) => {
       metadata: {
         created_by: user.id,
         connected_account_id: connectedAccountId || "none",
+        operation_type: operation_type || "other",
       },
     });
 
