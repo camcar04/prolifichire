@@ -35,6 +35,7 @@ import CalendarView from "./pages/CalendarView";
 import BidQueue from "./pages/BidQueue";
 import LaborMarketplace from "./pages/LaborMarketplace";
 import QuotesReceived from "./pages/QuotesReceived";
+import Storefront from "./pages/Storefront";
 
 const queryClient = new QueryClient();
 

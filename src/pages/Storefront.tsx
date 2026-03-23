@@ -85,8 +85,8 @@ export default function Storefront() {
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         {/* ── Checkout return banners ── */}
         {checkoutStatus === "success" && (
-          <div className="flex items-center gap-3 rounded border border-green-600/30 bg-green-950/20 px-4 py-3 text-sm">
-            <CheckCircle2 size={16} className="text-green-500 shrink-0" />
+          <div className="flex items-center gap-3 rounded border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+            <CheckCircle2 size={16} className="text-primary shrink-0" />
             <div>
               <p className="font-medium text-foreground">Payment successful!</p>
               <p className="text-muted-foreground">
@@ -96,8 +96,8 @@ export default function Storefront() {
           </div>
         )}
         {checkoutStatus === "cancelled" && (
-          <div className="flex items-center gap-3 rounded border border-yellow-600/30 bg-yellow-950/20 px-4 py-3 text-sm">
-            <XCircle size={16} className="text-yellow-500 shrink-0" />
+          <div className="flex items-center gap-3 rounded border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
+            <XCircle size={16} className="text-destructive shrink-0" />
             <p className="text-muted-foreground">
               Checkout was cancelled. No charge was made.
             </p>
