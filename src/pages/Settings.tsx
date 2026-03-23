@@ -220,8 +220,7 @@ export default function Settings() {
               </Button>
             </section>
             <section className="rounded bg-card border p-4">
-              <h2 className="text-sm font-semibold flex items-center gap-2 mb-4"><CreditCard size={14} /> Billing</h2>
-              <p className="text-[13px] text-muted-foreground">Payment method and billing settings will be available when Stripe Connect is configured.</p>
+              <StripeConnectOnboarding />
             </section>
           </TabsContent>
 
