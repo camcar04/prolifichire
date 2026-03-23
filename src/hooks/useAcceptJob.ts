@@ -62,7 +62,7 @@ export function useAcceptJob() {
       qc.invalidateQueries({ queryKey: ["job", jobId] });
       qc.invalidateQueries({ queryKey: ["jobs"] });
       qc.invalidateQueries({ queryKey: ["marketplace-jobs"] });
-      toast.success("Job accepted! Contract and field packets generated.");
+      toast.success("Job accepted! Grower will be prompted to fund the agreed amount.");
     },
     onError: () => {
       toast.error("Failed to accept job");
