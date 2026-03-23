@@ -35,6 +35,7 @@ import CalendarView from "./pages/CalendarView";
 import BidQueue from "./pages/BidQueue";
 import LaborMarketplace from "./pages/LaborMarketplace";
 import QuotesReceived from "./pages/QuotesReceived";
+import Storefront from "./pages/Storefront";
 
 const queryClient = new QueryClient();
 
@@ -86,6 +87,7 @@ const App = () => (
             <Route path="/files" element={<P><Fields /></P>} />
             <Route path="/messages" element={<P><NotificationsPage /></P>} />
             <Route path="/operators/:operatorId" element={<P><OperatorProfile /></P>} />
+            <Route path="/storefront" element={<P><Storefront /></P>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
