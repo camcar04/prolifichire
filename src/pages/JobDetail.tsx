@@ -21,8 +21,12 @@ import { ContractSignatureDialog } from "@/components/contracts/ContractSignatur
 import { VerifiedJobBadge, deriveJobBadges } from "@/components/trust/VerifiedJobBadge";
 import { PosterStatsCard } from "@/components/trust/PosterStatsCard";
 import { ReportJobDialog } from "@/components/trust/ReportJobDialog";
+import { FundingPrompt } from "@/components/payments/FundingPrompt";
+import { FundingStatusBadge } from "@/components/payments/FundingStatusBadge";
+import { QuoteNegotiationHistory } from "@/components/payments/QuoteNegotiationHistory";
 import { formatContractMode } from "@/components/jobs/ContractModeSelector";
 import { canCancelJob, canEditJob } from "@/hooks/useJobActions";
+import { canStartExecution, deriveAgreedPrice } from "@/hooks/usePaymentFlow";
 import { useJob } from "@/hooks/useJobs";
 import { usePostJobUpdate, type JobUpdateStatus, UPDATE_STATUS_LABELS } from "@/hooks/useJobExecution";
 import {
