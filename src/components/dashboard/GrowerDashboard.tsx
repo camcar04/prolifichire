@@ -70,7 +70,7 @@ export default function GrowerDashboard() {
           icon={<Sprout size={16} />}
           label="Post a job to get quotes from verified operators"
           cta="Post Job"
-          to="/marketplace"
+          onClick={() => setShowCreateJob(true)}
           urgency="neutral"
         />
       )}
