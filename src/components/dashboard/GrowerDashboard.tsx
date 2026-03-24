@@ -12,6 +12,7 @@ import {
   Briefcase, DollarSign, Plus, ArrowRight,
   CheckCircle2, AlertTriangle, Bell, Sprout,
 } from "lucide-react";
+import { CreateJobDialog } from "@/components/jobs/CreateJobDialog";
 import { useFields } from "@/hooks/useFields";
 import { useJobs } from "@/hooks/useJobs";
 import { useNotifications } from "@/hooks/useNotifications";
