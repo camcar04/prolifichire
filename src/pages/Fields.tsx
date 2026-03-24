@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ListSkeleton } from "@/components/shared/PageSkeleton";
 import { CreateFarmDialog } from "@/components/fields/CreateFarmDialog";
 import { CreateFieldDialog } from "@/components/fields/CreateFieldDialog";
+import { CreateJobDialog } from "@/components/jobs/CreateJobDialog";
 import { FarmFieldMap } from "@/components/map/FarmFieldMap";
 import { FieldQuickActions } from "@/components/fields/FieldQuickActions";
 import { useGeolocation } from "@/hooks/useGeolocation";
