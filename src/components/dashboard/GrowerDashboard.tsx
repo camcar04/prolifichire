@@ -23,6 +23,7 @@ export default function GrowerDashboard() {
   const { data: jobs = [], isLoading: jobsLoading } = useJobs();
   const { notifications } = useNotifications();
   const navigate = useNavigate();
+  const [showCreateJob, setShowCreateJob] = useState(false);
 
   const isLoading = fieldsLoading || jobsLoading;
   if (isLoading) return <DashboardSkeleton />;
