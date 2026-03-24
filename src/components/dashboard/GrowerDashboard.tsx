@@ -94,8 +94,8 @@ export default function GrowerDashboard() {
            <div className="rounded border bg-card overflow-hidden">
             <div className="flex items-center justify-between px-3 py-2 border-b bg-surface-2/40">
               <h2 className="text-[13px] font-semibold tracking-tight">Active Jobs</h2>
-              <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 px-2" asChild>
-                <Link to="/marketplace"><Plus size={10} /> New</Link>
+              <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 px-2" onClick={() => setShowCreateJob(true)}>
+                <Plus size={10} /> New
               </Button>
             </div>
             {activeJobs.length > 0 ? (
