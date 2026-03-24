@@ -302,6 +302,7 @@ export default function FieldsPage() {
 
       <CreateFarmDialog open={showCreateFarm} onOpenChange={setShowCreateFarm} />
       <CreateFieldDialog open={showCreateField} onOpenChange={setShowCreateField} />
+      <CreateJobDialog open={showCreateJob} onOpenChange={setShowCreateJob} preselectedFieldId={jobFieldId} />
     </AppShell>
   );
 }
