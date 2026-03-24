@@ -72,7 +72,8 @@ export default function FieldsPage() {
   };
 
   const handleStartJob = (fieldId: string) => {
-    navigate(`/jobs?new=1&fieldId=${fieldId}`);
+    setJobFieldId(fieldId);
+    setShowCreateJob(true);
   };
 
   return (
