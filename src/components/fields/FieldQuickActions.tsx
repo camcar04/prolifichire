@@ -97,7 +97,21 @@ export function FieldQuickActions({ field, onClose, onStartJob }: FieldQuickActi
             <History size={12} /> Job History
           </Link>
         </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-8 text-xs gap-1 col-span-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+          onClick={() => setShowDelete(true)}
+        >
+          <Trash2 size={12} /> Remove Field
+        </Button>
       </div>
+
+      <DeleteFieldDialog
+        open={showDelete}
+        onOpenChange={setShowDelete}
+        field={{ id: field.id, name: field.name }}
+      />
     </div>
   );
 }
