@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { formatAcres, formatCropType } from "@/lib/format";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { Plus, FileText, History, Pencil, MapPin, Wheat, X } from "lucide-react";
+import { Plus, FileText, History, MapPin, Wheat, X, Trash2 } from "lucide-react";
+import { DeleteFieldDialog } from "@/components/fields/DeleteFieldDialog";
 
 interface FieldData {
   id: string;
