@@ -28,6 +28,8 @@ export default function FieldsPage() {
   const [collapsedFarms, setCollapsedFarms] = useState<Set<string>>(new Set());
   const [showCreateFarm, setShowCreateFarm] = useState(false);
   const [showCreateField, setShowCreateField] = useState(false);
+  const [showCreateJob, setShowCreateJob] = useState(false);
+  const [jobFieldId, setJobFieldId] = useState<string | undefined>(undefined);
   const [selectedField, setSelectedField] = useState<any>(null);
   const [activeFarmId, setActiveFarmId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
