@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ListSkeleton } from "@/components/shared/PageSkeleton";
 import { CreateFarmDialog } from "@/components/fields/CreateFarmDialog";
 import { CreateFieldDialog } from "@/components/fields/CreateFieldDialog";
+import { CreateJobDialog } from "@/components/jobs/CreateJobDialog";
 import { FarmFieldMap } from "@/components/map/FarmFieldMap";
 import { FieldQuickActions } from "@/components/fields/FieldQuickActions";
 import { useGeolocation } from "@/hooks/useGeolocation";
@@ -27,6 +28,8 @@ export default function FieldsPage() {
   const [collapsedFarms, setCollapsedFarms] = useState<Set<string>>(new Set());
   const [showCreateFarm, setShowCreateFarm] = useState(false);
   const [showCreateField, setShowCreateField] = useState(false);
+  const [showCreateJob, setShowCreateJob] = useState(false);
+  const [jobFieldId, setJobFieldId] = useState<string | undefined>(undefined);
   const [selectedField, setSelectedField] = useState<any>(null);
   const [activeFarmId, setActiveFarmId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
@@ -69,7 +72,8 @@ export default function FieldsPage() {
   };
 
   const handleStartJob = (fieldId: string) => {
-    navigate(`/jobs?new=1&fieldId=${fieldId}`);
+    setJobFieldId(fieldId);
+    setShowCreateJob(true);
   };
 
   return (
@@ -298,6 +302,7 @@ export default function FieldsPage() {
 
       <CreateFarmDialog open={showCreateFarm} onOpenChange={setShowCreateFarm} />
       <CreateFieldDialog open={showCreateField} onOpenChange={setShowCreateField} />
+      <CreateJobDialog open={showCreateJob} onOpenChange={setShowCreateJob} preselectedFieldId={jobFieldId} />
     </AppShell>
   );
 }

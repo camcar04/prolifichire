@@ -8,7 +8,8 @@ interface CommandStripProps {
   label: string;
   detail?: string;
   cta: string;
-  to: string;
+  to?: string;
+  onClick?: () => void;
   urgency?: "action" | "info" | "neutral";
   secondary?: { label: string; to: string };
 }
@@ -19,7 +20,7 @@ const urgencyStyles = {
   neutral: "border-l-border bg-surface-2/50",
 };
 
-export function CommandStrip({ icon, label, detail, cta, to, urgency = "neutral", secondary }: CommandStripProps) {
+export function CommandStrip({ icon, label, detail, cta, to, onClick, urgency = "neutral", secondary }: CommandStripProps) {
   return (
     <div className={cn(
       "flex items-center gap-3 px-3 py-2 border-l-[3px] rounded-r transition-colors",
@@ -36,9 +37,15 @@ export function CommandStrip({ icon, label, detail, cta, to, urgency = "neutral"
             <Link to={secondary.to}>{secondary.label}</Link>
           </Button>
         )}
-        <Button size="sm" className="h-7 text-[11px] gap-1 px-3" asChild>
-          <Link to={to}>{cta} <ArrowRight size={10} /></Link>
-        </Button>
+        {to ? (
+          <Button size="sm" className="h-7 text-[11px] gap-1 px-3" asChild>
+            <Link to={to}>{cta} <ArrowRight size={10} /></Link>
+          </Button>
+        ) : (
+          <Button size="sm" className="h-7 text-[11px] gap-1 px-3" onClick={onClick}>
+            {cta} <ArrowRight size={10} />
+          </Button>
+        )}
       </div>
     </div>
   );

@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { formatAcres, formatCropType } from "@/lib/format";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { Plus, FileText, History, Pencil, MapPin, Wheat, X } from "lucide-react";
+import { Plus, FileText, History, MapPin, Wheat, X, Trash2 } from "lucide-react";
+import { DeleteFieldDialog } from "@/components/fields/DeleteFieldDialog";
 
 interface FieldData {
   id: string;
@@ -25,6 +27,7 @@ interface FieldQuickActionsProps {
 
 export function FieldQuickActions({ field, onClose, onStartJob }: FieldQuickActionsProps) {
   const navigate = useNavigate();
+  const [showDelete, setShowDelete] = useState(false);
 
   const handleStartJob = () => {
     if (onStartJob) {
@@ -94,7 +97,21 @@ export function FieldQuickActions({ field, onClose, onStartJob }: FieldQuickActi
             <History size={12} /> Job History
           </Link>
         </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-8 text-xs gap-1 col-span-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+          onClick={() => setShowDelete(true)}
+        >
+          <Trash2 size={12} /> Remove Field
+        </Button>
       </div>
+
+      <DeleteFieldDialog
+        open={showDelete}
+        onOpenChange={setShowDelete}
+        field={{ id: field.id, name: field.name }}
+      />
     </div>
   );
 }

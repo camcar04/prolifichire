@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { DashboardSkeleton } from "@/components/shared/PageSkeleton";
@@ -12,6 +13,7 @@ import {
   Briefcase, DollarSign, Plus, ArrowRight,
   CheckCircle2, AlertTriangle, Bell, Sprout,
 } from "lucide-react";
+import { CreateJobDialog } from "@/components/jobs/CreateJobDialog";
 import { useFields } from "@/hooks/useFields";
 import { useJobs } from "@/hooks/useJobs";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -22,6 +24,7 @@ export default function GrowerDashboard() {
   const { data: jobs = [], isLoading: jobsLoading } = useJobs();
   const { notifications } = useNotifications();
   const navigate = useNavigate();
+  const [showCreateJob, setShowCreateJob] = useState(false);
 
   const isLoading = fieldsLoading || jobsLoading;
   if (isLoading) return <DashboardSkeleton />;
@@ -67,7 +70,7 @@ export default function GrowerDashboard() {
           icon={<Sprout size={16} />}
           label="Post a job to get quotes from verified operators"
           cta="Post Job"
-          to="/marketplace"
+          onClick={() => setShowCreateJob(true)}
           urgency="neutral"
         />
       )}
@@ -91,8 +94,8 @@ export default function GrowerDashboard() {
            <div className="rounded border bg-card overflow-hidden">
             <div className="flex items-center justify-between px-3 py-2 border-b bg-surface-2/40">
               <h2 className="text-[13px] font-semibold tracking-tight">Active Jobs</h2>
-              <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 px-2" asChild>
-                <Link to="/marketplace"><Plus size={10} /> New</Link>
+              <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 px-2" onClick={() => setShowCreateJob(true)}>
+                <Plus size={10} /> New
               </Button>
             </div>
             {activeJobs.length > 0 ? (
@@ -132,8 +135,8 @@ export default function GrowerDashboard() {
               <div className="py-10 text-center">
                 <Briefcase size={20} className="mx-auto mb-1.5 text-muted-foreground/20" />
                 <p className="text-[13px] text-muted-foreground">No active jobs</p>
-                <Button variant="link" size="sm" className="text-[11px] mt-0.5" asChild>
-                  <Link to="/marketplace">Post your first job →</Link>
+                <Button variant="link" size="sm" className="text-[11px] mt-0.5" onClick={() => setShowCreateJob(true)}>
+                  Post your first job →
                 </Button>
               </div>
             )}
@@ -188,6 +191,8 @@ export default function GrowerDashboard() {
           </div>
         </div>
       </div>
+
+      <CreateJobDialog open={showCreateJob} onOpenChange={setShowCreateJob} />
     </div>
   );
 }
