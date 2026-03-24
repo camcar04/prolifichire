@@ -27,6 +27,7 @@ interface FieldQuickActionsProps {
 
 export function FieldQuickActions({ field, onClose, onStartJob }: FieldQuickActionsProps) {
   const navigate = useNavigate();
+  const [showDelete, setShowDelete] = useState(false);
 
   const handleStartJob = () => {
     if (onStartJob) {
