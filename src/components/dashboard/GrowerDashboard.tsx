@@ -191,6 +191,8 @@ export default function GrowerDashboard() {
           </div>
         </div>
       </div>
+
+      <CreateJobDialog open={showCreateJob} onOpenChange={setShowCreateJob} />
     </div>
   );
 }
