@@ -135,8 +135,8 @@ export default function GrowerDashboard() {
               <div className="py-10 text-center">
                 <Briefcase size={20} className="mx-auto mb-1.5 text-muted-foreground/20" />
                 <p className="text-[13px] text-muted-foreground">No active jobs</p>
-                <Button variant="link" size="sm" className="text-[11px] mt-0.5" asChild>
-                  <Link to="/marketplace">Post your first job →</Link>
+                <Button variant="link" size="sm" className="text-[11px] mt-0.5" onClick={() => setShowCreateJob(true)}>
+                  Post your first job →
                 </Button>
               </div>
             )}
