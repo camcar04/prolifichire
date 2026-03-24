@@ -8,7 +8,8 @@ interface CommandStripProps {
   label: string;
   detail?: string;
   cta: string;
-  to: string;
+  to?: string;
+  onClick?: () => void;
   urgency?: "action" | "info" | "neutral";
   secondary?: { label: string; to: string };
 }
