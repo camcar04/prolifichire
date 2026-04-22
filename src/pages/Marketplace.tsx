@@ -179,8 +179,14 @@ export default function Marketplace() {
               title={showSavedOnly ? "Bid queue empty" : "No jobs match"}
               description={showSavedOnly
                 ? "Save jobs from the marketplace to build your queue."
-                : "Try expanding your radius or adjusting filters."}
-              action={showSavedOnly ? { label: "Browse All", onClick: () => setShowSavedOnly(false) } : undefined}
+                : "Try expanding your service radius in your operator profile, or adjust your filters."}
+              action={
+                showSavedOnly
+                  ? { label: "Browse All", onClick: () => setShowSavedOnly(false) }
+                  : activeMode === "operator"
+                    ? { label: "Expand Service Radius →", to: "/settings?tab=dowork" }
+                    : undefined
+              }
             />
           </div>
         ) : (
