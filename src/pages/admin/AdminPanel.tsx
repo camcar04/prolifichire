@@ -620,8 +620,14 @@ function SupportTab() {
 
   const active = useMemo(() => tickets?.find((t) => t.id === activeId), [tickets, activeId]);
 
+  type TicketPatch = {
+    status?: "open" | "in_progress" | "resolved" | "closed";
+    priority?: "low" | "normal" | "high" | "urgent";
+    resolved_at?: string | null;
+    assigned_to?: string | null;
+  };
   const update = useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: Record<string, any> }) => {
+    mutationFn: async ({ id, patch }: { id: string; patch: TicketPatch }) => {
       const { error } = await supabase.from("support_tickets").update(patch).eq("id", id);
       if (error) throw error;
     },
