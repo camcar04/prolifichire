@@ -140,11 +140,8 @@ function OperatorFundingView({ job }: { job: any }) {
       </div>
 
       {agreedPrice ? (
-        <div className="space-y-1 text-[13px]">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Agreed Price</span>
-            <span className="font-semibold tabular-nums">{formatCurrency(agreedPrice)}</span>
-          </div>
+        <div className="space-y-3 text-[13px]">
+          <FeeBreakdown jobTotal={agreedPrice} side="operator" />
           {fundingStatus === "funded" && (
             <p className="text-xs text-success mt-1">
               ✓ Job is funded. You may begin work when scheduled.
