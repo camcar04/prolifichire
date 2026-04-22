@@ -3906,6 +3906,10 @@ export type Database = {
         }
         Returns: string
       }
+      platform_fee_rate_for: {
+        Args: { _operation_type: string }
+        Returns: number
+      }
     }
     Enums: {
       comm_method: "in_app" | "email" | "sms" | "phone"
