@@ -195,6 +195,39 @@ export default function JobDetail() {
                     <Button size="sm" variant="outline" className="w-full text-[11px] h-7 gap-1 mt-1">
                       <Download size={10} /> Download All Files
                     </Button>
+                    {/* Offline save — separate from network download for rural cab use */}
+                    <OfflinePacketControls
+                      size="sm"
+                      packetId={packets[0].id}
+                      className="w-full [&>button]:w-full [&>button]:text-[11px] [&>button]:h-7"
+                      buildPayload={() => {
+                        const ai = fieldData?.field_access_instructions?.[0];
+                        return {
+                          jobId: job.id,
+                          jobDisplayId: job.display_id,
+                          fieldName: fieldData?.name ?? null,
+                          boundaryGeoJSON: fieldData?.boundary_geojson ?? undefined,
+                          accessInstructions: ai
+                            ? {
+                                directions: ai.directions,
+                                gateCode: ai.gate_code,
+                                hazards: ai.hazards,
+                                contactName: ai.contact_name,
+                                contactPhone: ai.contact_phone,
+                                notes: ai.notes,
+                              }
+                            : null,
+                          files: (packets[0].field_packet_files || [])
+                            .filter((f: any) => f.included)
+                            .map((f: any) => ({
+                              name: f.file_name || f.category,
+                              category: f.category,
+                              storagePath: null,
+                              sizeBytes: f.file_size ?? null,
+                            })),
+                        };
+                      }}
+                    />
                   </div>
                 ) : (
                   <div className="p-4 text-center">
