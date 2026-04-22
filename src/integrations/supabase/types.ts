@@ -1737,6 +1737,8 @@ export type Database = {
           actual_end: string | null
           actual_start: string | null
           agreed_price: number | null
+          approved_at: string | null
+          approved_by: string | null
           approved_total: number | null
           base_rate: number
           cancel_fee_amount: number | null
@@ -1763,6 +1765,7 @@ export type Database = {
           operation_type: Database["public"]["Enums"]["operation_type"]
           operator_id: string | null
           paid_total: number | null
+          payment_intent_id: string | null
           platform_fee_amount: number | null
           platform_fee_rate: number
           pricing_model: Database["public"]["Enums"]["pricing_model"]
@@ -1775,6 +1778,7 @@ export type Database = {
           scheduled_start: string | null
           split_payment: boolean | null
           status: Database["public"]["Enums"]["job_status"]
+          stripe_transfer_id: string | null
           title: string
           total_acres: number
           travel_distance: number | null
@@ -1787,6 +1791,8 @@ export type Database = {
           actual_end?: string | null
           actual_start?: string | null
           agreed_price?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
           approved_total?: number | null
           base_rate?: number
           cancel_fee_amount?: number | null
@@ -1813,6 +1819,7 @@ export type Database = {
           operation_type: Database["public"]["Enums"]["operation_type"]
           operator_id?: string | null
           paid_total?: number | null
+          payment_intent_id?: string | null
           platform_fee_amount?: number | null
           platform_fee_rate?: number
           pricing_model?: Database["public"]["Enums"]["pricing_model"]
@@ -1825,6 +1832,7 @@ export type Database = {
           scheduled_start?: string | null
           split_payment?: boolean | null
           status?: Database["public"]["Enums"]["job_status"]
+          stripe_transfer_id?: string | null
           title: string
           total_acres?: number
           travel_distance?: number | null
@@ -1837,6 +1845,8 @@ export type Database = {
           actual_end?: string | null
           actual_start?: string | null
           agreed_price?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
           approved_total?: number | null
           base_rate?: number
           cancel_fee_amount?: number | null
@@ -1863,6 +1873,7 @@ export type Database = {
           operation_type?: Database["public"]["Enums"]["operation_type"]
           operator_id?: string | null
           paid_total?: number | null
+          payment_intent_id?: string | null
           platform_fee_amount?: number | null
           platform_fee_rate?: number
           pricing_model?: Database["public"]["Enums"]["pricing_model"]
@@ -1875,6 +1886,7 @@ export type Database = {
           scheduled_start?: string | null
           split_payment?: boolean | null
           status?: Database["public"]["Enums"]["job_status"]
+          stripe_transfer_id?: string | null
           title?: string
           total_acres?: number
           travel_distance?: number | null

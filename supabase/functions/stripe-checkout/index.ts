@@ -1,7 +1,16 @@
 /**
  * stripe-checkout
  *
- * Creates a Stripe Checkout Session using DESTINATION CHARGES.
+ * Creates a Stripe Checkout Session using PLATFORM-HELD CHARGES (escrow model).
+ *
+ * ── Why platform-held instead of destination charges? ──
+ * Agricultural work has not happened yet at the time of payment.
+ * If we used destination charges, funds would route to the operator's
+ * connected account immediately — before any field work is done.
+ * Instead, we charge the grower to the PLATFORM account and hold the funds
+ * until the grower clicks "Approve Work". The payout to the operator is
+ * then triggered by the `stripe-release-payout` edge function via a
+ * Stripe Transfer from the platform balance.
  *
  * ── Fee Schedule ──
  * The platform takes a configurable percentage on each transaction.
@@ -9,25 +18,6 @@
  *   1. Per-product override  → platform_products.platform_fee_percent
  *   2. Operation-type default → OPERATION_FEE_SCHEDULE map below
  *   3. Global fallback       → DEFAULT_FEE_PERCENT (10%)
- *
- * This lets you charge different commissions for different job types:
- *   - Hauling/grain hauling: 8%  (high volume, lower margin)
- *   - Spraying/fertilizing: 12%  (specialized, higher value)
- *   - Harvest: 10%               (standard rate)
- *   - etc.
- *
- * ── Destination Charges Flow ──
- * 1. Customer clicks "Buy" on the storefront.
- * 2. Frontend calls this function with the platform_products.id.
- * 3. We create a Checkout Session with:
- *    - price_data (inline pricing)
- *    - payment_intent_data.transfer_data.destination → connected account
- *    - payment_intent_data.application_fee_amount → platform commission
- * 4. Customer is redirected to Stripe's hosted checkout page.
- * 5. On success, Stripe automatically:
- *    - Charges the customer on the platform account
- *    - Retains the application_fee_amount for the platform
- *    - Transfers the remaining amount to the connected account
  *
  * POST body: { product_id: string }
  * Response: { url: string }
@@ -218,11 +208,12 @@ serve(async (req) => {
     const stripeClient = new Stripe(stripeKey);
 
     /**
-     * Create Checkout Session with destination charges.
+     * Create Checkout Session that charges the PLATFORM account directly.
      *
-     * payment_intent_data configures the destination charge:
-     * - application_fee_amount: cents the platform keeps (based on fee schedule)
-     * - transfer_data.destination: connected account receiving the rest
+     * No `transfer_data` is set — funds remain in the platform Stripe balance
+     * until `stripe-release-payout` issues a Transfer after work is approved.
+     * The fee rate and seller account are stored in metadata so the payout
+     * function knows where to send the operator's share later.
      */
     const session = await stripeClient.checkout.sessions.create({
       mode: "payment",
@@ -239,12 +230,6 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      payment_intent_data: {
-        application_fee_amount: applicationFee,
-        transfer_data: {
-          destination: product.connected_account_id,
-        },
-      },
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: {
@@ -254,6 +239,7 @@ serve(async (req) => {
         operation_type: product.operation_type || "other",
         fee_rate: String(feeRate),
         fee_amount_cents: String(applicationFee),
+        flow: "platform_escrow",
       },
     });
 
