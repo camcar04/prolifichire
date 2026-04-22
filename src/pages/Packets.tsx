@@ -7,10 +7,11 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ListSkeleton } from "@/components/shared/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Package, AlertTriangle, CheckCircle2, ChevronRight, MapPin, Clock, FileText, Store, RefreshCw, Loader2 } from "lucide-react";
+import { Package, AlertTriangle, CheckCircle2, ChevronRight, MapPin, Clock, FileText, Store, RefreshCw, Loader2, WifiOff } from "lucide-react";
 import { formatOperationType, formatAcres, formatRelative, formatCropType } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { OfflinePacketControls } from "@/components/shared/OfflinePacketControls";
 
 type PacketGroup = "ready" | "incomplete" | "in_progress" | "awaiting" | "completed";
 
@@ -35,7 +36,8 @@ export default function Packets() {
         .from("field_packets")
         .select(`
           *,
-          field_packet_files(*),
+          field_packet_files(*, dataset_assets(file_name, storage_path, file_size, format, category)),
+          fields(id, name, crop, acreage, county, state, boundary_geojson, centroid_lat, centroid_lng, field_access_instructions(*)),
           jobs(id, display_id, operation_type, title, status, total_acres, scheduled_start, deadline,
             job_fields(fields(name, crop, acreage, centroid_lat, centroid_lng))
           )
@@ -136,6 +138,20 @@ export default function Packets() {
   return (
     <AppShell title="Field Packets">
       <div className="animate-fade-in max-w-3xl">
+        {/* Connectivity advisory — surfaces above every state including loading and empty */}
+        <div className="rounded border border-warning/30 bg-warning/5 p-3 mb-4 flex items-start gap-2.5">
+          <WifiOff size={16} className="text-warning shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="text-[12px] font-semibold text-foreground">
+              Download packets before leaving for the field
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+              Cell service may be unavailable in your work area. Use <span className="font-medium">Save Offline</span> on each packet
+              to store boundaries, access instructions, and prescription files on this device.
+            </p>
+          </div>
+        </div>
+
         {isLoading ? (
           <ListSkeleton rows={4} />
         ) : totalItems === 0 ? (
@@ -276,6 +292,13 @@ function PacketRow({ item, group, onGenerate, generating }: { item: any; group: 
           </Button>
         ) : (
           <>
+            {packet && (
+              <OfflinePacketControls
+                size="compact"
+                packetId={packet.id}
+                buildPayload={() => buildOfflinePayload(packet, job)}
+              />
+            )}
             <StatusBadge status={packet?.status || job?.status} />
             <Link to={`/jobs/${job?.id || item.id}`}><ChevronRight size={14} className="text-muted-foreground" /></Link>
           </>
@@ -283,4 +306,40 @@ function PacketRow({ item, group, onGenerate, generating }: { item: any; group: 
       </div>
     </div>
   );
+}
+
+/**
+ * Build the offline snapshot payload from a packet row joined with its field
+ * + access instructions + dataset assets. Storage paths are passed through so
+ * the snapshot records what's available even when we can't pre-cache the bytes
+ * (signed URLs are short-lived; downloading them happens on the JobDetail page).
+ */
+function buildOfflinePayload(packet: any, job: any) {
+  const field = packet?.fields;
+  const ai = field?.field_access_instructions?.[0];
+  const files = (packet?.field_packet_files || [])
+    .filter((f: any) => f.included)
+    .map((f: any) => ({
+      name: f.file_name || f.dataset_assets?.file_name || `${f.category || "file"}`,
+      category: f.category,
+      storagePath: f.dataset_assets?.storage_path || null,
+      sizeBytes: f.file_size ?? f.dataset_assets?.file_size ?? null,
+    }));
+  return {
+    jobId: job?.id || packet.job_id,
+    jobDisplayId: job?.display_id ?? null,
+    fieldName: field?.name || job?.job_fields?.[0]?.fields?.name || null,
+    boundaryGeoJSON: field?.boundary_geojson ?? undefined,
+    accessInstructions: ai
+      ? {
+          directions: ai.directions,
+          gateCode: ai.gate_code,
+          hazards: ai.hazards,
+          contactName: ai.contact_name,
+          contactPhone: ai.contact_phone,
+          notes: ai.notes,
+        }
+      : null,
+    files,
+  };
 }

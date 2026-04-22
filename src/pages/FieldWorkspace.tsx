@@ -157,14 +157,40 @@ export default function FieldWorkspace() {
             {accessInstructions && (
               <div className="rounded bg-card border p-4">
                 <h3 className="text-sm font-semibold mb-3">Access Instructions</h3>
-                <p className="text-sm leading-relaxed">{accessInstructions.directions}</p>
-                {accessInstructions.gate_code && <p className="text-sm mt-2"><span className="font-medium">Gate Code:</span> {accessInstructions.gate_code}</p>}
-                {accessInstructions.hazards && <p className="text-sm mt-2 text-destructive"><span className="font-medium">Hazards:</span> {accessInstructions.hazards}</p>}
-                {accessInstructions.notes && <p className="text-sm mt-2 text-muted-foreground">{accessInstructions.notes}</p>}
+                {/* Sized for phone-in-tractor-cab readability — large, high contrast,
+                    with the gate code given top billing as a tap-to-select block. */}
+                {accessInstructions.gate_code && (
+                  <div className="rounded-md bg-primary/5 border border-primary/20 p-3 mb-3">
+                    <p className="text-[11px] font-semibold text-primary uppercase tracking-wider mb-1">Gate Code</p>
+                    <p className="text-3xl font-bold tabular-nums tracking-wider select-all break-all">
+                      {accessInstructions.gate_code}
+                    </p>
+                  </div>
+                )}
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Directions</p>
+                <p className="text-lg leading-relaxed font-medium whitespace-pre-wrap">{accessInstructions.directions}</p>
+                {accessInstructions.hazards && (
+                  <div className="rounded-md bg-destructive/10 border border-destructive/30 p-3 mt-3">
+                    <p className="text-[11px] font-semibold text-destructive uppercase tracking-wider mb-1">Hazards</p>
+                    <p className="text-base font-medium text-destructive leading-relaxed whitespace-pre-wrap">{accessInstructions.hazards}</p>
+                  </div>
+                )}
+                {accessInstructions.notes && (
+                  <p className="text-base mt-3 text-muted-foreground leading-relaxed whitespace-pre-wrap">{accessInstructions.notes}</p>
+                )}
                 {accessInstructions.contact_name && (
-                  <p className="text-xs text-muted-foreground mt-3">
-                    Contact: {accessInstructions.contact_name}{accessInstructions.contact_phone ? ` · ${accessInstructions.contact_phone}` : ""}
-                  </p>
+                  <div className="mt-4 pt-3 border-t">
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Contact</p>
+                    <p className="text-base font-medium">{accessInstructions.contact_name}</p>
+                    {accessInstructions.contact_phone && (
+                      <a
+                        href={`tel:${accessInstructions.contact_phone}`}
+                        className="text-lg font-semibold text-primary tabular-nums select-all"
+                      >
+                        {accessInstructions.contact_phone}
+                      </a>
+                    )}
+                  </div>
                 )}
               </div>
             )}
