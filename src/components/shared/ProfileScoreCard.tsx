@@ -1,34 +1,9 @@
 import { useProfileScore } from "@/hooks/useProfileScore";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, ChevronRight, ArrowRight, Square } from "lucide-react";
+import { CheckCircle2, ChevronRight, Square } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const MISSING_ITEM_LINKS: Record<string, { link: string; label: string }> = {
-  "Full name": { link: "/settings?tab=profile", label: "Add your name" },
-  "Email": { link: "/settings?tab=profile", label: "Add your email" },
-  "Farm created": { link: "/fields", label: "Create a farm" },
-  "Farm state": { link: "/fields", label: "Set farm state" },
-  "Farm county": { link: "/fields", label: "Set farm county" },
-  "At least one field": { link: "/fields", label: "Add a field" },
-  "Field boundary": { link: "/fields", label: "Add field boundary" },
-  "Field location": { link: "/fields", label: "Set field location" },
-  "Operator profile": { link: "/settings?tab=dowork", label: "Complete operator profile" },
-  "Base location": { link: "/settings?tab=dowork", label: "Set base location" },
-  "Service radius": { link: "/settings?tab=dowork", label: "Set service radius" },
-  "Service types": { link: "/settings?tab=dowork", label: "Select service types" },
-  "At least one equipment record": { link: "/settings?tab=dowork", label: "Add equipment" },
-  "Equipment": { link: "/settings?tab=dowork", label: "Add equipment" },
-  "Insurance documentation": { link: "/settings?tab=dowork", label: "Upload insurance" },
-  "License or certification": { link: "/settings?tab=dowork", label: "Add license" },
-  "Credentials (insurance, license)": { link: "/settings?tab=dowork", label: "Add credentials" },
-  "Stripe Connect": { link: "/settings?tab=dowork", label: "Connect Stripe to receive payments" },
-};
-
-function getItemAction(item: string) {
-  return MISSING_ITEM_LINKS[item] || { link: "/settings?tab=dowork", label: item };
-}
 
 export function ProfileScoreCard({ compact = false }: { compact?: boolean }) {
   const { data: score, isLoading } = useProfileScore();
@@ -75,43 +50,50 @@ export function ProfileScoreCard({ compact = false }: { compact?: boolean }) {
     );
   }
 
+  const completedCount = score.checklist.filter((c) => c.done).length;
+
   return (
     <div className="rounded bg-card border p-4">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-1">
         <h3 className="text-sm font-semibold">Profile Completion</h3>
         <span className={cn("text-lg font-bold tabular-nums", color)}>{score.total}%</span>
       </div>
+      <p className="text-[11px] text-muted-foreground mb-2">
+        {completedCount} of {score.checklist.length} steps complete
+      </p>
       <Progress value={score.total} className="h-2 mb-3" />
 
-      {score.missing.length > 0 && (
-        <div className="space-y-1">
-          <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide mb-1.5">Complete to unlock features</p>
-          {score.missing.slice(0, 8).map(item => {
-            const action = getItemAction(item);
-            return (
-              <Link
-                key={item}
-                to={action.link}
-                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground hover:bg-surface-2 rounded px-1.5 py-1.5 -mx-1.5 transition-colors group"
-              >
-                <Square size={12} className="text-muted-foreground shrink-0" strokeWidth={2} />
-                <span className="flex-1 min-w-0 truncate">{action.label}</span>
-                <ArrowRight size={10} className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-              </Link>
-            );
-          })}
-          {score.missing.length > 8 && (
-            <Link to="/settings?tab=account" className="text-[11px] text-primary hover:underline block mt-1">
-              +{score.missing.length - 8} more items →
+      <ol className="space-y-1">
+        {score.checklist.map((item, idx) => (
+          <li key={item.label}>
+            <Link
+              to={item.link}
+              className={cn(
+                "flex items-center gap-2 text-xs rounded px-1.5 py-1.5 -mx-1.5 transition-colors group",
+                item.done
+                  ? "text-muted-foreground"
+                  : "text-foreground hover:bg-surface-2",
+              )}
+            >
+              {item.done ? (
+                <CheckCircle2 size={14} className="text-success shrink-0" />
+              ) : (
+                <Square size={14} className="text-muted-foreground shrink-0" strokeWidth={2} />
+              )}
+              <span className="text-[11px] font-mono text-muted-foreground tabular-nums shrink-0">{idx + 1}.</span>
+              <span className={cn("flex-1 min-w-0 truncate", item.done && "line-through opacity-60")}>
+                {item.label}
+              </span>
+              <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">+{item.weight}%</span>
             </Link>
-          )}
-        </div>
-      )}
+          </li>
+        ))}
+      </ol>
 
-      {score.total >= 80 && (
-        <div className="flex items-center gap-2 text-xs text-success">
+      {score.total >= 100 && (
+        <div className="flex items-center gap-2 text-xs text-success mt-3 pt-3 border-t">
           <CheckCircle2 size={12} />
-          <span>Profile is well-configured</span>
+          <span>Your profile is complete</span>
         </div>
       )}
     </div>

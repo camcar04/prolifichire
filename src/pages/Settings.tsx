@@ -59,7 +59,8 @@ const MISSING_ITEM_MAP: Record<string, { blocked: string; reason: string; link: 
 export default function Settings() {
   const { profile, user, roles, hasRole, canSwitchRoles, activeMode, refreshProfile } = useAuth();
   const [searchParams] = useSearchParams();
-  const defaultTab = searchParams.get("tab") || "account";
+  const initialTab = searchParams.get("tab") || "account";
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   const [enablingRole, setEnablingRole] = useState(false);
   const { data: score } = useProfileScore();
   const queryClient = useQueryClient();
@@ -138,7 +139,7 @@ export default function Settings() {
   return (
     <AppShell title="Account Hub">
       <div className="max-w-3xl animate-fade-in">
-        <Tabs defaultValue={defaultTab} className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="h-8 flex-wrap">
             <TabsTrigger value="account" className="text-xs gap-1"><Settings2 size={12} /> Overview</TabsTrigger>
             <TabsTrigger value="profile" className="text-xs gap-1"><User size={12} /> Profile</TabsTrigger>
@@ -164,7 +165,25 @@ export default function Settings() {
                   {score.missing.map(item => {
                     const mapping = MISSING_ITEM_MAP[item];
                     if (!mapping) return null;
-                    return <BlockedItem key={item} label={mapping.blocked} reason={mapping.reason} link={mapping.link} cta={mapping.cta} />;
+                    // In-app navigation: when the fix lives on this same Settings page,
+                    // switch tabs and focus the relevant input instead of routing away.
+                    const isProfileItem = item === "Full name" || item === "Email";
+                    const inlineFix = isProfileItem
+                      ? () => {
+                          setActiveTab("profile");
+                          setTimeout(() => document.getElementById("firstName")?.focus(), 100);
+                        }
+                      : undefined;
+                    return (
+                      <BlockedItem
+                        key={item}
+                        label={mapping.blocked}
+                        reason={mapping.reason}
+                        link={inlineFix ? undefined : mapping.link}
+                        onClick={inlineFix}
+                        cta={mapping.cta}
+                      />
+                    );
                   })}
                 </div>
               </section>
@@ -204,11 +223,11 @@ export default function Settings() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs">First Name <span className="text-destructive">*</span></Label>
-                  <Input value={firstName} onChange={e => setFirstName(e.target.value)} className="h-8 text-sm" />
+                  <Input id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} className="h-8 text-sm" />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Last Name <span className="text-destructive">*</span></Label>
-                  <Input value={lastName} onChange={e => setLastName(e.target.value)} className="h-8 text-sm" />
+                  <Input id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} className="h-8 text-sm" />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Email</Label>
@@ -216,7 +235,7 @@ export default function Settings() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Phone</Label>
-                  <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="(555) 123-4567" className="h-8 text-sm" />
+                  <Input id="phone" value={phone} onChange={e => setPhone(e.target.value)} placeholder="(555) 123-4567" className="h-8 text-sm" />
                 </div>
               </div>
               <Button size="sm" className="mt-4 h-8 text-xs gap-1" onClick={handleSaveProfile} disabled={savingProfile || !firstName.trim() || !lastName.trim()}>
@@ -617,16 +636,22 @@ function RoleCard({ icon, title, desc, enabled, isPrimary, onEnable, enabling }:
   );
 }
 
-function BlockedItem({ label, reason, link, cta }: { label: string; reason: string; link: string; cta: string }) {
+function BlockedItem({ label, reason, link, cta, onClick }: { label: string; reason: string; link?: string; cta: string; onClick?: () => void }) {
   return (
     <div className="flex items-center justify-between gap-3 py-1.5">
       <div className="min-w-0">
         <p className="text-[13px] font-medium text-foreground">{label}</p>
         <p className="text-[11px] text-muted-foreground">{reason}</p>
       </div>
-      <Button size="sm" variant="outline" className="h-7 text-xs gap-1 shrink-0" asChild>
-        <Link to={link}>{cta} <ArrowRight size={10} /></Link>
-      </Button>
+      {onClick ? (
+        <Button size="sm" variant="outline" className="h-7 text-xs gap-1 shrink-0" onClick={onClick}>
+          {cta} <ArrowRight size={10} />
+        </Button>
+      ) : (
+        <Button size="sm" variant="outline" className="h-7 text-xs gap-1 shrink-0" asChild>
+          <Link to={link!}>{cta} <ArrowRight size={10} /></Link>
+        </Button>
+      )}
     </div>
   );
 }

@@ -285,6 +285,20 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
           <div className="flex items-center gap-2">
             <SyncStatusIndicator />
 
+            {/* Active mode pill — persistent indicator so users always know which workspace they're in */}
+            {!roles.includes("admin") && (
+              <span
+                className={cn(
+                  "hidden sm:inline-flex text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide",
+                  activeMode === "grower"
+                    ? "bg-success/15 text-success"
+                    : "bg-info/15 text-info",
+                )}
+              >
+                {activeMode === "grower" ? "Grower Mode" : "Operator Mode"}
+              </span>
+            )}
+
             <button
               onClick={() => setSearchOpen(true)}
               className="flex items-center gap-1.5 rounded border bg-surface-2 px-2.5 py-1 text-[12px] text-muted-foreground hover:bg-surface-3 transition-colors"

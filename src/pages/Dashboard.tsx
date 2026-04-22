@@ -7,7 +7,11 @@ import AppShell from "@/components/layout/AppShell";
 export default function Dashboard() {
   const { activeMode, roles } = useAuth();
   const isAdmin = roles.includes("admin");
-  const title = isAdmin ? "Admin Dashboard" : activeMode === "operator" ? "Do Work" : "Hire Work";
+  const title = isAdmin
+    ? "Admin Dashboard"
+    : activeMode === "operator"
+      ? "My Work Dashboard"
+      : "My Farm Operations";
 
   return (
     <AppShell title={title}>

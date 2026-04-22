@@ -18,12 +18,14 @@ import { useFields } from "@/hooks/useFields";
 import { useJobs } from "@/hooks/useJobs";
 import { useNotifications } from "@/hooks/useNotifications";
 import { formatCurrency, formatAcres, formatOperationType, formatDateShort, formatRelative } from "@/lib/format";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function GrowerDashboard() {
   const { data: fields = [], isLoading: fieldsLoading } = useFields();
   const { data: jobs = [], isLoading: jobsLoading } = useJobs();
   const { notifications } = useNotifications();
   const navigate = useNavigate();
+  const { hasRole } = useAuth();
   const [showCreateJob, setShowCreateJob] = useState(false);
 
   const isLoading = fieldsLoading || jobsLoading;
@@ -44,6 +46,19 @@ export default function GrowerDashboard() {
   return (
     <div className="space-y-3 animate-fade-in">
       <NextStepBanner />
+
+      {/* Operator cross-sell — only when user hasn't enabled operator role */}
+      {!hasRole("operator") && (
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 mb-1">
+          <p className="text-sm font-medium">Do you also offer custom ag services?</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Enable your operator profile to bid on jobs posted by other growers.
+          </p>
+          <Button size="sm" className="mt-2 h-7 text-xs" onClick={() => navigate("/settings?tab=account")}>
+            Set Up Operator Profile →
+          </Button>
+        </div>
+      )}
 
       {/* Command strip — not a hero, an operational signal */}
       {pendingApprovals.length > 0 ? (

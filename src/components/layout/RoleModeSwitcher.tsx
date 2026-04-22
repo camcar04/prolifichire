@@ -52,15 +52,6 @@ export function RoleModeSwitcher({ collapsed }: { collapsed: boolean }) {
             {current.label}
           </div>
         </div>
-        {!hasRole(activeMode === "grower" ? "operator" : "grower") && (
-          <button
-            onClick={() => navigate("/settings?tab=account")}
-            className="flex items-center gap-1.5 px-1 py-1 text-[10px] text-sidebar-foreground/40 hover:text-sidebar-foreground/70 transition-colors"
-          >
-            <Lock size={10} />
-            Enable {otherLabel}
-          </button>
-        )}
       </div>
     );
   }
