@@ -131,7 +131,7 @@ export function useAcceptQuoteWithContracts() {
           .eq("user_id", quote.operator_id)
           .maybeSingle();
         if (opProfile) {
-          opName = (opProfile as any).business_name || `${opProfile.first_name} ${opProfile.last_name}`.trim() || "Operator";
+          opName = `${opProfile.first_name ?? ""} ${opProfile.last_name ?? ""}`.trim() || "Operator";
         }
       }
       if (!growerName) {
@@ -141,7 +141,7 @@ export function useAcceptQuoteWithContracts() {
           .eq("user_id", user.id)
           .maybeSingle();
         if (grProfile) {
-          grName = (grProfile as any).business_name || `${grProfile.first_name} ${grProfile.last_name}`.trim() || "Grower";
+          grName = `${grProfile.first_name ?? ""} ${grProfile.last_name ?? ""}`.trim() || "Grower";
         }
       }
 
