@@ -280,8 +280,15 @@ serve(async (req) => {
        * - application_fee_amount is retained by the platform
        * - Remaining funds are queued for transfer to connected account
        */
+      /**
+        * checkout.session.completed (V1 event)
+        * ─────────────────────────────────────────────────────
+        * The ONLY path that may transition a job to `funded`.
+        * We require session.payment_status === "paid" and gate the
+        * UPDATE on funding_status IN ('pending_payment','funding_required','unfunded')
+        * so we never race the trigger or downgrade a later state.
+        */
       case "checkout.session.completed": {
-        // V1 events still carry full data — parse with constructEvent
         try {
           const v1Event = await stripeClient.webhooks.constructEventAsync(
             rawBody,
@@ -296,56 +303,200 @@ serve(async (req) => {
               `amount_total=${session.amount_total}`
           );
 
+          if (session.payment_status !== "paid") {
+            console.log(
+              `[checkout.completed] Skipping — payment_status=${session.payment_status}`
+            );
+            break;
+          }
+
           const productId = session.metadata?.platform_product_id;
-          const buyerId = session.metadata?.buyer_id;
-          const sellerAccount = session.metadata?.seller_connected_account;
-          const jobId = session.metadata?.job_id;
+          if (productId) {
+            console.log(
+              `[checkout.completed] Product: ${productId}, ` +
+                `Buyer: ${session.metadata?.buyer_id}, ` +
+                `Seller: ${session.metadata?.seller_connected_account}`
+            );
+          }
+
           const paymentIntentId =
             typeof session.payment_intent === "string"
               ? session.payment_intent
               : session.payment_intent?.id;
 
-          if (productId) {
-            console.log(
-              `[checkout.completed] Product: ${productId}, ` +
-                `Buyer: ${buyerId}, Seller: ${sellerAccount}`
-            );
-          }
-
-          // ── Escrow flow: store the PaymentIntent on the job and mark funded ──
-          // The funds now sit on the platform balance and will only be transferred
-          // to the operator after the grower approves the work. The release is
-          // performed by the `stripe-release-payout` edge function.
-          if (jobId && paymentIntentId) {
-            const amountDollars =
-              typeof session.amount_total === "number"
-                ? session.amount_total / 100
-                : null;
-
-            const { error: updErr } = await supabase
-              .from("jobs")
-              .update({
-                payment_intent_id: paymentIntentId,
-                funding_status: "funded",
-                funded_amount: amountDollars,
-                funded_at: new Date().toISOString(),
-              } as any)
-              .eq("id", jobId);
-
-            if (updErr) {
-              console.error(
-                `[checkout.completed] Failed to mark job ${jobId} funded:`,
-                updErr
+          // job_id may live on the session metadata or fall through from the PI
+          let jobId = session.metadata?.job_id ?? null;
+          if (!jobId && paymentIntentId) {
+            try {
+              const pi = await stripeClient.paymentIntents.retrieve(
+                paymentIntentId
               );
-            } else {
-              console.log(
-                `[checkout.completed] Job ${jobId} → funded ` +
-                  `(payment_intent=${paymentIntentId})`
+              jobId = (pi.metadata?.job_id as string | undefined) ?? null;
+            } catch (piErr) {
+              console.warn(
+                `[checkout.completed] Could not fetch PI ${paymentIntentId} for metadata fallback:`,
+                piErr
               );
             }
           }
+
+          if (!jobId || !paymentIntentId) {
+            console.log(
+              `[checkout.completed] No job_id/payment_intent — non-job session, ignoring.`
+            );
+            break;
+          }
+
+          // Use line items total when amount_total is missing
+          let amountDollars: number | null =
+            typeof session.amount_total === "number"
+              ? session.amount_total / 100
+              : null;
+          if (amountDollars == null) {
+            try {
+              const items = await stripeClient.checkout.sessions.listLineItems(
+                session.id,
+                { limit: 100 }
+              );
+              const totalCents = items.data.reduce(
+                (acc, li) => acc + (li.amount_total ?? 0),
+                0
+              );
+              amountDollars = totalCents > 0 ? totalCents / 100 : null;
+            } catch (liErr) {
+              console.warn(
+                `[checkout.completed] Could not list line items for ${session.id}:`,
+                liErr
+              );
+            }
+          }
+
+          const { error: updErr, data: updRows } = await supabase
+            .from("jobs")
+            .update({
+              payment_intent_id: paymentIntentId,
+              stripe_payment_intent_id: paymentIntentId,
+              funding_status: "funded",
+              funded_amount: amountDollars,
+              funded_at: new Date().toISOString(),
+            } as any)
+            .eq("id", jobId)
+            .in("funding_status", [
+              "pending_payment",
+              "funding_required",
+              "unfunded",
+            ])
+            .select("id");
+
+          if (updErr) {
+            console.error(
+              `[checkout.completed] Failed to mark job ${jobId} funded:`,
+              updErr
+            );
+          } else if (!updRows || updRows.length === 0) {
+            console.log(
+              `[checkout.completed] Job ${jobId} not in a fundable state — no-op.`
+            );
+          } else {
+            console.log(
+              `[checkout.completed] Job ${jobId} → funded ` +
+                `(payment_intent=${paymentIntentId}, amount=$${amountDollars})`
+            );
+          }
         } catch (v1Err) {
           console.error("[checkout.completed] V1 parse error:", v1Err);
+        }
+        break;
+      }
+
+      /**
+        * checkout.session.expired
+        * ─────────────────────────────────────────────────────
+        * The grower opened a Checkout Session and abandoned it.
+        * Reset the job so they can start a new one.
+        */
+      case "checkout.session.expired": {
+        try {
+          const v1Event = await stripeClient.webhooks.constructEventAsync(
+            rawBody,
+            signature,
+            webhookSecret
+          );
+          const session = v1Event.data.object as Stripe.Checkout.Session;
+
+          console.log(`[checkout.expired] Session ${session.id} expired.`);
+
+          const { error: updErr } = await supabase
+            .from("jobs")
+            .update({
+              funding_status: "funding_required",
+              stripe_checkout_session_id: null,
+            } as any)
+            .eq("stripe_checkout_session_id", session.id)
+            .eq("funding_status", "pending_payment");
+
+          if (updErr) {
+            console.error(
+              `[checkout.expired] Failed to reset job for session ${session.id}:`,
+              updErr
+            );
+          } else {
+            console.log(
+              `[checkout.expired] Reset any pending job for session ${session.id}.`
+            );
+          }
+        } catch (v1Err) {
+          console.error("[checkout.expired] V1 parse error:", v1Err);
+        }
+        break;
+      }
+
+      /**
+        * payment_intent.payment_failed
+        * ─────────────────────────────────────────────────────
+        * The grower's card was declined or auth failed. Reset
+        * the job so they can retry from a clean state.
+        */
+      case "payment_intent.payment_failed": {
+        try {
+          const v1Event = await stripeClient.webhooks.constructEventAsync(
+            rawBody,
+            signature,
+            webhookSecret
+          );
+          const pi = v1Event.data.object as Stripe.PaymentIntent;
+          const jobId = (pi.metadata?.job_id as string | undefined) || null;
+
+          console.log(
+            `[pi.payment_failed] PaymentIntent ${pi.id} failed for job ${jobId}.`
+          );
+
+          if (!jobId) {
+            console.log(
+              `[pi.payment_failed] No job_id in metadata — nothing to reset.`
+            );
+            break;
+          }
+
+          const { error: updErr } = await supabase
+            .from("jobs")
+            .update({
+              funding_status: "funding_required",
+              stripe_checkout_session_id: null,
+            } as any)
+            .eq("id", jobId)
+            .eq("funding_status", "pending_payment");
+
+          if (updErr) {
+            console.error(
+              `[pi.payment_failed] Failed to reset job ${jobId}:`,
+              updErr
+            );
+          } else {
+            console.log(`[pi.payment_failed] Reset job ${jobId} → funding_required.`);
+          }
+        } catch (v1Err) {
+          console.error("[pi.payment_failed] V1 parse error:", v1Err);
         }
         break;
       }
