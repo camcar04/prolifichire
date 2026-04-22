@@ -165,7 +165,25 @@ export default function Settings() {
                   {score.missing.map(item => {
                     const mapping = MISSING_ITEM_MAP[item];
                     if (!mapping) return null;
-                    return <BlockedItem key={item} label={mapping.blocked} reason={mapping.reason} link={mapping.link} cta={mapping.cta} />;
+                    // In-app navigation: when the fix lives on this same Settings page,
+                    // switch tabs and focus the relevant input instead of routing away.
+                    const isProfileItem = item === "Full name" || item === "Email";
+                    const inlineFix = isProfileItem
+                      ? () => {
+                          setActiveTab("profile");
+                          setTimeout(() => document.getElementById("firstName")?.focus(), 100);
+                        }
+                      : undefined;
+                    return (
+                      <BlockedItem
+                        key={item}
+                        label={mapping.blocked}
+                        reason={mapping.reason}
+                        link={inlineFix ? undefined : mapping.link}
+                        onClick={inlineFix}
+                        cta={mapping.cta}
+                      />
+                    );
                   })}
                 </div>
               </section>
