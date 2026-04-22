@@ -19,9 +19,15 @@
  * ── Two flows ──
  *  1. JOB FUNDING (preferred for marketplace work):
  *     POST { job_id: string }
- *     - Creates a PaymentIntent for `growerChargeCents` on the platform balance
- *     - Stores all fee numbers + payment_intent_id on the job row
- *     - Returns the PaymentIntent client_secret so the client can confirm payment
+ *     - Creates a Stripe Checkout Session for `growerChargeCents` on the
+ *       PLATFORM balance (no transfer_data — funds stay in escrow until the
+ *       stripe-release-payout function fires after work is approved).
+ *     - Marks the job as `pending_payment` and stores the session id +
+ *       fee-breakdown cents on the job row. funded_at / funded_amount stay
+ *       NULL — only the webhook may transition the job to `funded`.
+ *     - Returns { url, session_id } so the client can redirect to Stripe.
+ *     - Idempotent: if an open Checkout Session already exists for this job,
+ *       its URL is returned instead of creating a new session.
  *
  *  2. PRODUCT CHECKOUT (legacy storefront flow, retained):
  *     POST { product_id: string }
