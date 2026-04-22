@@ -683,3 +683,49 @@ function Row({ label, value, bold }: { label: string; value: string; bold?: bool
     </div>
   );
 }
+
+/**
+ * Render structured operation_specs.spec_data into readable rows.
+ * Maps internal codes (e.g. "grower_provided") to friendly labels.
+ */
+function renderSpecRows(opType: string, data: Record<string, any>) {
+  const labelMap: Record<string, string> = {
+    grower_provided: "Grower provides on-site",
+    operator_sources: "Operator must source water",
+    not_applicable: "Not applicable",
+    grower_provides_cart: "Grower provides grain cart",
+    operator_brings_cart: "Operator brings own cart",
+    herbicide: "Herbicide",
+    fungicide: "Fungicide",
+    insecticide: "Insecticide",
+    fertilizer_dry: "Fertilizer (dry)",
+    fertilizer_liquid: "Fertilizer (liquid)",
+    other: "Other",
+  };
+  const friendly = (v: any) => (typeof v === "string" && labelMap[v]) || String(v);
+
+  const rows: Array<{ label: string; value: string }> = [];
+  const isApp = opType === "spraying" || opType === "fertilizing";
+
+  if (isApp) {
+    if (data.product_name) rows.push({ label: "Product", value: data.product_name });
+    if (data.product_type) rows.push({ label: "Type", value: friendly(data.product_type) });
+    if (data.target_rate) rows.push({ label: "Target rate", value: `${data.target_rate} ${data.rate_unit || ""}`.trim() });
+    if (data.water_source) rows.push({ label: "Water source", value: friendly(data.water_source) });
+  }
+  if (opType === "planting") {
+    if (data.row_spacing) rows.push({ label: "Row spacing", value: `${data.row_spacing} in` });
+    if (data.variety) rows.push({ label: "Variety / seed", value: data.variety });
+  }
+  if (opType === "harvest") {
+    if (data.moisture_target) rows.push({ label: "Moisture target", value: `${data.moisture_target}%` });
+    if (data.truck_logistics) rows.push({ label: "Cart logistics", value: friendly(data.truck_logistics) });
+  }
+
+  return rows.map(r => (
+    <div key={r.label} className="flex items-center justify-between gap-3 px-3 py-2">
+      <dt className="text-[11px] text-muted-foreground uppercase tracking-wider">{r.label}</dt>
+      <dd className="text-[12px] font-medium text-right">{r.value}</dd>
+    </div>
+  ));
+}
