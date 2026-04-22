@@ -245,6 +245,8 @@ export default function Signup() {
               Create Account
             </Button>
           </form>
+          </>
+          )}
         </div>
 
         <p className="text-sm text-center text-muted-foreground mt-4">
