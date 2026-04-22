@@ -2,137 +2,136 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+export interface ProfileChecklistItem {
+  /** Display label rendered in the checklist row. */
+  label: string;
+  /** Weight (0–100) contributed when complete. */
+  weight: number;
+  /** Whether the item is currently complete. */
+  done: boolean;
+  /** Where to send the user to complete this item. */
+  link: string;
+}
+
 export interface ProfileScoreBreakdown {
+  /** Sum of weights of completed items. */
   total: number;
-  core: number;
-  functional: number;
-  trust: number;
-  advanced: number;
+  /** Ordered checklist: rendered top-to-bottom in the UI. */
+  checklist: ProfileChecklistItem[];
+  /** Convenience: labels of items not yet done (preserves checklist order). */
   missing: string[];
 }
 
 /**
- * Deterministic profile completion scoring.
+ * Deterministic profile completion scoring — exact weights per product spec.
  *
- * GROWER (100 pts total):
- *   Core (40):       Full name (15), Email (5), Farm created (10), Farm state+county (10)
- *   Functional (50): At least one field (20), Field boundary (15), Field location/centroid (15)
- *   Advanced (10):   Account base credit (10)
+ * GROWER (100% total):
+ *   - First + last name set (10%)
+ *   - Phone number set (10%)
+ *   - At least one farm created (20%)
+ *   - At least one field with a boundary (20%)
+ *   - Organization / business name set (20%)
+ *   - First job posted (20%)
  *
- * OPERATOR (100 pts total):
- *   Core (35):       Full name (10), Email (5), Operator profile (5), Base location (5),
- *                    Service radius (5), Service types (5)
- *   Functional (25): At least one equipment record (25)
- *   Trust (30):      Any credential (5), Insurance (10), License/cert (10), Verified (5)
- *   Advanced (10):   Stripe Connect onboarded (10)
+ * OPERATOR (100% total):
+ *   - First + last name set (10%)
+ *   - Phone number set (10%)
+ *   - Business name set (15%)
+ *   - At least one equipment record (20%)
+ *   - At least one credential uploaded (20%)
+ *   - Stripe Connect completed (25%)
  *
  * The calculation is atomic: all required queries run in parallel via Promise.all and the
  * score is only emitted once every input has resolved. The hook stays disabled until the
- * AuthContext profile has loaded so `missing` items are stable across re-renders.
+ * AuthContext profile has loaded so the checklist is stable across re-renders. React Query
+ * memoizes the result by `[user.id, mode, profile-loaded]` so callers can call this hook
+ * without re-computing on every render.
  */
 export function useProfileScore() {
   const { user, profile, activeMode, loading: authLoading } = useAuth();
 
   return useQuery({
-    // Profile presence is part of the key so the score recomputes once profile arrives
-    // instead of caching a partial result computed against a null profile.
     queryKey: ["profile-score", user?.id, activeMode, !!profile],
     enabled: !!user && !authLoading && !!profile,
     queryFn: async (): Promise<ProfileScoreBreakdown> => {
-      const missing: string[] = [];
-      let core = 0, functional = 0, trust = 0, advanced = 0;
-
-      // Core profile fields (always evaluated, never racey — read from AuthContext)
       const hasName = !!(profile?.firstName && profile?.lastName);
-      const hasEmail = !!profile?.email;
+
+      // Always-needed profile fields not on AuthContext: phone + organization
+      const { data: profileRow } = await supabase
+        .from("profiles")
+        .select("phone, organization_id, stripe_onboarded")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      const hasPhone = !!profileRow?.phone;
 
       if (activeMode === "grower") {
         // Atomic fetch of every grower input
-        const { data: farms } = await supabase
-          .from("farms")
-          .select("id, state, county")
-          .eq("owner_id", user!.id)
-          .limit(1);
-        const farm = farms?.[0];
-
-        const [fieldCountResp, fieldsResp] = await Promise.all([
-          farm
-            ? supabase.from("fields").select("id", { count: "exact", head: true }).eq("farm_id", farm.id)
-            : Promise.resolve({ count: 0 } as { count: number | null }),
-          farm
-            ? supabase.from("fields").select("boundary_geojson, centroid_lat").eq("farm_id", farm.id).limit(10)
-            : Promise.resolve({ data: [] as Array<{ boundary_geojson: unknown; centroid_lat: number | null }> }),
+        const [farmResp, jobResp, orgResp] = await Promise.all([
+          supabase.from("farms").select("id").eq("owner_id", user!.id).limit(1),
+          supabase.from("jobs").select("id", { count: "exact", head: true }).eq("requested_by", user!.id),
+          profileRow?.organization_id
+            ? supabase.from("organizations").select("name").eq("id", profileRow.organization_id).maybeSingle()
+            : Promise.resolve({ data: null as { name: string | null } | null }),
         ]);
 
-        const fieldCount = fieldCountResp.count ?? 0;
-        const fields = fieldsResp.data ?? [];
-        const hasBoundary = fields.some(f => f.boundary_geojson);
-        const hasLocation = fields.some(f => f.centroid_lat != null);
+        const farm = farmResp.data?.[0];
+        const fieldsResp = farm
+          ? await supabase.from("fields").select("boundary_geojson").eq("farm_id", farm.id).limit(50)
+          : { data: [] as Array<{ boundary_geojson: unknown }> };
+        const hasField = (fieldsResp.data ?? []).length > 0;
+        const hasBoundary = (fieldsResp.data ?? []).some((f) => f.boundary_geojson);
+        const hasJobPosted = (jobResp.count ?? 0) > 0;
+        const hasOrg = !!(orgResp as { data?: { name?: string | null } | null })?.data?.name;
 
-        // Score (deterministic order matches missing[] for stability)
-        if (hasName) core += 15; else missing.push("Full name");
-        if (hasEmail) core += 5; else missing.push("Email");
-        if (farm) core += 10; else missing.push("Farm created");
-        if (farm?.state && farm?.county) core += 10;
-        else {
-          if (!farm?.state) missing.push("Farm state");
-          if (!farm?.county) missing.push("Farm county");
-        }
-        if (fieldCount > 0) functional += 20; else missing.push("At least one field");
-        if (hasBoundary) functional += 15; else if (fieldCount > 0) missing.push("Field boundary");
-        if (hasLocation) functional += 15; else if (fieldCount > 0) missing.push("Field location");
-        advanced += 10; // base account credit
+        const checklist: ProfileChecklistItem[] = [
+          { label: "Add your first and last name", weight: 10, done: hasName, link: "/settings?tab=profile" },
+          { label: "Add a phone number", weight: 10, done: hasPhone, link: "/settings?tab=profile" },
+          { label: "Create your first farm", weight: 20, done: !!farm, link: "/fields" },
+          { label: "Add a field with a boundary", weight: 20, done: hasField && hasBoundary, link: "/fields" },
+          { label: "Set your organization / business name", weight: 20, done: hasOrg, link: "/settings?tab=hirework" },
+          { label: "Post your first job", weight: 20, done: hasJobPosted, link: "/jobs" },
+        ];
+
+        const total = checklist.reduce((sum, c) => sum + (c.done ? c.weight : 0), 0);
+        const missing = checklist.filter((c) => !c.done).map((c) => c.label);
+        return { total: Math.min(100, total), checklist, missing };
       } else {
         // Operator: fetch profile then dependent rows in parallel
         const { data: opProf } = await supabase
           .from("operator_profiles")
-          .select("id, base_lat, base_lng, service_radius, service_types")
+          .select("id, business_name")
           .eq("user_id", user!.id)
           .maybeSingle();
 
-        const [{ count: eqCount }, { data: creds }, { data: payProf }] = await Promise.all([
+        const [eqResp, credsResp] = await Promise.all([
           opProf
             ? supabase.from("equipment").select("id", { count: "exact", head: true }).eq("operator_id", opProf.id)
             : Promise.resolve({ count: 0 } as { count: number | null }),
           opProf
-            ? supabase.from("credentials").select("type, is_verified").eq("operator_id", opProf.id)
-            : Promise.resolve({ data: [] as Array<{ type: string; is_verified: boolean | null }> }),
-          supabase
-            .from("profiles")
-            .select("stripe_onboarded")
-            .eq("user_id", user!.id)
-            .maybeSingle(),
+            ? supabase.from("credentials").select("id").eq("operator_id", opProf.id).limit(1)
+            : Promise.resolve({ data: [] as Array<{ id: string }> }),
         ]);
 
-        const credList = creds ?? [];
-        const hasInsurance = credList.some(c => c.type === "insurance");
-        const hasLicense = credList.some(c => c.type === "license" || c.type === "certification");
-        const hasVerified = credList.some(c => c.is_verified);
-        const stripeOnboarded = !!(payProf as { stripe_onboarded?: boolean | null } | null)?.stripe_onboarded;
+        const hasBusinessName = !!opProf?.business_name;
+        const hasEquipment = (eqResp.count ?? 0) > 0;
+        const hasCredential = (credsResp.data ?? []).length > 0;
+        const stripeOnboarded = !!profileRow?.stripe_onboarded;
 
-        if (hasName) core += 10; else missing.push("Full name");
-        if (hasEmail) core += 5; else missing.push("Email");
-        if (opProf) core += 5; else missing.push("Operator profile");
-        if (opProf?.base_lat && opProf?.base_lng) core += 5; else missing.push("Base location");
-        if (opProf?.service_radius) core += 5; else missing.push("Service radius");
-        if (opProf?.service_types && (opProf.service_types as string[]).length > 0) core += 5;
-        else missing.push("Service types");
+        const checklist: ProfileChecklistItem[] = [
+          { label: "Add your first and last name", weight: 10, done: hasName, link: "/settings?tab=profile" },
+          { label: "Add a phone number", weight: 10, done: hasPhone, link: "/settings?tab=profile" },
+          { label: "Set your business name", weight: 15, done: hasBusinessName, link: "/settings?tab=dowork" },
+          { label: "Add at least one equipment record", weight: 20, done: hasEquipment, link: "/settings?tab=dowork" },
+          { label: "Upload at least one credential", weight: 20, done: hasCredential, link: "/settings?tab=dowork" },
+          { label: "Complete Stripe Connect setup", weight: 25, done: stripeOnboarded, link: "/settings?tab=profile" },
+        ];
 
-        if ((eqCount ?? 0) > 0) functional += 25; else missing.push("At least one equipment record");
-
-        if (credList.length > 0) trust += 5; else missing.push("Credentials (insurance, license)");
-        if (hasInsurance) trust += 10; else if (credList.length > 0) missing.push("Insurance documentation");
-        if (hasLicense) trust += 10; else if (credList.length > 0) missing.push("License or certification");
-        if (hasVerified) trust += 5;
-
-        if (stripeOnboarded) advanced += 10; else missing.push("Stripe Connect");
+        const total = checklist.reduce((sum, c) => sum + (c.done ? c.weight : 0), 0);
+        const missing = checklist.filter((c) => !c.done).map((c) => c.label);
+        return { total: Math.min(100, total), checklist, missing };
       }
-
-      const total = Math.min(100, core + functional + trust + advanced);
-      return { total, core, functional, trust, advanced, missing };
     },
     staleTime: 5 * 60 * 1000,
-    // Keep the previous score visible while a recompute is in flight so the UI doesn't flash
     placeholderData: (prev) => prev,
   });
 }
