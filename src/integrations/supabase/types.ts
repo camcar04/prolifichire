@@ -1757,6 +1757,7 @@ export type Database = {
           funded_amount: number | null
           funded_at: string | null
           funding_status: Database["public"]["Enums"]["funding_status"]
+          grower_charge_cents: number | null
           id: string
           invoiced_total: number | null
           last_edited_at: string | null
@@ -1764,9 +1765,12 @@ export type Database = {
           notes: string | null
           operation_type: Database["public"]["Enums"]["operation_type"]
           operator_id: string | null
+          operator_payout_cents: number | null
+          paid_at: string | null
           paid_total: number | null
           payment_intent_id: string | null
           platform_fee_amount: number | null
+          platform_fee_cents: number | null
           platform_fee_rate: number
           pricing_model: Database["public"]["Enums"]["pricing_model"]
           proof_approved: boolean | null
@@ -1778,6 +1782,8 @@ export type Database = {
           scheduled_start: string | null
           split_payment: boolean | null
           status: Database["public"]["Enums"]["job_status"]
+          stripe_fee_cents: number | null
+          stripe_payment_intent_id: string | null
           stripe_transfer_id: string | null
           title: string
           total_acres: number
@@ -1811,6 +1817,7 @@ export type Database = {
           funded_amount?: number | null
           funded_at?: string | null
           funding_status?: Database["public"]["Enums"]["funding_status"]
+          grower_charge_cents?: number | null
           id?: string
           invoiced_total?: number | null
           last_edited_at?: string | null
@@ -1818,9 +1825,12 @@ export type Database = {
           notes?: string | null
           operation_type: Database["public"]["Enums"]["operation_type"]
           operator_id?: string | null
+          operator_payout_cents?: number | null
+          paid_at?: string | null
           paid_total?: number | null
           payment_intent_id?: string | null
           platform_fee_amount?: number | null
+          platform_fee_cents?: number | null
           platform_fee_rate?: number
           pricing_model?: Database["public"]["Enums"]["pricing_model"]
           proof_approved?: boolean | null
@@ -1832,6 +1842,8 @@ export type Database = {
           scheduled_start?: string | null
           split_payment?: boolean | null
           status?: Database["public"]["Enums"]["job_status"]
+          stripe_fee_cents?: number | null
+          stripe_payment_intent_id?: string | null
           stripe_transfer_id?: string | null
           title: string
           total_acres?: number
@@ -1865,6 +1877,7 @@ export type Database = {
           funded_amount?: number | null
           funded_at?: string | null
           funding_status?: Database["public"]["Enums"]["funding_status"]
+          grower_charge_cents?: number | null
           id?: string
           invoiced_total?: number | null
           last_edited_at?: string | null
@@ -1872,9 +1885,12 @@ export type Database = {
           notes?: string | null
           operation_type?: Database["public"]["Enums"]["operation_type"]
           operator_id?: string | null
+          operator_payout_cents?: number | null
+          paid_at?: string | null
           paid_total?: number | null
           payment_intent_id?: string | null
           platform_fee_amount?: number | null
+          platform_fee_cents?: number | null
           platform_fee_rate?: number
           pricing_model?: Database["public"]["Enums"]["pricing_model"]
           proof_approved?: boolean | null
@@ -1886,6 +1902,8 @@ export type Database = {
           scheduled_start?: string | null
           split_payment?: boolean | null
           status?: Database["public"]["Enums"]["job_status"]
+          stripe_fee_cents?: number | null
+          stripe_payment_intent_id?: string | null
           stripe_transfer_id?: string | null
           title?: string
           total_acres?: number

@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
 import {
   deriveAgreedPrice,
-  calculatePlatformFee,
   useFundJob,
   isFundingRequired,
 } from "@/hooks/usePaymentFlow";
 import { FundingStatusBadge } from "./FundingStatusBadge";
+import { FeeBreakdown, computeFeeBreakdown } from "./FeeBreakdown";
 import { DollarSign, Shield, CreditCard, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -64,10 +64,8 @@ export function FundingPrompt({ job, isGrowerView }: FundingPromptProps) {
     );
   }
 
-  const { platformFee, operatorPayout, total } = calculatePlatformFee(
-    agreedPrice,
-    Number((job as any).platform_fee_rate || 0.05)
-  );
+  const breakdown = computeFeeBreakdown(agreedPrice);
+  const totalDollars = breakdown.growerChargeCents / 100;
 
   return (
     <div className="rounded border border-warning/30 bg-warning/5 p-4 space-y-3">
@@ -78,42 +76,24 @@ export function FundingPrompt({ job, isGrowerView }: FundingPromptProps) {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Fund this job so the operator can begin work. Funds are held securely until work is completed and approved.
+        Review the full fee breakdown below before funding. Funds are held securely until work is completed and approved.
       </p>
 
-      <div className="space-y-1 text-[13px]">
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Agreed Price</span>
-          <span className="font-semibold tabular-nums">{formatCurrency(total)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Platform Fee (5%)</span>
-          <span className="tabular-nums text-muted-foreground">{formatCurrency(platformFee)}</span>
-        </div>
-        <div className="border-t pt-1 flex justify-between font-semibold">
-          <span>Operator Payout</span>
-          <span className="tabular-nums">{formatCurrency(operatorPayout)}</span>
-        </div>
-      </div>
+      <FeeBreakdown jobTotal={agreedPrice} side="grower" />
 
       <div className="space-y-2 pt-1">
-        <div className="flex items-start gap-2 text-[11px] text-muted-foreground">
-          <Shield size={12} className="shrink-0 mt-0.5" />
-          <span>Funds are held until you approve completed work. Full refund if job is cancelled before work begins.</span>
-        </div>
-
         {!confirming ? (
           <Button
             className="w-full gap-2"
             onClick={() => setConfirming(true)}
           >
             <CreditCard size={14} />
-            Fund Job — {formatCurrency(total)}
+            Fund Job — {formatCurrency(totalDollars)}
           </Button>
         ) : (
           <div className="space-y-2">
             <p className="text-xs font-medium text-center">
-              Confirm funding of {formatCurrency(total)}?
+              Confirm funding of {formatCurrency(totalDollars)}?
             </p>
             <div className="flex gap-2">
               <Button
@@ -129,7 +109,7 @@ export function FundingPrompt({ job, isGrowerView }: FundingPromptProps) {
                 className="flex-1 gap-1"
                 disabled={fundJob.isPending}
                 onClick={() =>
-                  fundJob.mutate({ jobId: job.id, amount: total })
+                  fundJob.mutate({ jobId: job.id, amount: totalDollars })
                 }
               >
                 <DollarSign size={12} />
@@ -160,11 +140,8 @@ function OperatorFundingView({ job }: { job: any }) {
       </div>
 
       {agreedPrice ? (
-        <div className="space-y-1 text-[13px]">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Agreed Price</span>
-            <span className="font-semibold tabular-nums">{formatCurrency(agreedPrice)}</span>
-          </div>
+        <div className="space-y-3 text-[13px]">
+          <FeeBreakdown jobTotal={agreedPrice} side="operator" />
           {fundingStatus === "funded" && (
             <p className="text-xs text-success mt-1">
               ✓ Job is funded. You may begin work when scheduled.

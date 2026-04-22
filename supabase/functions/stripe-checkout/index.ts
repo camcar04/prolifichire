@@ -1,26 +1,32 @@
 /**
  * stripe-checkout
  *
- * Creates a Stripe Checkout Session using PLATFORM-HELD CHARGES (escrow model).
+ * Creates a Stripe Checkout Session using PLATFORM-HELD CHARGES (escrow model)
+ * with a TRANSPARENT SPLIT FEE.
  *
- * ── Why platform-held instead of destination charges? ──
- * Agricultural work has not happened yet at the time of payment.
- * If we used destination charges, funds would route to the operator's
- * connected account immediately — before any field work is done.
- * Instead, we charge the grower to the PLATFORM account and hold the funds
- * until the grower clicks "Approve Work". The payout to the operator is
- * then triggered by the `stripe-release-payout` edge function via a
- * Stripe Transfer from the platform balance.
+ * ── Fee math (canonical) ──
+ *   growerPlatformFeeCents     = jobTotal × 7.5%
+ *   operatorPlatformFeeCents   = jobTotal × 7.5%
+ *   growerChargeCents          = jobTotal + growerPlatformFeeCents
+ *   stripeFeeCents             = round(growerChargeCents × 2.9%) + 30
+ *   operatorPayoutCents        = jobTotal − operatorPlatformFeeCents
+ *   platformRevenueCents       = grower fee + operator fee − stripeFee
  *
- * ── Fee Schedule ──
- * The platform takes a configurable percentage on each transaction.
- * Fee rates are determined in this priority order:
- *   1. Per-product override  → platform_products.platform_fee_percent
- *   2. Operation-type default → OPERATION_FEE_SCHEDULE map below
- *   3. Global fallback       → DEFAULT_FEE_PERCENT (10%)
+ * The grower pays the platform fee + Stripe processing on top of the job total.
+ * The operator receives the job total minus their 7.5% fee. Stripe processing
+ * is absorbed by the platform from the grower's gross payment.
  *
- * POST body: { product_id: string }
- * Response: { url: string }
+ * ── Two flows ──
+ *  1. JOB FUNDING (preferred for marketplace work):
+ *     POST { job_id: string }
+ *     - Creates a PaymentIntent for `growerChargeCents` on the platform balance
+ *     - Stores all fee numbers + payment_intent_id on the job row
+ *     - Returns the PaymentIntent client_secret so the client can confirm payment
+ *
+ *  2. PRODUCT CHECKOUT (legacy storefront flow, retained):
+ *     POST { product_id: string }
+ *     - Creates a Stripe Checkout Session for a one-off platform_products row
+ *     - Returns { url } for redirect
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -31,6 +37,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+// ── Split-fee constants (must match src/components/payments/FeeBreakdown.tsx) ──
+const PLATFORM_FEE_RATE = 0.075;       // 7.5% per side
+const STRIPE_PERCENT_FEE = 0.029;      // 2.9%
+const STRIPE_FIXED_FEE_CENTS = 30;     // $0.30
 
 /**
  * DEFAULT_FEE_PERCENT — global fallback when no per-product or per-type fee is set.
@@ -145,10 +156,162 @@ serve(async (req) => {
     }
 
     // ── Parse request ──
-    const { product_id } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { product_id, job_id } = body || {};
+
+    // ─────────────────────────────────────────────────────────────
+    // FLOW 1: Job funding with transparent split fee
+    // ─────────────────────────────────────────────────────────────
+    if (job_id) {
+      // Load the job
+      const { data: job, error: jobErr } = await supabase
+        .from("jobs")
+        .select(
+          "id, requested_by, operator_id, status, agreed_price, approved_total, " +
+            "estimated_total, contract_mode, stripe_payment_intent_id, funding_status"
+        )
+        .eq("id", job_id)
+        .maybeSingle();
+
+      if (jobErr || !job) {
+        return new Response(JSON.stringify({ error: "Job not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Authorization: only the grower (requester) can fund the job
+      if (job.requested_by !== user.id) {
+        return new Response(
+          JSON.stringify({ error: "Only the grower who posted this job can fund it" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Idempotency: if a PaymentIntent already exists, return it
+      const stripeClient = new Stripe(stripeKey);
+      if (job.stripe_payment_intent_id) {
+        const existing = await stripeClient.paymentIntents.retrieve(
+          job.stripe_payment_intent_id
+        );
+        if (
+          existing.status !== "canceled" &&
+          existing.status !== "succeeded"
+        ) {
+          return new Response(
+            JSON.stringify({
+              payment_intent_id: existing.id,
+              client_secret: existing.client_secret,
+              amount_cents: existing.amount,
+              already_created: true,
+            }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+
+      // Resolve job total in dollars → cents (mirror of deriveAgreedPrice)
+      const agreedTotal = Number(
+        job.agreed_price ||
+          job.approved_total ||
+          (job.contract_mode === "fixed_price" ? job.estimated_total : 0) ||
+          0
+      );
+      if (!(agreedTotal > 0)) {
+        return new Response(
+          JSON.stringify({ error: "Job has no agreed price to charge" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // ── Canonical fee math (must match FeeBreakdown.tsx) ──
+      const jobTotalCents = Math.round(agreedTotal * 100);
+      const growerPlatformFeeCents = Math.round(jobTotalCents * PLATFORM_FEE_RATE);
+      const operatorPlatformFeeCents = Math.round(jobTotalCents * PLATFORM_FEE_RATE);
+      const growerChargeAmountCents = jobTotalCents + growerPlatformFeeCents;
+      const stripeFeeCents =
+        Math.round(growerChargeAmountCents * STRIPE_PERCENT_FEE) +
+        STRIPE_FIXED_FEE_CENTS;
+      const operatorPayoutCents = jobTotalCents - operatorPlatformFeeCents;
+
+      console.log(
+        `[stripe-checkout] job=${job.id} ` +
+          `total=${jobTotalCents}¢ grower_fee=${growerPlatformFeeCents}¢ ` +
+          `op_fee=${operatorPlatformFeeCents}¢ stripe_fee=${stripeFeeCents}¢ ` +
+          `charge=${growerChargeAmountCents}¢ payout=${operatorPayoutCents}¢`
+      );
+
+      // Create a PaymentIntent on the PLATFORM balance — no transfer_data,
+      // funds stay in escrow until stripe-release-payout fires on approval.
+      const paymentIntent = await stripeClient.paymentIntents.create(
+        {
+          amount: growerChargeAmountCents,
+          currency: "usd",
+          automatic_payment_methods: { enabled: true },
+          metadata: {
+            flow: "job_split_fee_escrow",
+            job_id: job.id,
+            grower_id: job.requested_by,
+            operator_id: job.operator_id || "",
+            job_total_cents: String(jobTotalCents),
+            grower_platform_fee_cents: String(growerPlatformFeeCents),
+            operator_platform_fee_cents: String(operatorPlatformFeeCents),
+            operator_payout_cents: String(operatorPayoutCents),
+            stripe_fee_cents: String(stripeFeeCents),
+            platform_fee_cents: String(
+              growerPlatformFeeCents + operatorPlatformFeeCents
+            ),
+          },
+        },
+        { idempotencyKey: `job-fund-${job.id}` }
+      );
+
+      // Persist all fee numbers + funding status on the job row
+      const { error: upErr } = await supabase
+        .from("jobs")
+        .update({
+          stripe_payment_intent_id: paymentIntent.id,
+          payment_intent_id: paymentIntent.id, // legacy column kept in sync
+          grower_charge_cents: growerChargeAmountCents,
+          operator_payout_cents: operatorPayoutCents,
+          platform_fee_cents:
+            growerPlatformFeeCents + operatorPlatformFeeCents,
+          stripe_fee_cents: stripeFeeCents,
+          funding_status: "funded",
+          funded_amount: growerChargeAmountCents / 100,
+          funded_at: new Date().toISOString(),
+        } as any)
+        .eq("id", job.id);
+
+      if (upErr) {
+        console.error("[stripe-checkout] Failed to persist fee numbers:", upErr);
+        return new Response(
+          JSON.stringify({ error: "Could not save funding details" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          payment_intent_id: paymentIntent.id,
+          client_secret: paymentIntent.client_secret,
+          amount_cents: growerChargeAmountCents,
+          job_total_cents: jobTotalCents,
+          grower_platform_fee_cents: growerPlatformFeeCents,
+          operator_platform_fee_cents: operatorPlatformFeeCents,
+          stripe_fee_cents: stripeFeeCents,
+          operator_payout_cents: operatorPayoutCents,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // FLOW 2: Legacy product checkout (storefront)
+    // ─────────────────────────────────────────────────────────────
     if (!product_id) {
       return new Response(
-        JSON.stringify({ error: "product_id is required." }),
+        JSON.stringify({ error: "Either job_id or product_id is required." }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -204,8 +367,8 @@ serve(async (req) => {
     const successUrl = `${origin}/storefront?session_id={CHECKOUT_SESSION_ID}&status=success`;
     const cancelUrl = `${origin}/storefront?status=cancelled`;
 
-    // ── Create the Stripe Client ──
-    const stripeClient = new Stripe(stripeKey);
+    // ── Create the Stripe Client (legacy product flow) ──
+    const productStripeClient = new Stripe(stripeKey);
 
     /**
      * Create Checkout Session that charges the PLATFORM account directly.
@@ -215,7 +378,7 @@ serve(async (req) => {
      * The fee rate and seller account are stored in metadata so the payout
      * function knows where to send the operator's share later.
      */
-    const session = await stripeClient.checkout.sessions.create({
+    const session = await productStripeClient.checkout.sessions.create({
       mode: "payment",
       line_items: [
         {
