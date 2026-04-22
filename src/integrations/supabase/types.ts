@@ -197,6 +197,7 @@ export type Database = {
         Row: {
           content_html: string | null
           content_json: Json | null
+          contract_group_id: string | null
           created_at: string
           created_by: string
           expires_at: string | null
@@ -212,6 +213,7 @@ export type Database = {
         Insert: {
           content_html?: string | null
           content_json?: Json | null
+          contract_group_id?: string | null
           created_at?: string
           created_by: string
           expires_at?: string | null
@@ -227,6 +229,7 @@ export type Database = {
         Update: {
           content_html?: string | null
           content_json?: Json | null
+          contract_group_id?: string | null
           created_at?: string
           created_by?: string
           expires_at?: string | null
@@ -3301,6 +3304,8 @@ export type Database = {
       quotes: {
         Row: {
           base_rate: number
+          contract_group_id: string | null
+          contracts_created_at: string | null
           id: string
           job_id: string
           material_cost: number | null
@@ -3315,6 +3320,8 @@ export type Database = {
         }
         Insert: {
           base_rate: number
+          contract_group_id?: string | null
+          contracts_created_at?: string | null
           id?: string
           job_id: string
           material_cost?: number | null
@@ -3329,6 +3336,8 @@ export type Database = {
         }
         Update: {
           base_rate?: number
+          contract_group_id?: string | null
+          contracts_created_at?: string | null
           id?: string
           job_id?: string
           material_cost?: number | null
@@ -3800,6 +3809,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      expire_unsigned_contracts: {
+        Args: never
+        Returns: {
+          cancelled_quotes: number
+          expired_contracts: number
+        }[]
+      }
       get_poster_stats: { Args: { _user_id: string }; Returns: Json }
       has_role: {
         Args: {
@@ -3817,6 +3833,17 @@ export type Database = {
         Returns: boolean
       }
       is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
+      notify_contract_party: {
+        Args: {
+          _action_url?: string
+          _contract_id: string
+          _message: string
+          _recipient_id: string
+          _title: string
+          _type?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       comm_method: "in_app" | "email" | "sms" | "phone"
