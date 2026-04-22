@@ -18,6 +18,7 @@ import { CancelJobDialog } from "@/components/jobs/CancelJobDialog";
 import { PrivateCostCalculator } from "@/components/operators/PrivateCostCalculator";
 import { ProfitReviewPanel } from "@/components/operators/ProfitReviewPanel";
 import { ContractSignatureDialog } from "@/components/contracts/ContractSignatureDialog";
+import { OfflinePacketControls } from "@/components/shared/OfflinePacketControls";
 import { VerifiedJobBadge, deriveJobBadges } from "@/components/trust/VerifiedJobBadge";
 import { PosterStatsCard } from "@/components/trust/PosterStatsCard";
 import { ReportJobDialog } from "@/components/trust/ReportJobDialog";
