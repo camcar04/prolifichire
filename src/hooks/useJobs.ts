@@ -35,7 +35,7 @@ export function useJob(jobId: string | undefined) {
         .from("jobs")
         .select(`
           *,
-          job_fields(*, fields(name, crop, acreage, centroid_lat, centroid_lng, bbox_north, bbox_south, bbox_east, bbox_west, boundary_geojson)),
+          job_fields(*, fields(name, crop, acreage, county, state, centroid_lat, centroid_lng, bbox_north, bbox_south, bbox_east, bbox_west, boundary_geojson, field_access_instructions(*))),
           farms(name),
           job_inputs(*),
           operation_specs(*),
