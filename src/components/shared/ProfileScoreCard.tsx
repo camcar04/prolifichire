@@ -1,12 +1,13 @@
 import { useProfileScore } from "@/hooks/useProfileScore";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, CheckCircle2, ChevronRight, ArrowRight } from "lucide-react";
+import { CheckCircle2, ChevronRight, ArrowRight, Square } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const MISSING_ITEM_LINKS: Record<string, { link: string; label: string }> = {
   "Full name": { link: "/settings?tab=profile", label: "Add your name" },
+  "Email": { link: "/settings?tab=profile", label: "Add your email" },
   "Farm created": { link: "/fields", label: "Create a farm" },
   "Farm state": { link: "/fields", label: "Set farm state" },
   "Farm county": { link: "/fields", label: "Set farm county" },
@@ -22,6 +23,7 @@ const MISSING_ITEM_LINKS: Record<string, { link: string; label: string }> = {
   "Insurance documentation": { link: "/settings?tab=dowork", label: "Upload insurance" },
   "License or certification": { link: "/settings?tab=dowork", label: "Add license" },
   "Credentials (insurance, license)": { link: "/settings?tab=dowork", label: "Add credentials" },
+  "Stripe Connect": { link: "/settings?tab=dowork", label: "Connect Stripe to receive payments" },
 };
 
 function getItemAction(item: string) {
@@ -30,9 +32,31 @@ function getItemAction(item: string) {
 
 export function ProfileScoreCard({ compact = false }: { compact?: boolean }) {
   const { data: score, isLoading } = useProfileScore();
-  const { activeMode } = useAuth();
 
-  if (isLoading || !score) return null;
+  // Skeleton until the deterministic score has fully resolved — never render a partial value.
+  if (isLoading || !score) {
+    if (compact) {
+      return (
+        <div className="flex items-center gap-3 px-3 py-2">
+          <Skeleton className="h-4 w-8" />
+          <Skeleton className="h-1.5 flex-1 rounded-full" />
+        </div>
+      );
+    }
+    return (
+      <div className="rounded bg-card border p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-5 w-10" />
+        </div>
+        <Skeleton className="h-2 w-full rounded-full" />
+        <div className="space-y-1.5">
+          <Skeleton className="h-3 w-3/4" />
+          <Skeleton className="h-3 w-2/3" />
+        </div>
+      </div>
+    );
+  }
 
   const color = score.total >= 80 ? "text-success" : score.total >= 50 ? "text-warning" : "text-destructive";
   const progressColor = score.total >= 80 ? "bg-success" : score.total >= 50 ? "bg-warning" : "bg-destructive";
@@ -62,7 +86,7 @@ export function ProfileScoreCard({ compact = false }: { compact?: boolean }) {
       {score.missing.length > 0 && (
         <div className="space-y-1">
           <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide mb-1.5">Complete to unlock features</p>
-          {score.missing.slice(0, 5).map(item => {
+          {score.missing.slice(0, 8).map(item => {
             const action = getItemAction(item);
             return (
               <Link
@@ -70,15 +94,15 @@ export function ProfileScoreCard({ compact = false }: { compact?: boolean }) {
                 to={action.link}
                 className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground hover:bg-surface-2 rounded px-1.5 py-1.5 -mx-1.5 transition-colors group"
               >
-                <AlertTriangle size={11} className="text-warning shrink-0" />
+                <Square size={12} className="text-muted-foreground shrink-0" strokeWidth={2} />
                 <span className="flex-1 min-w-0 truncate">{action.label}</span>
                 <ArrowRight size={10} className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </Link>
             );
           })}
-          {score.missing.length > 5 && (
+          {score.missing.length > 8 && (
             <Link to="/settings?tab=account" className="text-[11px] text-primary hover:underline block mt-1">
-              +{score.missing.length - 5} more items →
+              +{score.missing.length - 8} more items →
             </Link>
           )}
         </div>
