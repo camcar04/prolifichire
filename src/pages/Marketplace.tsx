@@ -55,6 +55,8 @@ export default function Marketplace() {
   const [sortBy, setSortBy] = useState<string>("newest");
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(true);
+  const [fixedPriceOnly, setFixedPriceOnly] = useState(false);
+  const [urgentOnly, setUrgentOnly] = useState(false);
 
   const toggleSave = (jobId: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -72,6 +74,8 @@ export default function Marketplace() {
       );
     }
     if (showSavedOnly) jobs = jobs.filter(j => savedJobIds.has(j.id));
+    if (fixedPriceOnly) jobs = jobs.filter(j => j.contract_mode === "fixed_price");
+    if (urgentOnly) jobs = jobs.filter(j => j.urgency === "urgent" || j.urgency === "critical");
 
     if (sortBy === "pay_high") jobs = [...jobs].sort((a, b) => Number(b.estimated_total) - Number(a.estimated_total));
     else if (sortBy === "pay_low") jobs = [...jobs].sort((a, b) => Number(a.estimated_total) - Number(b.estimated_total));
@@ -79,7 +83,7 @@ export default function Marketplace() {
     else if (sortBy === "deadline") jobs = [...jobs].sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
 
     return jobs;
-  }, [allJobs, filter, searchQuery, showSavedOnly, savedJobIds, sortBy]);
+  }, [allJobs, filter, searchQuery, showSavedOnly, savedJobIds, sortBy, fixedPriceOnly, urgentOnly]);
 
   const selectedJob = useMemo(() => {
     if (!selectedJobId) return null;
@@ -217,15 +221,22 @@ export default function Marketplace() {
                 <div>
                   <p className="section-header px-1 mb-1.5">Quick Filters</p>
                   <div className="space-y-0.5 text-[11px] px-1">
-                    <label className="flex items-center gap-1.5 text-muted-foreground cursor-pointer hover:text-foreground py-0.5">
+                    <button
+                      onClick={() => setFixedPriceOnly(!fixedPriceOnly)}
+                      className={cn("w-full flex items-center gap-1.5 px-2 py-1 rounded text-[11px] transition-colors",
+                        fixedPriceOnly ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-surface-2"
+                      )}
+                    >
                       <DollarSign size={9} /> Fixed Price
-                    </label>
-                    <label className="flex items-center gap-1.5 text-muted-foreground cursor-pointer hover:text-foreground py-0.5">
+                    </button>
+                    <button
+                      onClick={() => setUrgentOnly(!urgentOnly)}
+                      className={cn("w-full flex items-center gap-1.5 px-2 py-1 rounded text-[11px] transition-colors",
+                        urgentOnly ? "bg-destructive/10 text-destructive font-medium" : "text-muted-foreground hover:text-foreground hover:bg-surface-2"
+                      )}
+                    >
                       <AlertTriangle size={9} /> Urgent
-                    </label>
-                    <label className="flex items-center gap-1.5 text-muted-foreground cursor-pointer hover:text-foreground py-0.5">
-                      <Target size={9} /> Best Match
-                    </label>
+                    </button>
                   </div>
                 </div>
 
