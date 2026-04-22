@@ -205,11 +205,11 @@ export default function Settings() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs">First Name <span className="text-destructive">*</span></Label>
-                  <Input value={firstName} onChange={e => setFirstName(e.target.value)} className="h-8 text-sm" />
+                  <Input id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} className="h-8 text-sm" />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Last Name <span className="text-destructive">*</span></Label>
-                  <Input value={lastName} onChange={e => setLastName(e.target.value)} className="h-8 text-sm" />
+                  <Input id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} className="h-8 text-sm" />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Email</Label>
@@ -217,7 +217,7 @@ export default function Settings() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Phone</Label>
-                  <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="(555) 123-4567" className="h-8 text-sm" />
+                  <Input id="phone" value={phone} onChange={e => setPhone(e.target.value)} placeholder="(555) 123-4567" className="h-8 text-sm" />
                 </div>
               </div>
               <Button size="sm" className="mt-4 h-8 text-xs gap-1" onClick={handleSaveProfile} disabled={savingProfile || !firstName.trim() || !lastName.trim()}>
