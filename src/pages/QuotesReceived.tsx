@@ -94,7 +94,8 @@ export default function QuotesReceived() {
           <EmptyState
             icon={<FileText size={24} />}
             title="No quotes received yet"
-            description="When operators submit quotes on your jobs, they'll appear here."
+            description="No quotes received yet. Make sure your job is public and has a competitive rate."
+            action={{ label: "Review My Jobs", to: "/jobs" }}
           />
         ) : (
           <div className="space-y-4">
