@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Eye, EyeOff, Loader2, Briefcase, Wrench } from "lucide-react";
+import { Eye, EyeOff, Loader2, Briefcase, Wrench, MailCheck } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { AppMode } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -15,11 +15,14 @@ export default function Signup() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [selectedRole, setSelectedRole] = useState<AppMode | null>(null);
   const [loading, setLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [confirmationPending, setConfirmationPending] = useState(false);
+  const [resending, setResending] = useState(false);
   const navigate = useNavigate();
 
   const handleSignup = async (e: React.FormEvent) => {
