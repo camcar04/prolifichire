@@ -503,6 +503,20 @@ export default function JobDetail() {
               </div>
             )}
 
+            {/* Operation Details — structured spec fields entered at job creation */}
+            {specs.length > 0 && specs[0]?.spec_data && Object.keys(specs[0].spec_data).length > 0 && (
+              <div className="rounded border bg-card overflow-hidden">
+                <div className="px-3 py-2 border-b">
+                  <h3 className="text-[11px] font-semibold flex items-center gap-1.5 text-muted-foreground uppercase tracking-wider">
+                    <Compass size={10} /> Operation Details
+                  </h3>
+                </div>
+                <dl className="divide-y text-[12px]">
+                  {renderSpecRows(job.operation_type, specs[0].spec_data)}
+                </dl>
+              </div>
+            )}
+
             {/* Materials as list */}
             {inputs.length > 0 && (
               <div className="rounded border bg-card overflow-hidden">
