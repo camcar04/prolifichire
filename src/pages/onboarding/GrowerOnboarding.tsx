@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Loader2, ChevronRight, ChevronLeft, Check, MapPin, User, Building2, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WelcomeScreen } from "@/components/onboarding/WelcomeScreen";
+import { trackEvent } from "@/lib/analytics";
 
 const STEPS = [
   { id: "profile", label: "Your Profile", icon: User },
@@ -72,6 +73,8 @@ export default function GrowerOnboarding() {
         approval_contact_name: form.approvalContactName,
         approval_contact_email: form.approvalContactEmail,
         preferred_comm_method: form.preferredComm as any,
+        state: form.state || null,
+        county: form.county || null,
       }).eq("user_id", user.id);
 
       await supabase.from("user_roles").insert({ user_id: user.id, role: "grower" as any });
@@ -92,6 +95,8 @@ export default function GrowerOnboarding() {
       await supabase.from("communication_preferences").insert({
         user_id: user.id, preferred_method: form.preferredComm as any,
       });
+
+      trackEvent(user.id, "onboarding_completed", { role: "grower", state: form.state });
 
       toast.success("Welcome to ProlificHire!");
       navigate("/dashboard");

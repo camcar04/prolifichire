@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { AppMode } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { canPerformAction } from "@/lib/security";
+import { readUtmParams, trackEvent } from "@/lib/analytics";
 
 export default function Signup() {
   const [firstName, setFirstName] = useState("");
@@ -60,6 +61,7 @@ export default function Signup() {
     }
 
     setLoading(true);
+    const utm = readUtmParams();
     const { data, error } = await supabase.auth.signUp({
       email: trimmedEmail,
       password,
@@ -81,12 +83,23 @@ export default function Signup() {
         primary_account_type: selectedRole,
         enabled_account_types: [selectedRole],
         phone: phone.trim() || null,
+        utm_source: utm.utm_source,
+        utm_medium: utm.utm_medium,
+        utm_campaign: utm.utm_campaign,
+        referral_source: utm.referral_source,
+        signup_date: new Date().toISOString(),
       }).eq("user_id", data.user.id);
 
       // Insert the selected role into user_roles table
       await supabase.from("user_roles").insert({
         user_id: data.user.id,
         role: selectedRole as any,
+      });
+
+      // Marketing event
+      trackEvent(data.user.id, "signup_completed", {
+        role: selectedRole,
+        ...utm,
       });
     }
 

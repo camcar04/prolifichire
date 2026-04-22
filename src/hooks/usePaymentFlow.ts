@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 
 // ── Funding status constants ──
 export const FUNDING_LABELS: Record<string, string> = {
@@ -149,8 +150,11 @@ export function useFundJob() {
 
       if (error) throw error;
     },
-    onSuccess: (_, { jobId }) => {
+    onSuccess: (_, { jobId, amount }) => {
       toast.success("Job funded successfully! Work can now begin.");
+      if (user) {
+        trackEvent(user.id, "job_funded", { job_id: jobId, amount });
+      }
       qc.invalidateQueries({ queryKey: ["job", jobId] });
       qc.invalidateQueries({ queryKey: ["jobs"] });
     },

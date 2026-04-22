@@ -17,6 +17,7 @@ import { GlobalSearch } from "@/components/search/GlobalSearch";
 import { getInitials } from "@/lib/format";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SupportTicketDialog } from "@/components/support/SupportTicketDialog";
+import { trackPageView } from "@/lib/analytics";
 
 interface NavItem {
   icon: typeof LayoutDashboard;
@@ -71,10 +72,21 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
-  const { activeMode, profile, signOut, roles } = useAuth();
+  const { activeMode, profile, signOut, roles, user } = useAuth();
   const isMobile = useIsMobile();
   const navItems = getNavItems(activeMode);
   const isAdmin = roles.includes("admin");
+
+  // Marketing page-view tracking — fire on every route change while signed in.
+  useEffect(() => {
+    if (!user) return;
+    trackPageView({
+      userId: user.id,
+      path: location.pathname,
+      referrer: typeof document !== "undefined" ? document.referrer || null : null,
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+    });
+  }, [location.pathname, user]);
 
   const initials = profile
     ? getInitials(profile.firstName, profile.lastName)

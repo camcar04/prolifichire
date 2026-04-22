@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Loader2, ChevronRight, ChevronLeft, Check, Truck, User, Wrench, MapPin, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WelcomeScreen } from "@/components/onboarding/WelcomeScreen";
+import { trackEvent } from "@/lib/analytics";
 import type { OperationType } from "@/types/domain";
 
 const STEPS = [
@@ -93,6 +94,8 @@ export default function OperatorOnboarding() {
         enabled_account_types: updatedEnabled,
         primary_account_type: currentProfile?.primary_account_type || "operator",
         preferred_comm_method: form.preferredComm as any,
+        state: form.state || null,
+        county: form.county || null,
       }).eq("user_id", user.id);
 
       await supabase.from("user_roles").insert({ user_id: user.id, role: "operator" as any });
@@ -135,6 +138,8 @@ export default function OperatorOnboarding() {
       await supabase.from("communication_preferences").insert({
         user_id: user.id, preferred_method: form.preferredComm as any,
       });
+
+      trackEvent(user.id, "onboarding_completed", { role: "operator", state: form.state, services });
 
       toast.success("Welcome to ProlificHire!");
       navigate("/dashboard");
