@@ -19,9 +19,15 @@
  * ── Two flows ──
  *  1. JOB FUNDING (preferred for marketplace work):
  *     POST { job_id: string }
- *     - Creates a PaymentIntent for `growerChargeCents` on the platform balance
- *     - Stores all fee numbers + payment_intent_id on the job row
- *     - Returns the PaymentIntent client_secret so the client can confirm payment
+ *     - Creates a Stripe Checkout Session for `growerChargeCents` on the
+ *       PLATFORM balance (no transfer_data — funds stay in escrow until the
+ *       stripe-release-payout function fires after work is approved).
+ *     - Marks the job as `pending_payment` and stores the session id +
+ *       fee-breakdown cents on the job row. funded_at / funded_amount stay
+ *       NULL — only the webhook may transition the job to `funded`.
+ *     - Returns { url, session_id } so the client can redirect to Stripe.
+ *     - Idempotent: if an open Checkout Session already exists for this job,
+ *       its URL is returned instead of creating a new session.
  *
  *  2. PRODUCT CHECKOUT (legacy storefront flow, retained):
  *     POST { product_id: string }
@@ -167,8 +173,9 @@ serve(async (req) => {
       const { data: job, error: jobErr } = await supabase
         .from("jobs")
         .select(
-          "id, requested_by, operator_id, status, agreed_price, approved_total, " +
-            "estimated_total, contract_mode, stripe_payment_intent_id, funding_status"
+          "id, title, requested_by, operator_id, status, agreed_price, approved_total, " +
+            "estimated_total, contract_mode, stripe_payment_intent_id, " +
+            "stripe_checkout_session_id, funding_status"
         )
         .eq("id", job_id)
         .maybeSingle();
@@ -188,24 +195,69 @@ serve(async (req) => {
         );
       }
 
-      // Idempotency: if a PaymentIntent already exists, return it
-      const stripeClient = new Stripe(stripeKey);
-      if (job.stripe_payment_intent_id) {
-        const existing = await stripeClient.paymentIntents.retrieve(
-          job.stripe_payment_intent_id
+      // ── Status guards ──
+      const FUNDABLE_JOB_STATUSES = new Set([
+        "pending",
+        "accepted",
+        "scheduled",
+        "funding_required",
+        "pending_payment",
+      ]);
+      if (!FUNDABLE_JOB_STATUSES.has(String(job.status))) {
+        return new Response(
+          JSON.stringify({
+            error: `Job cannot be funded in status "${job.status}".`,
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
-        if (
-          existing.status !== "canceled" &&
-          existing.status !== "succeeded"
-        ) {
-          return new Response(
-            JSON.stringify({
-              payment_intent_id: existing.id,
-              client_secret: existing.client_secret,
-              amount_cents: existing.amount,
-              already_created: true,
-            }),
-            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      }
+      const TERMINAL_FUNDING_STATUSES = new Set([
+        "funded",
+        "payout_ready",
+        "payout_released",
+        "refunded",
+        "cancelled",
+      ]);
+      if (TERMINAL_FUNDING_STATUSES.has(String(job.funding_status))) {
+        const msg =
+          job.funding_status === "funded" || job.funding_status === "payout_ready"
+            ? "Job is already funded."
+            : `Job funding is in terminal state "${job.funding_status}" and cannot be re-funded.`;
+        return new Response(JSON.stringify({ error: msg }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const stripeClient = new Stripe(stripeKey);
+
+      // Idempotency: reuse an open Checkout Session if one exists for this job
+      if ((job as any).stripe_checkout_session_id) {
+        try {
+          const existing = await stripeClient.checkout.sessions.retrieve(
+            (job as any).stripe_checkout_session_id
+          );
+          if (existing && existing.status === "open" && existing.url) {
+            console.log(
+              `[stripe-checkout] Reusing open session ${existing.id} for job ${job.id}`
+            );
+            return new Response(
+              JSON.stringify({
+                url: existing.url,
+                session_id: existing.id,
+                already_created: true,
+              }),
+              {
+                status: 200,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              }
+            );
+          }
+        } catch (e) {
+          console.warn(
+            `[stripe-checkout] Could not retrieve prior session: ${
+              e instanceof Error ? e.message : String(e)
+            } — creating a new one.`
           );
         }
       }
@@ -233,76 +285,100 @@ serve(async (req) => {
         Math.round(growerChargeAmountCents * STRIPE_PERCENT_FEE) +
         STRIPE_FIXED_FEE_CENTS;
       const operatorPayoutCents = jobTotalCents - operatorPlatformFeeCents;
+      const platformRevenueCents =
+        growerPlatformFeeCents + operatorPlatformFeeCents - stripeFeeCents;
 
       console.log(
         `[stripe-checkout] job=${job.id} ` +
           `total=${jobTotalCents}¢ grower_fee=${growerPlatformFeeCents}¢ ` +
           `op_fee=${operatorPlatformFeeCents}¢ stripe_fee=${stripeFeeCents}¢ ` +
-          `charge=${growerChargeAmountCents}¢ payout=${operatorPayoutCents}¢`
+          `charge=${growerChargeAmountCents}¢ payout=${operatorPayoutCents}¢ ` +
+          `platform_rev=${platformRevenueCents}¢`
       );
 
-      // Create a PaymentIntent on the PLATFORM balance — no transfer_data,
+      // Build the success/cancel URLs from the request origin
+      const appUrl =
+        req.headers.get("origin") || req.headers.get("referer") || "";
+      const successUrl = `${appUrl}/jobs/${job.id}?funding=success`;
+      const cancelUrl = `${appUrl}/jobs/${job.id}?funding=cancelled`;
+
+      // Metadata shared between the session and the underlying PaymentIntent
+      const sharedMetadata: Record<string, string> = {
+        flow: "job_escrow_v1",
+        job_id: job.id,
+        grower_id: job.requested_by,
+        ...(job.operator_id ? { operator_id: job.operator_id } : {}),
+        job_total_cents: String(jobTotalCents),
+        grower_platform_fee_cents: String(growerPlatformFeeCents),
+        operator_platform_fee_cents: String(operatorPlatformFeeCents),
+        operator_payout_cents: String(operatorPayoutCents),
+        stripe_fee_cents: String(stripeFeeCents),
+        platform_fee_cents: String(
+          growerPlatformFeeCents + operatorPlatformFeeCents
+        ),
+      };
+
+      // Create a Checkout Session on the PLATFORM balance — no transfer_data,
       // funds stay in escrow until stripe-release-payout fires on approval.
-      const paymentIntent = await stripeClient.paymentIntents.create(
+      const session = await stripeClient.checkout.sessions.create(
         {
-          amount: growerChargeAmountCents,
-          currency: "usd",
-          automatic_payment_methods: { enabled: true },
-          metadata: {
-            flow: "job_split_fee_escrow",
-            job_id: job.id,
-            grower_id: job.requested_by,
-            operator_id: job.operator_id || "",
-            job_total_cents: String(jobTotalCents),
-            grower_platform_fee_cents: String(growerPlatformFeeCents),
-            operator_platform_fee_cents: String(operatorPlatformFeeCents),
-            operator_payout_cents: String(operatorPayoutCents),
-            stripe_fee_cents: String(stripeFeeCents),
-            platform_fee_cents: String(
-              growerPlatformFeeCents + operatorPlatformFeeCents
-            ),
+          mode: "payment",
+          payment_method_types: ["card"],
+          customer_email: user.email ?? undefined,
+          success_url: successUrl,
+          cancel_url: cancelUrl,
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                product_data: {
+                  name: `ProlificHire Job: ${(job as any).title || job.id}`,
+                },
+                unit_amount: growerChargeAmountCents,
+              },
+              quantity: 1,
+            },
+          ],
+          metadata: sharedMetadata,
+          payment_intent_data: {
+            metadata: sharedMetadata,
           },
         },
-        { idempotencyKey: `job-fund-${job.id}` }
+        { idempotencyKey: `job-fund-session-${job.id}` }
       );
 
-      // Persist all fee numbers + funding status on the job row
+      // Persist session id + fee breakdown. funding_status = pending_payment.
+      // Only the webhook may flip this to "funded".
       const { error: upErr } = await supabase
         .from("jobs")
         .update({
-          stripe_payment_intent_id: paymentIntent.id,
-          payment_intent_id: paymentIntent.id, // legacy column kept in sync
+          stripe_checkout_session_id: session.id,
           grower_charge_cents: growerChargeAmountCents,
           operator_payout_cents: operatorPayoutCents,
           platform_fee_cents:
             growerPlatformFeeCents + operatorPlatformFeeCents,
           stripe_fee_cents: stripeFeeCents,
-          funding_status: "funded",
-          funded_amount: growerChargeAmountCents / 100,
-          funded_at: new Date().toISOString(),
+          funding_status: "pending_payment",
         } as any)
         .eq("id", job.id);
 
       if (upErr) {
-        console.error("[stripe-checkout] Failed to persist fee numbers:", upErr);
+        console.error("[stripe-checkout] Failed to persist session id:", upErr);
         return new Response(
           JSON.stringify({ error: "Could not save funding details" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
 
       return new Response(
-        JSON.stringify({
-          payment_intent_id: paymentIntent.id,
-          client_secret: paymentIntent.client_secret,
-          amount_cents: growerChargeAmountCents,
-          job_total_cents: jobTotalCents,
-          grower_platform_fee_cents: growerPlatformFeeCents,
-          operator_platform_fee_cents: operatorPlatformFeeCents,
-          stripe_fee_cents: stripeFeeCents,
-          operator_payout_cents: operatorPayoutCents,
-        }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ url: session.url, session_id: session.id }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
