@@ -32,7 +32,7 @@ export default function FieldsPage() {
   const [jobFieldId, setJobFieldId] = useState<string | undefined>(undefined);
   const [selectedField, setSelectedField] = useState<any>(null);
   const [activeFarmId, setActiveFarmId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"map" | "list">("map");
+  const [viewMode, setViewMode] = useState<"map" | "list">("list");
 
   const isLoading = fieldsLoading || farmsLoading;
 
@@ -209,7 +209,7 @@ export default function FieldsPage() {
             <div className="space-y-2">
               {farms.map(farm => {
                 const farmFields = filteredFields.filter(f => f.farm_id === farm.id);
-                if (farmFields.length === 0 && !activeFarmId) return null;
+                if (farmFields.length === 0 && search === "" && cropFilter === "all" && statusFilter === "all") return null;
                 const isCollapsed = collapsedFarms.has(farm.id);
                 const farmAcres = farmFields.reduce((a, f) => a + Number(f.acreage || 0), 0);
                 const isActiveFarm = activeFarmId === farm.id;
