@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Map, Briefcase, Store, DollarSign,
   ChevronLeft, ChevronRight, Search, Bell, X,
   MessageSquare, Calendar, Package, LogOut, Bookmark,
-  Link2, Settings, Menu, Users,
+  Link2, Settings, Menu, Users, LifeBuoy, Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, type AppMode } from "@/contexts/AuthContext";
@@ -16,6 +16,7 @@ import { MobileBottomBar } from "@/components/layout/MobileBottomBar";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
 import { getInitials } from "@/lib/format";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { SupportTicketDialog } from "@/components/support/SupportTicketDialog";
 
 interface NavItem {
   icon: typeof LayoutDashboard;
@@ -66,12 +67,14 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
-  const { activeMode, profile, signOut } = useAuth();
+  const { activeMode, profile, signOut, roles } = useAuth();
   const isMobile = useIsMobile();
   const navItems = getNavItems(activeMode);
+  const isAdmin = roles.includes("admin");
 
   const initials = profile
     ? getInitials(profile.firstName, profile.lastName)

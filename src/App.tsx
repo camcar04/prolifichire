@@ -40,6 +40,8 @@ import LaborMarketplace from "./pages/LaborMarketplace";
 import QuotesReceived from "./pages/QuotesReceived";
 import Storefront from "./pages/Storefront";
 import Messages from "./pages/Messages";
+import AdminPanel from "./pages/admin/AdminPanel";
+import Suspended from "./pages/Suspended";
 
 const queryClient = new QueryClient();
 
@@ -102,6 +104,8 @@ const App = () => (
             <Route path="/messages-beta" element={<P><Messages /></P>} />
             <Route path="/operators/:operatorId" element={<P><OperatorProfile /></P>} />
             <Route path="/storefront" element={<P><Storefront /></P>} />
+            <Route path="/admin" element={<P><AdminPanel /></P>} />
+            <Route path="/suspended" element={<P><Suspended /></P>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
