@@ -9,6 +9,7 @@ import { useQuotesReceived } from "@/hooks/useJobs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSetAgreedPrice, useLogQuoteAction } from "@/hooks/usePaymentFlow";
+import { ContractSigningModal } from "@/components/contracts/ContractSigningModal";
 import {
   formatCurrency, formatAcres, formatOperationType, formatDateShort,
   formatRelative,
@@ -41,6 +42,7 @@ export default function QuotesReceived() {
   const [counterRate, setCounterRate] = useState("");
   const setAgreedPrice = useSetAgreedPrice();
   const logQuoteAction = useLogQuoteAction();
+  const [signingQuote, setSigningQuote] = useState<any | null>(null);
 
   const updateQuoteMutation = useMutation({
     mutationFn: async ({ quoteId, status, quote }: { quoteId: string; status: string; quote?: any }) => {
@@ -50,21 +52,6 @@ export default function QuotesReceived() {
         .eq("id", quoteId);
       if (error) throw error;
 
-      // When accepting a quote, set the agreed price and trigger funding_required
-      if (status === "accepted" && quote) {
-        await setAgreedPrice.mutateAsync({
-          jobId: quote.job_id,
-          agreedPrice: Number(quote.total_quote),
-          quoteId,
-        });
-        // Log to history
-        await logQuoteAction.mutateAsync({
-          quoteId,
-          jobId: quote.job_id,
-          action: "accepted",
-          amount: Number(quote.total_quote),
-        });
-      }
       if (status === "rejected" && quote) {
         await logQuoteAction.mutateAsync({
           quoteId,
@@ -75,7 +62,7 @@ export default function QuotesReceived() {
       }
     },
     onSuccess: (_, { status }) => {
-      toast.success(status === "accepted" ? "Quote accepted! You'll be prompted to fund the job." : "Quote declined");
+      toast.success(status === "rejected" ? "Quote declined" : "Updated");
       queryClient.invalidateQueries({ queryKey: ["quotes-received"] });
       queryClient.invalidateQueries({ queryKey: ["my-quotes"] });
     },
@@ -109,7 +96,7 @@ export default function QuotesReceived() {
                     <QuoteReceivedRow
                       key={q.id}
                       quote={q}
-                      onAccept={() => updateQuoteMutation.mutate({ quoteId: q.id, status: "accepted", quote: q })}
+                      onAccept={() => setSigningQuote(q)}
                       onReject={() => updateQuoteMutation.mutate({ quoteId: q.id, status: "rejected", quote: q })}
                       isPending={updateQuoteMutation.isPending}
                     />
@@ -132,6 +119,15 @@ export default function QuotesReceived() {
           </div>
         )}
       </div>
+      {signingQuote && (
+        <ContractSigningModal
+          open={!!signingQuote}
+          onOpenChange={(o) => !o && setSigningQuote(null)}
+          jobId={signingQuote.job_id}
+          job={signingQuote.jobs}
+          quote={signingQuote}
+        />
+      )}
     </AppShell>
   );
 }

@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ContractSigningModal } from "@/components/contracts/ContractSigningModal";
+import { useJob } from "@/hooks/useJobs";
 
 interface QuoteComparisonTableProps {
   jobId: string;
@@ -22,6 +24,8 @@ export function QuoteComparisonTable({ jobId, onAccept }: QuoteComparisonTablePr
   const [sortBy, setSortBy] = useState<SortKey>("total_quote");
   const [sortAsc, setSortAsc] = useState(true);
   const queryClient = useQueryClient();
+  const [signingQuote, setSigningQuote] = useState<any | null>(null);
+  const { data: jobData } = useJob(jobId);
 
   const { data: quotes = [], isLoading } = useQuery({
     queryKey: ["job-quotes", jobId],
@@ -73,36 +77,11 @@ export function QuoteComparisonTable({ jobId, onAccept }: QuoteComparisonTablePr
     enabled: !!jobId,
   });
 
-  const acceptMutation = useMutation({
-    mutationFn: async (quoteId: string) => {
-      const quote = quotes.find(q => q.id === quoteId);
-      if (!quote) throw new Error("Quote not found");
-
-      // Update job
-      const { error: jobErr } = await supabase.from("jobs").update({
-        operator_id: quote.operator_id,
-        status: "accepted",
-        base_rate: quote.base_rate,
-        estimated_total: quote.total_quote,
-      }).eq("id", jobId);
-      if (jobErr) throw jobErr;
-
-      // Update quote status
-      await supabase.from("quotes").update({ status: "accepted" } as any).eq("id", quoteId);
-      // Reject others
-      const otherIds = quotes.filter(q => q.id !== quoteId).map(q => q.id);
-      if (otherIds.length > 0) {
-        await supabase.from("quotes").update({ status: "declined" } as any).in("id", otherIds);
-      }
-    },
-    onSuccess: () => {
-      toast.success("Quote accepted — job awarded to operator");
-      queryClient.invalidateQueries({ queryKey: ["job-quotes", jobId] });
-      queryClient.invalidateQueries({ queryKey: ["job", jobId] });
-      onAccept?.();
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
+  const handleAcceptClick = (quoteId: string) => {
+    const quote = quotes.find(q => q.id === quoteId);
+    if (!quote) return toast.error("Quote not found");
+    setSigningQuote(quote);
+  };
 
   const toggleSort = (key: SortKey) => {
     if (sortBy === key) setSortAsc(!sortAsc);
@@ -190,7 +169,7 @@ export function QuoteComparisonTable({ jobId, onAccept }: QuoteComparisonTablePr
                   <td className="px-4 py-2.5 text-right">
                     {q.status === "pending" && (
                       <div className="flex items-center gap-1 justify-end">
-                        <Button size="sm" className="h-6 text-[10px] px-2" onClick={() => acceptMutation.mutate(q.id)} disabled={acceptMutation.isPending}>
+                        <Button size="sm" className="h-6 text-[10px] px-2" onClick={() => handleAcceptClick(q.id)}>
                           <Check size={10} className="mr-0.5" /> Accept
                         </Button>
                       </div>
@@ -202,6 +181,22 @@ export function QuoteComparisonTable({ jobId, onAccept }: QuoteComparisonTablePr
           </tbody>
         </table>
       </div>
+      {signingQuote && jobData && (
+        <ContractSigningModal
+          open={!!signingQuote}
+          onOpenChange={(o) => {
+            if (!o) {
+              setSigningQuote(null);
+              onAccept?.();
+              queryClient.invalidateQueries({ queryKey: ["job-quotes", jobId] });
+              queryClient.invalidateQueries({ queryKey: ["job", jobId] });
+            }
+          }}
+          jobId={jobId}
+          job={jobData}
+          quote={signingQuote}
+        />
+      )}
     </div>
   );
 }
