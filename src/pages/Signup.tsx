@@ -65,7 +65,7 @@ export default function Signup() {
       password,
       options: {
         data: { first_name: trimmedFirst, last_name: trimmedLast },
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: window.location.origin + "/auth/callback",
       },
     });
     
@@ -80,6 +80,7 @@ export default function Signup() {
       await supabase.from("profiles").update({
         primary_account_type: selectedRole,
         enabled_account_types: [selectedRole],
+        phone: phone.trim() || null,
       }).eq("user_id", data.user.id);
 
       // Insert the selected role into user_roles table
@@ -90,9 +91,36 @@ export default function Signup() {
     }
 
     setLoading(false);
+
+    // If email confirmation is required, the user has no active session yet
+    const needsConfirmation = !!data.user && !data.session;
+    if (needsConfirmation) {
+      setConfirmationPending(true);
+      return;
+    }
+
     localStorage.setItem("ph_active_mode", selectedRole);
     toast.success("Account created! Let's set up your workspace.");
     navigate(selectedRole === "operator" ? "/onboarding/operator" : "/onboarding/grower");
+  };
+
+  const handleResend = async () => {
+    if (!canPerformAction("resend-confirmation", 5000)) {
+      toast.error("Please wait before resending.");
+      return;
+    }
+    setResending(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: email.trim().toLowerCase(),
+      options: { emailRedirectTo: window.location.origin + "/auth/callback" },
+    });
+    setResending(false);
+    if (error) {
+      toast.error("Could not resend. Try again in a moment.");
+    } else {
+      toast.success("Confirmation email sent.");
+    }
   };
 
   return (
