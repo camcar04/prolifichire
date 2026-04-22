@@ -1,14 +1,14 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
 import {
   deriveAgreedPrice,
   useFundJob,
   isFundingRequired,
+  isFundingPending,
 } from "@/hooks/usePaymentFlow";
 import { FundingStatusBadge } from "./FundingStatusBadge";
 import { FeeBreakdown, computeFeeBreakdown } from "./FeeBreakdown";
-import { DollarSign, Shield, CreditCard, AlertTriangle } from "lucide-react";
+import { Shield, CreditCard, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FundingPromptProps {
@@ -18,15 +18,42 @@ interface FundingPromptProps {
 
 export function FundingPrompt({ job, isGrowerView }: FundingPromptProps) {
   const fundJob = useFundJob();
-  const [confirming, setConfirming] = useState(false);
 
   const fundingStatus = (job as any).funding_status || "unfunded";
   const agreedPrice = deriveAgreedPrice(job);
   const needsFunding = isFundingRequired(job);
+  const pending = isFundingPending(job);
 
   // Only growers see the funding prompt
   if (!isGrowerView) {
     return <OperatorFundingView job={job} />;
+  }
+
+  // Pending Stripe checkout — grower can resume or restart
+  if (pending) {
+    const breakdown = agreedPrice ? computeFeeBreakdown(agreedPrice) : null;
+    const totalDollars = breakdown ? breakdown.growerChargeCents / 100 : 0;
+    return (
+      <div className="rounded border border-info/30 bg-info/5 p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <CreditCard size={14} className="text-info" />
+          <span className="text-sm font-semibold">Payment In Progress</span>
+          <FundingStatusBadge status={fundingStatus} />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          A Stripe checkout session is open for this job. Complete the payment to fund the job, or start a new checkout if the session expired.
+        </p>
+        <Button
+          variant="outline"
+          className="w-full gap-2"
+          disabled={fundJob.isPending || !agreedPrice}
+          onClick={() => fundJob.mutate({ jobId: job.id, amount: totalDollars })}
+        >
+          <CreditCard size={14} />
+          {fundJob.isPending ? "Redirecting…" : "Resume / Restart Checkout"}
+        </Button>
+      </div>
+    );
   }
 
   // Already funded or beyond
@@ -82,42 +109,14 @@ export function FundingPrompt({ job, isGrowerView }: FundingPromptProps) {
       <FeeBreakdown jobTotal={agreedPrice} side="grower" />
 
       <div className="space-y-2 pt-1">
-        {!confirming ? (
-          <Button
-            className="w-full gap-2"
-            onClick={() => setConfirming(true)}
-          >
-            <CreditCard size={14} />
-            Fund Job — {formatCurrency(totalDollars)}
-          </Button>
-        ) : (
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-center">
-              Confirm funding of {formatCurrency(totalDollars)}?
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => setConfirming(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                className="flex-1 gap-1"
-                disabled={fundJob.isPending}
-                onClick={() =>
-                  fundJob.mutate({ jobId: job.id, amount: totalDollars })
-                }
-              >
-                <DollarSign size={12} />
-                {fundJob.isPending ? "Processing…" : "Confirm & Fund"}
-              </Button>
-            </div>
-          </div>
-        )}
+        <Button
+          className="w-full gap-2"
+          disabled={fundJob.isPending}
+          onClick={() => fundJob.mutate({ jobId: job.id, amount: totalDollars })}
+        >
+          <CreditCard size={14} />
+          {fundJob.isPending ? "Redirecting…" : `Fund Job — ${formatCurrency(totalDollars)}`}
+        </Button>
       </div>
     </div>
   );
@@ -150,6 +149,11 @@ function OperatorFundingView({ job }: { job: any }) {
           {needsFunding && (
             <p className="text-xs text-warning mt-1">
               ⏳ Waiting for grower to fund this job before work can begin.
+            </p>
+          )}
+          {fundingStatus === "pending_payment" && (
+            <p className="text-xs text-info mt-1">
+              💳 Grower has started payment — waiting for Stripe to confirm.
             </p>
           )}
           {fundingStatus === "payout_ready" && (
