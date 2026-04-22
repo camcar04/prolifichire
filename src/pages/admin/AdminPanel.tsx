@@ -143,6 +143,260 @@ function OverviewTab() {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Platform Analytics (lives inside the Overview tab)
+// ─────────────────────────────────────────────────────────────
+function PlatformAnalytics() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-analytics"],
+    queryFn: async () => {
+      // 8-week window
+      const now = new Date();
+      const weekStart = startOfWeek(now);
+      const eightWeeksAgo = new Date(weekStart);
+      eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 7 * 7); // include current week
+      const fromISO = eightWeeksAgo.toISOString();
+
+      const [
+        signups,
+        jobs,
+        statesRes,
+        opTypesRes,
+        funnelTotal,
+        funnelOnboarded,
+        funnelFirstJob,
+        funnelFirstQuote,
+        funnelFirstPayment,
+      ] = await Promise.all([
+        supabase.from("profiles").select("created_at").gte("created_at", fromISO).limit(5000),
+        supabase.from("jobs").select("created_at, operation_type").gte("created_at", fromISO).limit(5000),
+        supabase.from("profiles").select("state").not("state", "is", null).limit(5000),
+        supabase.from("jobs").select("operation_type").limit(5000),
+        supabase.from("profiles").select("*", { count: "exact", head: true }),
+        supabase.from("profiles").select("*", { count: "exact", head: true }).eq("onboarding_completed", true),
+        supabase.from("user_events").select("user_id", { count: "exact", head: true }).eq("event_type", "first_job_posted"),
+        supabase.from("user_events").select("user_id", { count: "exact", head: true }).eq("event_type", "first_quote_submitted"),
+        supabase.from("user_events").select("user_id", { count: "exact", head: true }).eq("event_type", "job_funded"),
+      ]);
+
+      // Build 8 week buckets (oldest → newest)
+      const buckets: { label: string; weekStart: Date; signups: number; jobs: number }[] = [];
+      for (let i = 7; i >= 0; i--) {
+        const wkStart = new Date(weekStart);
+        wkStart.setDate(wkStart.getDate() - i * 7);
+        buckets.push({ label: weekLabel(wkStart), weekStart: wkStart, signups: 0, jobs: 0 });
+      }
+      const findBucket = (date: Date) => {
+        for (let i = buckets.length - 1; i >= 0; i--) {
+          if (date >= buckets[i].weekStart) return buckets[i];
+        }
+        return null;
+      };
+      (signups.data || []).forEach((r: any) => {
+        const b = findBucket(new Date(r.created_at));
+        if (b) b.signups += 1;
+      });
+      (jobs.data || []).forEach((r: any) => {
+        const b = findBucket(new Date(r.created_at));
+        if (b) b.jobs += 1;
+      });
+
+      // Top states
+      const stateCounts = new Map<string, number>();
+      (statesRes.data || []).forEach((r: any) => {
+        if (!r.state) return;
+        stateCounts.set(r.state, (stateCounts.get(r.state) || 0) + 1);
+      });
+      const topStates = Array.from(stateCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8)
+        .map(([state, count]) => ({ state, count }));
+
+      // Top operation types
+      const opCounts = new Map<string, number>();
+      (opTypesRes.data || []).forEach((r: any) => {
+        if (!r.operation_type) return;
+        opCounts.set(r.operation_type, (opCounts.get(r.operation_type) || 0) + 1);
+      });
+      const topOps = Array.from(opCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8)
+        .map(([op, count]) => ({ op: formatOperationType(op), count }));
+
+      const funnel = {
+        signed_up: funnelTotal.count ?? 0,
+        onboarded: funnelOnboarded.count ?? 0,
+        first_action: (funnelFirstJob.count ?? 0) + (funnelFirstQuote.count ?? 0),
+        first_payment: funnelFirstPayment.count ?? 0,
+      };
+
+      return {
+        weekly: buckets.map((b) => ({ label: b.label, signups: b.signups, jobs: b.jobs })),
+        topStates,
+        topOps,
+        funnel,
+      };
+    },
+  });
+
+  if (isLoading || !data) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm flex items-center gap-1.5">
+            <BarChart3 className="h-3.5 w-3.5" /> Platform analytics
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground">Loading…</CardContent>
+      </Card>
+    );
+  }
+
+  // Funnel drop-offs
+  const funnelSteps = [
+    { label: "Signed up", count: data.funnel.signed_up },
+    { label: "Onboarding complete", count: data.funnel.onboarded },
+    { label: "First job / quote", count: data.funnel.first_action },
+    { label: "First payment", count: data.funnel.first_payment },
+  ];
+  const maxFunnel = Math.max(1, ...funnelSteps.map((s) => s.count));
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <BarChart3 className="h-4 w-4 text-muted-foreground" />
+        <h2 className="text-sm font-semibold">Platform analytics</h2>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-2">
+        {/* Signups per week */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+              <UsersIcon className="h-3 w-3" /> Signups · last 8 weeks
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={data.weekly}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis dataKey="label" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
+                <Tooltip contentStyle={{ fontSize: 11, borderRadius: 6 }} />
+                <Bar dataKey="signups" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Jobs per week */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+              <TrendingUp className="h-3 w-3" /> Jobs posted · last 8 weeks
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={180}>
+              <LineChart data={data.weekly}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis dataKey="label" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
+                <Tooltip contentStyle={{ fontSize: 11, borderRadius: 6 }} />
+                <Line type="monotone" dataKey="jobs" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-3">
+        {/* Funnel */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+              <Filter className="h-3 w-3" /> User funnel
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {funnelSteps.map((s, i) => {
+              const prev = i === 0 ? s.count : funnelSteps[i - 1].count;
+              const dropPct = i === 0 || prev === 0 ? 0 : Math.round(((prev - s.count) / prev) * 100);
+              return (
+                <div key={s.label} className="space-y-1">
+                  <div className="flex items-center justify-between text-[12px]">
+                    <span className="font-medium">{s.label}</span>
+                    <span className="tabular-nums">
+                      {s.count}
+                      {i > 0 && (
+                        <span className="text-[10px] text-muted-foreground ml-1.5">
+                          {dropPct > 0 ? `−${dropPct}%` : "0%"}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded bg-muted overflow-hidden">
+                    <div
+                      className="h-full bg-primary"
+                      style={{ width: `${(s.count / maxFunnel) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+
+        {/* Top states */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+              <MapPin className="h-3 w-3" /> Top states by users
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {data.topStates.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No state data yet</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart data={data.topStates} layout="vertical" margin={{ left: 8 }}>
+                  <XAxis type="number" tick={{ fontSize: 10 }} allowDecimals={false} />
+                  <YAxis dataKey="state" type="category" tick={{ fontSize: 10 }} width={32} />
+                  <Tooltip contentStyle={{ fontSize: 11, borderRadius: 6 }} />
+                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 3, 3, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Top operation types */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+              <Briefcase className="h-3 w-3" /> Popular operation types
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {data.topOps.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No job data yet</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart data={data.topOps} layout="vertical" margin={{ left: 8 }}>
+                  <XAxis type="number" tick={{ fontSize: 10 }} allowDecimals={false} />
+                  <YAxis dataKey="op" type="category" tick={{ fontSize: 9 }} width={90} />
+                  <Tooltip contentStyle={{ fontSize: 11, borderRadius: 6 }} />
+                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 3, 3, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 // Users Tab
 // ─────────────────────────────────────────────────────────────
 function UsersTab() {
@@ -155,7 +409,7 @@ function UsersTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("user_id, first_name, last_name, email, primary_account_type, onboarding_completed, suspended_at, created_at, phone")
+        .select("user_id, first_name, last_name, email, primary_account_type, onboarding_completed, suspended_at, created_at, phone, state, county, signup_date, utm_source, utm_medium, utm_campaign, referral_source")
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw error;
@@ -185,6 +439,32 @@ function UsersTab() {
   }, [users, search]);
 
   const drawerUser = useMemo(() => filtered.find((u) => u.user_id === drawerUserId), [filtered, drawerUserId]);
+
+  // CSV export — current filtered list
+  const exportCsv = () => {
+    const escape = (v: any) => {
+      if (v == null) return "";
+      const s = String(v).replace(/"/g, '""');
+      return /[",\n]/.test(s) ? `"${s}"` : s;
+    };
+    const header = [
+      "email", "first_name", "last_name", "account_type", "state", "county",
+      "signup_date", "utm_source", "utm_medium", "utm_campaign", "referral_source",
+    ].join(",");
+    const rows = filtered.map((u: any) =>
+      [
+        u.email, u.first_name, u.last_name, u.primary_account_type, u.state, u.county,
+        u.signup_date || u.created_at, u.utm_source, u.utm_medium, u.utm_campaign, u.referral_source,
+      ].map(escape).join(","),
+    );
+    const blob = new Blob([header + "\n" + rows.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "prolifichire-users.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const addAdmin = useMutation({
     mutationFn: async (userId: string) => {
