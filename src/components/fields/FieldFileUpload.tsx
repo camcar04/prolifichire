@@ -213,7 +213,7 @@ export function FieldFileUpload({ fieldId, open, onOpenChange }: Props) {
               type="file"
               className="hidden"
               accept=".geojson,.json,.shp,.dbf,.shx,.prj,.kml,.kmz,.csv,.pdf,.png,.jpg,.jpeg,.zip,.xml,.tif,.tiff"
-              onChange={e => setSelectedFile(e.target.files?.[0] || null)}
+              onChange={e => handleFileSelect(e.target.files?.[0] || null)}
             />
             {selectedFile ? (
               <div className="flex items-center gap-2 rounded-md border px-3 py-2">
@@ -225,7 +225,7 @@ export function FieldFileUpload({ fieldId, open, onOpenChange }: Props) {
                   </p>
                 </div>
                 <Button variant="ghost" size="sm" className="h-6 text-[10px]"
-                  onClick={() => { setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
+                  onClick={() => { handleFileSelect(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
                   Remove
                 </Button>
               </div>
@@ -249,11 +249,37 @@ export function FieldFileUpload({ fieldId, open, onOpenChange }: Props) {
               GeoJSON boundary files will automatically update the field's boundary, centroid, and bounding box.
             </p>
           )}
+
+          {duplicate && (
+            <div className="rounded border border-warning/40 bg-warning/10 p-2 space-y-2">
+              <div className="flex items-start gap-2">
+                <AlertTriangle size={14} className="text-warning shrink-0 mt-0.5" />
+                <p className="text-[11px] text-foreground">
+                  A file named <span className="font-medium">{duplicate.file_name}</span> already exists for this field.
+                </p>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button size="sm" variant="outline" className="h-7 text-[11px]"
+                  onClick={() => { setForceUpload(true); setDuplicate(null); uploadMutation.mutate(); }}>
+                  Keep Both
+                </Button>
+                <Button size="sm" className="h-7 text-[11px]"
+                  onClick={async () => {
+                    // Soft replace: insert new (trigger flips is_latest), keep history.
+                    setForceUpload(true);
+                    setDuplicate(null);
+                    uploadMutation.mutate();
+                  }}>
+                  Replace
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} className="h-8 text-xs">Cancel</Button>
-          <Button size="sm" onClick={() => uploadMutation.mutate()}
+          <Button size="sm" onClick={checkDuplicateAndUpload}
             disabled={!selectedFile || uploadMutation.isPending} className="h-8 text-xs gap-1">
             {uploadMutation.isPending ? <><Loader2 size={12} className="animate-spin" /> Uploading…</> : "Upload File"}
           </Button>
