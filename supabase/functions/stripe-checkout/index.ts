@@ -1,26 +1,32 @@
 /**
  * stripe-checkout
  *
- * Creates a Stripe Checkout Session using PLATFORM-HELD CHARGES (escrow model).
+ * Creates a Stripe Checkout Session using PLATFORM-HELD CHARGES (escrow model)
+ * with a TRANSPARENT SPLIT FEE.
  *
- * ── Why platform-held instead of destination charges? ──
- * Agricultural work has not happened yet at the time of payment.
- * If we used destination charges, funds would route to the operator's
- * connected account immediately — before any field work is done.
- * Instead, we charge the grower to the PLATFORM account and hold the funds
- * until the grower clicks "Approve Work". The payout to the operator is
- * then triggered by the `stripe-release-payout` edge function via a
- * Stripe Transfer from the platform balance.
+ * ── Fee math (canonical) ──
+ *   growerPlatformFeeCents     = jobTotal × 7.5%
+ *   operatorPlatformFeeCents   = jobTotal × 7.5%
+ *   growerChargeCents          = jobTotal + growerPlatformFeeCents
+ *   stripeFeeCents             = round(growerChargeCents × 2.9%) + 30
+ *   operatorPayoutCents        = jobTotal − operatorPlatformFeeCents
+ *   platformRevenueCents       = grower fee + operator fee − stripeFee
  *
- * ── Fee Schedule ──
- * The platform takes a configurable percentage on each transaction.
- * Fee rates are determined in this priority order:
- *   1. Per-product override  → platform_products.platform_fee_percent
- *   2. Operation-type default → OPERATION_FEE_SCHEDULE map below
- *   3. Global fallback       → DEFAULT_FEE_PERCENT (10%)
+ * The grower pays the platform fee + Stripe processing on top of the job total.
+ * The operator receives the job total minus their 7.5% fee. Stripe processing
+ * is absorbed by the platform from the grower's gross payment.
  *
- * POST body: { product_id: string }
- * Response: { url: string }
+ * ── Two flows ──
+ *  1. JOB FUNDING (preferred for marketplace work):
+ *     POST { job_id: string }
+ *     - Creates a PaymentIntent for `growerChargeCents` on the platform balance
+ *     - Stores all fee numbers + payment_intent_id on the job row
+ *     - Returns the PaymentIntent client_secret so the client can confirm payment
+ *
+ *  2. PRODUCT CHECKOUT (legacy storefront flow, retained):
+ *     POST { product_id: string }
+ *     - Creates a Stripe Checkout Session for a one-off platform_products row
+ *     - Returns { url } for redirect
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -31,6 +37,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+// ── Split-fee constants (must match src/components/payments/FeeBreakdown.tsx) ──
+const PLATFORM_FEE_RATE = 0.075;       // 7.5% per side
+const STRIPE_PERCENT_FEE = 0.029;      // 2.9%
+const STRIPE_FIXED_FEE_CENTS = 30;     // $0.30
 
 /**
  * DEFAULT_FEE_PERCENT — global fallback when no per-product or per-type fee is set.
