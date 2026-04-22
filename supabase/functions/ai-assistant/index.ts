@@ -195,10 +195,26 @@ serve(async (req) => {
       });
     }
 
-    const sanitizedMessages = messages.map((m: any) => ({
+    // Cap history to last 10 messages to keep token usage low
+    const trimmedMessages = messages.slice(-MAX_HISTORY_MESSAGES);
+    const sanitizedMessages = trimmedMessages.map((m: any) => ({
       role: m.role === "assistant" ? "assistant" : "user",
       content: sanitizeUserMessage(String(m.content || "")),
     }));
+
+    // Response cache lookup (by latest user message + mode)
+    const lastUserMsg = [...sanitizedMessages].reverse().find((m) => m.role === "user");
+    const cacheKey = `${mode || "grower"}:${lastUserMsg?.content || ""}`;
+    if (lastUserMsg?.content) {
+      const cached = responseCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+        // Return as a single SSE chunk so the client streaming parser handles it identically
+        const chunk = `data: ${JSON.stringify({ choices: [{ delta: { content: cached.response } }] })}\n\ndata: [DONE]\n\n`;
+        return new Response(chunk, {
+          headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+        });
+      }
+    }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("AI service not configured");
