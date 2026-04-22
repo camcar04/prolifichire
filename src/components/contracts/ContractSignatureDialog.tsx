@@ -47,7 +47,7 @@ export function ContractSignatureDialog({
       // Check if all signatures are now complete
       const { data: sigs } = await supabase
         .from("contract_signatures")
-        .select("status")
+        .select("status, signer_id, signer_role")
         .eq("contract_id", contractId);
 
       const allSigned = sigs?.every(s => s.status === "signed");
@@ -64,6 +64,31 @@ export function ContractSignatureDialog({
           .from("contracts")
           .update({ status: "partially_signed" as any })
           .eq("id", contractId);
+        // Notify the other party that it's their turn
+        const otherSig = sigs?.find((s: any) => s.signer_id !== user.id && s.status === "pending");
+        if (otherSig) {
+          // Look up the job for action_url
+          const { data: contract } = await supabase
+            .from("contracts")
+            .select("job_id, jobs!inner(display_id)")
+            .eq("id", contractId)
+            .maybeSingle();
+          if (contract) {
+            try {
+              await supabase.functions.invoke("notify-contract-signature", {
+                body: {
+                  contractId,
+                  recipientId: (otherSig as any).signer_id,
+                  jobId: (contract as any).job_id,
+                  jobDisplayId: (contract as any).jobs?.display_id,
+                  contractTitle,
+                },
+              });
+            } catch (e) {
+              console.warn("Notify failed (non-blocking):", e);
+            }
+          }
+        }
       }
     },
     onSuccess: () => {
