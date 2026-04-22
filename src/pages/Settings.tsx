@@ -38,22 +38,20 @@ const SERVICE_TYPE_OPTIONS: OperationType[] = [
 ];
 
 const MISSING_ITEM_MAP: Record<string, { blocked: string; reason: string; link: string; cta: string }> = {
-  "Farm created": { blocked: "Post a job", reason: "Create a farm first", link: "/fields", cta: "Create Farm" },
-  "At least one field": { blocked: "Post a job", reason: "Add at least one field", link: "/fields", cta: "Add Field" },
-  "Field boundary": { blocked: "Generate accurate packets", reason: "Add a field boundary", link: "/fields", cta: "Set Boundary" },
-  "Field location": { blocked: "Operator routing", reason: "Set field location data", link: "/fields", cta: "Set Location" },
-  "Farm state": { blocked: "Post a job", reason: "Add your farm state", link: "/fields", cta: "Update Farm" },
-  "Farm county": { blocked: "Post a job", reason: "Add your farm county", link: "/fields", cta: "Update Farm" },
-  "Full name": { blocked: "Use platform", reason: "Add your name", link: "/settings?tab=profile", cta: "Add Name" },
-  "Base location": { blocked: "Find nearby jobs", reason: "Set your shop/yard location", link: "/settings?tab=dowork", cta: "Set Location" },
-  "Service radius": { blocked: "Receive job matches", reason: "Define your service area", link: "/settings?tab=dowork", cta: "Set Radius" },
-  "Service types": { blocked: "Match with jobs", reason: "Select services you offer", link: "/settings?tab=dowork", cta: "Set Services" },
-  "At least one equipment record": { blocked: "Bid on jobs", reason: "Add your equipment", link: "/settings?tab=dowork", cta: "Add Equipment" },
-  "Operator profile": { blocked: "Use operator features", reason: "Complete operator setup", link: "/settings?tab=dowork", cta: "Complete Setup" },
-  "Insurance documentation": { blocked: "Earn trust badges", reason: "Upload insurance proof", link: "/settings?tab=dowork", cta: "Add Insurance" },
-  "License or certification": { blocked: "Earn trust badges", reason: "Upload license or cert", link: "/settings?tab=dowork", cta: "Add License" },
-  "Credentials (insurance, license)": { blocked: "Earn trust badges", reason: "Add credentials", link: "/settings?tab=dowork", cta: "Add Credentials" },
-  "Equipment": { blocked: "Bid on jobs", reason: "Add equipment", link: "/settings?tab=dowork", cta: "Add Equipment" },
+  // Keys MUST match the exact labels emitted by useProfileScore() checklist items.
+  // Shared (both roles)
+  "Add your first and last name": { blocked: "Use platform features", reason: "We use your name on contracts and messages", link: "/settings?tab=profile", cta: "Add Name" },
+  "Add a phone number": { blocked: "Receive job alerts", reason: "Operators and growers reach you by phone", link: "/settings?tab=profile", cta: "Add Phone" },
+  // Grower checklist
+  "Create your first farm": { blocked: "Post a job", reason: "Jobs must belong to a farm", link: "/fields", cta: "Create Farm" },
+  "Add a field with a boundary": { blocked: "Generate accurate packets", reason: "Boundaries power acreage, routing, and packets", link: "/fields", cta: "Add Field" },
+  "Set your organization / business name": { blocked: "Appear professional on contracts", reason: "Your business name is shown on invoices and contracts", link: "/settings?tab=hirework", cta: "Set Business Name" },
+  "Post your first job": { blocked: "Get bids from operators", reason: "Post a job to start receiving quotes", link: "/jobs", cta: "Post Job" },
+  // Operator checklist
+  "Set your business name": { blocked: "Appear professional to growers", reason: "Your business name is shown on quotes and invoices", link: "/settings?tab=dowork", cta: "Set Business Name" },
+  "Add at least one equipment record": { blocked: "Bid on jobs", reason: "Growers need to see what equipment you bring", link: "/settings?tab=dowork", cta: "Add Equipment" },
+  "Upload at least one credential": { blocked: "Earn trust badges", reason: "Insurance or license uploads unlock verified status", link: "/settings?tab=dowork", cta: "Add Credential" },
+  "Complete Stripe Connect setup": { blocked: "Receive payouts", reason: "Stripe Connect is required to be paid for completed jobs", link: "/settings?tab=profile", cta: "Connect Stripe" },
 };
 
 export default function Settings() {
@@ -167,7 +165,8 @@ export default function Settings() {
                     if (!mapping) return null;
                     // In-app navigation: when the fix lives on this same Settings page,
                     // switch tabs and focus the relevant input instead of routing away.
-                    const isProfileItem = item === "Full name" || item === "Email";
+                    const isProfileItem =
+                      item === "Add your first and last name" || item === "Add a phone number";
                     const inlineFix = isProfileItem
                       ? () => {
                           setActiveTab("profile");
