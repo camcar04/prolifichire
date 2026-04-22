@@ -16,6 +16,7 @@ export function useJobs() {
           job_fields(*, fields(name, crop, acreage, centroid_lat, centroid_lng)),
           farms(name)
         `)
+        .eq("requested_by", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
@@ -94,6 +95,7 @@ export function useMarketplaceJobs() {
         .in("status", ["requested", "quoted", "scheduled"])
         .in("visibility", ["public", "network_only"])
         .neq("contract_mode", "invite_only")
+        .neq("requested_by", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       // Filter out own jobs client-side (RLS already shows them)
