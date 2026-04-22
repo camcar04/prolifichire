@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { trackFirstTimeEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -40,8 +41,9 @@ interface StripeStatus {
 }
 
 export function StripeConnectOnboarding() {
-  const { session } = useAuth();
+  const { session, user } = useAuth();
   const [starting, setStarting] = useState(false);
+  const onboardedFiredRef = useRef(false);
 
   /**
    * Fetch live status from Stripe via our edge function.
@@ -66,6 +68,21 @@ export function StripeConnectOnboarding() {
     },
     refetchOnWindowFocus: true,
   });
+
+  // Fire stripe_connect_completed once per session when transition observed.
+  // Must run before any early returns to satisfy Rules of Hooks.
+  useEffect(() => {
+    const fullyOnboarded =
+      !!status?.has_account &&
+      !!status?.ready_to_receive_payments &&
+      !!status?.onboarding_complete;
+    if (fullyOnboarded && user && !onboardedFiredRef.current) {
+      onboardedFiredRef.current = true;
+      void trackFirstTimeEvent(user.id, "stripe_connect_completed", {
+        account_id: status?.account_id,
+      });
+    }
+  }, [status, user]);
 
   /**
    * Start onboarding — creates V2 account + generates V2 account link.

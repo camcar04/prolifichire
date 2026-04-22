@@ -1,6 +1,8 @@
+import { useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { trackFirstTimeEvent } from "@/lib/analytics";
 import AppShell from "@/components/layout/AppShell";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -14,6 +16,7 @@ export default function PayoutsPage() {
   const { user, activeMode } = useAuth();
   const isHireWork = activeMode === "grower";
   const title = isHireWork ? "Financials" : "Payouts";
+  const firstPayoutFiredRef = useRef(false);
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ["my-invoices", user?.id],
@@ -28,6 +31,22 @@ export default function PayoutsPage() {
       return data || [];
     },
   });
+
+  // First payout milestone — fire once when operator has any paid invoice issued to them
+  useEffect(() => {
+    if (firstPayoutFiredRef.current) return;
+    if (!user || isHireWork) return;
+    const firstPaid = (invoices as any[]).find(
+      (inv) => inv.status === "paid" && inv.issued_by === user.id,
+    );
+    if (firstPaid) {
+      firstPayoutFiredRef.current = true;
+      void trackFirstTimeEvent(user.id, "first_payout_received", {
+        invoice_id: firstPaid.id,
+        amount: Number(firstPaid.total || 0),
+      });
+    }
+  }, [invoices, user, isHireWork]);
 
   // ── Stripe Express dashboard link (operators only) ──
   const openTaxDocs = useMutation({

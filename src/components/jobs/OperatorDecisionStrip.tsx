@@ -16,6 +16,7 @@ import {
   AlertTriangle, DollarSign, Truck, MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { trackFirstTimeEvent } from "@/lib/analytics";
 
 interface OperatorDecisionStripProps {
   job: any;
@@ -57,6 +58,12 @@ export function OperatorDecisionStrip({ job }: OperatorDecisionStripProps) {
     },
     onSuccess: () => {
       toast.success("Quote submitted");
+      if (user) {
+        void trackFirstTimeEvent(user.id, "first_quote_submitted", {
+          job_id: job.id,
+          rate: parseFloat(quoteRate),
+        });
+      }
       setQuoteOpen(false);
       setCounterQuoteOpen(false);
       setQuoteRate("");

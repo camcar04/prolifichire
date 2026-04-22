@@ -2738,6 +2738,33 @@ export type Database = {
         }
         Relationships: []
       }
+      page_views: {
+        Row: {
+          created_at: string
+          id: string
+          path: string
+          referrer: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          path: string
+          referrer?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          path?: string
+          referrer?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -3038,6 +3065,7 @@ export type Database = {
           avatar_url: string | null
           billing_contact_email: string | null
           billing_contact_name: string | null
+          county: string | null
           created_at: string
           email: string
           enabled_account_types: string[] | null
@@ -3052,11 +3080,17 @@ export type Database = {
             | Database["public"]["Enums"]["comm_method"]
             | null
           primary_account_type: string | null
+          referral_source: string | null
+          signup_date: string | null
+          state: string | null
           stripe_account_id: string | null
           stripe_onboarded: boolean | null
           suspended_at: string | null
           updated_at: string
           user_id: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         Insert: {
           approval_contact_email?: string | null
@@ -3064,6 +3098,7 @@ export type Database = {
           avatar_url?: string | null
           billing_contact_email?: string | null
           billing_contact_name?: string | null
+          county?: string | null
           created_at?: string
           email: string
           enabled_account_types?: string[] | null
@@ -3078,11 +3113,17 @@ export type Database = {
             | Database["public"]["Enums"]["comm_method"]
             | null
           primary_account_type?: string | null
+          referral_source?: string | null
+          signup_date?: string | null
+          state?: string | null
           stripe_account_id?: string | null
           stripe_onboarded?: boolean | null
           suspended_at?: string | null
           updated_at?: string
           user_id: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Update: {
           approval_contact_email?: string | null
@@ -3090,6 +3131,7 @@ export type Database = {
           avatar_url?: string | null
           billing_contact_email?: string | null
           billing_contact_name?: string | null
+          county?: string | null
           created_at?: string
           email?: string
           enabled_account_types?: string[] | null
@@ -3104,11 +3146,17 @@ export type Database = {
             | Database["public"]["Enums"]["comm_method"]
             | null
           primary_account_type?: string | null
+          referral_source?: string | null
+          signup_date?: string | null
+          state?: string | null
           stripe_account_id?: string | null
           stripe_onboarded?: boolean | null
           suspended_at?: string | null
           updated_at?: string
           user_id?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: [
           {
@@ -3626,6 +3674,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

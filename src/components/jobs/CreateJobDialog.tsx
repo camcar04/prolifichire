@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { formatAcres, formatCropType } from "@/lib/format";
 import { OperationSpecFields, validateOperationSpec, type OperationSpec } from "@/components/jobs/OperationSpecFields";
+import { trackFirstTimeEvent } from "@/lib/analytics";
 
 const OP_TYPES = [
   { value: "spraying", label: "Spraying / Application" },
@@ -150,6 +151,12 @@ export function CreateJobDialog({ open, onOpenChange, preselectedFieldId }: Prop
       }
 
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      // First job milestone (no-op if already fired)
+      void trackFirstTimeEvent(user.id, "first_job_posted", {
+        job_id: job.id,
+        operation_type: form.opType,
+        total_acres: totalAcres,
+      });
       toast.success("Job posted! Operators can now see it.");
       onOpenChange(false);
       navigate(`/jobs/${job.id}`);
