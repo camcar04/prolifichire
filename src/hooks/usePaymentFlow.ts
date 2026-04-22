@@ -9,6 +9,7 @@ export const FUNDING_LABELS: Record<string, string> = {
   not_required: "No Funding Required",
   unfunded: "Unfunded",
   funding_required: "Funding Required",
+  pending_payment: "Payment Pending",
   funded: "Funded",
   payout_ready: "Payout Ready",
   payout_released: "Payout Released",
@@ -21,6 +22,7 @@ export const FUNDING_COLORS: Record<string, string> = {
   not_required: "text-muted-foreground",
   unfunded: "text-muted-foreground",
   funding_required: "text-warning",
+  pending_payment: "text-info",
   funded: "text-success",
   payout_ready: "text-info",
   payout_released: "text-success",
@@ -132,34 +134,34 @@ export function useSetAgreedPrice() {
 
 // ── Hook: Mark job as funded (simulated — will use Stripe in Phase 1) ──
 export function useFundJob() {
-  const qc = useQueryClient();
   const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ jobId, amount }: { jobId: string; amount: number }) => {
-      // TODO: Phase 1 — Create Stripe PaymentIntent here
-      // For now, simulate funding by updating status
-      const { error } = await supabase
-        .from("jobs")
-        .update({
-          funding_status: "funded" as any,
-          funded_amount: amount,
-          funded_at: new Date().toISOString(),
-        } as any)
-        .eq("id", jobId);
+      const { data, error } = await supabase.functions.invoke("stripe-checkout", {
+        body: { job_id: jobId },
+      });
 
       if (error) throw error;
-    },
-    onSuccess: (_, { jobId, amount }) => {
-      toast.success("Job funded successfully! Work can now begin.");
-      if (user) {
-        trackEvent(user.id, "job_funded", { job_id: jobId, amount });
+      if (data && (data as any).error) throw new Error((data as any).error);
+      if (!data || !(data as any).url) {
+        throw new Error("Stripe did not return a checkout URL");
       }
-      qc.invalidateQueries({ queryKey: ["job", jobId] });
-      qc.invalidateQueries({ queryKey: ["jobs"] });
+
+      if (user) {
+        trackEvent(user.id, "job_funding_initiated", { job_id: jobId, amount });
+      }
+
+      window.location.href = (data as any).url;
+      return data;
     },
     onError: (e: any) => toast.error(e.message || "Failed to fund job"),
   });
+}
+
+// ── Helper: Is funding pending Stripe confirmation? ──
+export function isFundingPending(job: any): boolean {
+  return (job.funding_status || "") === "pending_payment";
 }
 
 // ── Hook: Release payout via the stripe-release-payout edge function ──

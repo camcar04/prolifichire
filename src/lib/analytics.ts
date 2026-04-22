@@ -13,6 +13,7 @@ export type UserEventType =
   | "first_job_posted"
   | "first_quote_submitted"
   | "job_funded"
+  | "job_funding_initiated"
   | "stripe_connect_completed"
   | "first_payout_received";
 
