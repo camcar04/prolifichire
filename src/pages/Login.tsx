@@ -69,6 +69,10 @@ export default function Login() {
           <span className="font-bold text-lg tracking-tight">ProlificHire</span>
         </Link>
 
+        <p className="text-xs text-muted-foreground text-center mb-6 -mt-4 px-4">
+          The agricultural operations platform trusted by growers and custom operators across the Midwest.
+        </p>
+
         <div className="rounded-xl bg-card shadow-card p-6">
           <h1 className="text-lg font-semibold mb-1">Sign in</h1>
           <p className="text-sm text-muted-foreground mb-6">Enter your credentials to continue.</p>
@@ -88,7 +92,12 @@ export default function Login() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link to="/forgot-password" className="text-xs text-primary font-medium hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <Input
                   id="password"

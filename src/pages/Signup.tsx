@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Eye, EyeOff, Loader2, Briefcase, Wrench } from "lucide-react";
+import { Eye, EyeOff, Loader2, Briefcase, Wrench, MailCheck } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { AppMode } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -15,11 +15,14 @@ export default function Signup() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [selectedRole, setSelectedRole] = useState<AppMode | null>(null);
   const [loading, setLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [confirmationPending, setConfirmationPending] = useState(false);
+  const [resending, setResending] = useState(false);
   const navigate = useNavigate();
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -62,7 +65,7 @@ export default function Signup() {
       password,
       options: {
         data: { first_name: trimmedFirst, last_name: trimmedLast },
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: window.location.origin + "/auth/callback",
       },
     });
     
@@ -77,6 +80,7 @@ export default function Signup() {
       await supabase.from("profiles").update({
         primary_account_type: selectedRole,
         enabled_account_types: [selectedRole],
+        phone: phone.trim() || null,
       }).eq("user_id", data.user.id);
 
       // Insert the selected role into user_roles table
@@ -87,9 +91,36 @@ export default function Signup() {
     }
 
     setLoading(false);
+
+    // If email confirmation is required, the user has no active session yet
+    const needsConfirmation = !!data.user && !data.session;
+    if (needsConfirmation) {
+      setConfirmationPending(true);
+      return;
+    }
+
     localStorage.setItem("ph_active_mode", selectedRole);
     toast.success("Account created! Let's set up your workspace.");
     navigate(selectedRole === "operator" ? "/onboarding/operator" : "/onboarding/grower");
+  };
+
+  const handleResend = async () => {
+    if (!canPerformAction("resend-confirmation", 5000)) {
+      toast.error("Please wait before resending.");
+      return;
+    }
+    setResending(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: email.trim().toLowerCase(),
+      options: { emailRedirectTo: window.location.origin + "/auth/callback" },
+    });
+    setResending(false);
+    if (error) {
+      toast.error("Could not resend. Try again in a moment.");
+    } else {
+      toast.success("Confirmation email sent.");
+    }
   };
 
   return (
@@ -103,6 +134,25 @@ export default function Signup() {
         </Link>
 
         <div className="rounded-xl bg-card shadow-card p-6">
+          {confirmationPending ? (
+            <div className="text-center py-2">
+              <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <MailCheck size={22} className="text-primary" />
+              </div>
+              <h1 className="text-lg font-semibold mb-1">Confirm your email</h1>
+              <p className="text-sm text-muted-foreground mb-6">
+                Check your email at <span className="font-medium text-foreground">{email.trim().toLowerCase()}</span> to confirm your account before continuing.
+              </p>
+              <Button onClick={handleResend} variant="outline" className="w-full" disabled={resending}>
+                {resending && <Loader2 size={16} className="animate-spin mr-2" />}
+                Resend email
+              </Button>
+              <p className="text-xs text-muted-foreground mt-4">
+                Already confirmed? <Link to="/login" className="text-primary font-medium hover:underline">Sign in</Link>
+              </p>
+            </div>
+          ) : (
+          <>
           <h1 className="text-lg font-semibold mb-1">Create your account</h1>
           <p className="text-sm text-muted-foreground mb-5">How will you use ProlificHire?</p>
 
@@ -164,6 +214,10 @@ export default function Signup() {
               <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required maxLength={255} autoComplete="email" />
             </div>
             <div className="space-y-1.5">
+              <Label htmlFor="phone">Phone number <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Input id="phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="(555) 000-0000" maxLength={20} autoComplete="tel" />
+            </div>
+            <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Input id="password" type={showPass ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 6 characters" required minLength={6} maxLength={128} autoComplete="new-password" />
@@ -191,6 +245,8 @@ export default function Signup() {
               Create Account
             </Button>
           </form>
+          </>
+          )}
         </div>
 
         <p className="text-sm text-center text-muted-foreground mt-4">

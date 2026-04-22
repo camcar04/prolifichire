@@ -14,6 +14,8 @@ import Marketplace from "./pages/Marketplace";
 import JobDetail from "./pages/JobDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Schedule from "./pages/Schedule";
 import Packets from "./pages/Packets";
 import Payouts from "./pages/Payouts";
@@ -57,13 +59,15 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             {/* Legacy /auth/* redirects for Supabase email links */}
             <Route path="/auth" element={<Navigate to="/login" replace />} />
             <Route path="/auth/login" element={<Navigate to="/login" replace />} />
             <Route path="/auth/signup" element={<Navigate to="/signup" replace />} />
             <Route path="/auth/callback" element={<Login />} />
             <Route path="/auth/confirm" element={<Login />} />
-            <Route path="/auth/reset-password" element={<Login />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/enterprise" element={<Enterprise />} />
             <Route path="/legal/privacy" element={<PrivacyPolicy />} />
             <Route path="/legal/terms" element={<TermsOfService />} />
