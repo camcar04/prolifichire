@@ -32,7 +32,7 @@ const growerNav: NavItem[] = [
   { icon: DollarSign, label: "Quotes", to: "/quotes" },
   { icon: Users, label: "Labor", to: "/labor" },
   { icon: Bookmark, label: "Templates", to: "/templates" },
-  { icon: MessageSquare, label: "Messages", to: "/messages" },
+  { icon: Bell, label: "Notifications", to: "/messages" },
   { icon: Link2, label: "Integrations", to: "/integrations" },
   { icon: Settings, label: "Settings", to: "/settings" },
 ];
@@ -46,7 +46,7 @@ const operatorNav: NavItem[] = [
   { icon: Users, label: "Labor", to: "/labor" },
   { icon: Bookmark, label: "Bid Queue", to: "/bid-queue" },
   { icon: DollarSign, label: "Payouts", to: "/payouts" },
-  { icon: MessageSquare, label: "Messages", to: "/messages" },
+  { icon: Bell, label: "Notifications", to: "/messages" },
   { icon: Link2, label: "Integrations", to: "/integrations" },
   { icon: Settings, label: "Settings", to: "/settings" },
 ];
