@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useJobUpdates, usePostJobUpdate, useProofOfWork, useSubmitProof, UPDATE_STATUS_LABELS, type JobUpdateStatus } from "@/hooks/useJobExecution";
-import { useAuth } from "@/contexts/AuthContext";
+import { useJobUpdates, usePostJobUpdate, UPDATE_STATUS_LABELS, type JobUpdateStatus } from "@/hooks/useJobExecution";
+import { useProofWithPhotos, useMarkInProgress } from "@/hooks/useProofSubmission";
+import { ProofSubmissionPanel } from "@/components/jobs/ProofSubmissionPanel";
+import { ProofReviewPanel } from "@/components/jobs/ProofReviewPanel";
 import { formatRelative } from "@/lib/format";
 import { 
   Navigation, MapPin, Play, Pause, AlertTriangle, CheckCircle2, 
@@ -35,17 +37,22 @@ interface Props {
 
 export function JobExecutionPanel({ jobId, jobStatus, isOperator, isGrowerView }: Props) {
   const { data: updates = [] } = useJobUpdates(jobId);
-  const { data: proofs = [] } = useProofOfWork(jobId);
+  const { data: proofs = [] } = useProofWithPhotos(jobId);
   const postUpdate = usePostJobUpdate(jobId);
-  const submitProof = useSubmitProof(jobId);
+  const markInProgress = useMarkInProgress(jobId);
   const [note, setNote] = useState("");
-  const [showProofForm, setShowProofForm] = useState(false);
-  const [proofNotes, setProofNotes] = useState("");
   const [expanded, setExpanded] = useState(true);
 
   const activeStatuses = ["accepted", "scheduled", "in_progress"];
   const canUpdate = isOperator && activeStatuses.includes(jobStatus);
-  const canSubmitProof = isOperator && ["in_progress", "completed"].includes(jobStatus);
+  const latestProof: any = proofs[0];
+  const isPendingReview = latestProof?.status === "pending_review";
+  const isRevisionRequested = latestProof?.status === "revision_requested";
+  const canMarkInProgress = isOperator && jobStatus === "scheduled";
+  const canSubmitProof =
+    isOperator &&
+    (jobStatus === "in_progress" || isRevisionRequested) &&
+    !isPendingReview;
 
   const handleQuickUpdate = (status: JobUpdateStatus) => {
     postUpdate.mutate({ status });
@@ -55,13 +62,6 @@ export function JobExecutionPanel({ jobId, jobStatus, isOperator, isGrowerView }
     if (!note.trim()) return;
     postUpdate.mutate({ status: "note", note: note.trim() });
     setNote("");
-  };
-
-  const handleProofSubmit = () => {
-    if (!proofNotes.trim()) return;
-    submitProof.mutate({ notes: proofNotes.trim() });
-    setProofNotes("");
-    setShowProofForm(false);
   };
 
   return (
@@ -81,6 +81,20 @@ export function JobExecutionPanel({ jobId, jobStatus, isOperator, isGrowerView }
 
       {expanded && (
         <div className="p-3 space-y-3">
+          {/* Mark In Progress (operator, scheduled) */}
+          {canMarkInProgress && (
+            <div className="bg-primary/5 border border-primary/20 rounded p-2.5 flex items-center gap-2">
+              <Play size={14} className="text-primary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-medium">Ready to start work?</p>
+                <p className="text-[11px] text-muted-foreground">Mark this job as In Progress to begin tracking execution.</p>
+              </div>
+              <Button size="sm" className="h-7 text-[12px]" onClick={() => markInProgress.mutate()} disabled={markInProgress.isPending}>
+                Mark as In Progress
+              </Button>
+            </div>
+          )}
+
           {/* Quick status buttons — operator only */}
           {canUpdate && (
             <div className="space-y-2">
@@ -122,48 +136,17 @@ export function JobExecutionPanel({ jobId, jobStatus, isOperator, isGrowerView }
             </div>
           )}
 
-          {/* Proof of work */}
-          {canSubmitProof && proofs.length === 0 && (
-            <div className="border-t pt-3">
-              {!showProofForm ? (
-                <Button size="sm" variant="outline" className="w-full gap-1 text-[12px]" onClick={() => setShowProofForm(true)}>
-                  <CheckCircle2 size={12} /> Submit Proof of Work
-                </Button>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-[11px] font-medium">Proof of Completion</p>
-                  <Textarea
-                    value={proofNotes}
-                    onChange={(e) => setProofNotes(e.target.value)}
-                    placeholder="Describe completed work, conditions, any issues…"
-                    className="text-[12px] min-h-[72px] resize-none"
-                  />
-                  <div className="flex gap-2">
-                    <Button size="sm" className="text-[12px] gap-1" onClick={handleProofSubmit} disabled={!proofNotes.trim() || submitProof.isPending}>
-                      <Send size={11} /> Submit
-                    </Button>
-                    <Button size="sm" variant="ghost" className="text-[12px]" onClick={() => setShowProofForm(false)}>Cancel</Button>
-                  </div>
-                </div>
-              )}
-            </div>
+          {/* Proof submission form (operator) */}
+          {canSubmitProof && (
+            <ProofSubmissionPanel
+              jobId={jobId}
+              isResubmission={isRevisionRequested}
+            />
           )}
 
-          {/* Proof status */}
+          {/* Proof review (grower) or read-only (operator) */}
           {proofs.length > 0 && (
-            <div className="border-t pt-3 space-y-2">
-              {proofs.map((p: any) => (
-                <div key={p.id} className="bg-surface-2 rounded-md p-2.5">
-                  <div className="flex items-center gap-2 mb-1">
-                    <CheckCircle2 size={12} className={p.status === "approved" ? "text-success" : p.status === "rejected" ? "text-destructive" : "text-warning"} />
-                    <span className="text-[11px] font-semibold capitalize">{p.status.replace("_", " ")}</span>
-                    <span className="text-[10px] text-muted-foreground">{formatRelative(p.created_at)}</span>
-                  </div>
-                  {p.notes && <p className="text-[12px] text-muted-foreground">{p.notes}</p>}
-                  {p.review_notes && <p className="text-[12px] text-info mt-1">Review: {p.review_notes}</p>}
-                </div>
-              ))}
-            </div>
+            <ProofReviewPanel jobId={jobId} proofs={proofs} isGrower={isGrowerView} />
           )}
 
           {/* Update timeline */}
