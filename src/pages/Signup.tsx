@@ -19,7 +19,14 @@ export default function Signup() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<AppMode | null>(null);
+  // Pre-select role from ?role=grower|operator (from Login CTAs or marketing links)
+  const preselectedRole = (() => {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    const r = params.get("role");
+    return r === "grower" || r === "operator" ? (r as AppMode) : null;
+  })();
+  const [selectedRole, setSelectedRole] = useState<AppMode | null>(preselectedRole);
   const [loading, setLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [confirmationPending, setConfirmationPending] = useState(false);
