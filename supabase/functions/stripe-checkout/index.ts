@@ -368,7 +368,7 @@ serve(async (req) => {
     const cancelUrl = `${origin}/storefront?status=cancelled`;
 
     // ── Create the Stripe Client (legacy product flow) ──
-    const stripeClient = new Stripe(stripeKey);
+    const productStripeClient = new Stripe(stripeKey);
 
     /**
      * Create Checkout Session that charges the PLATFORM account directly.
@@ -378,7 +378,7 @@ serve(async (req) => {
      * The fee rate and seller account are stored in metadata so the payout
      * function knows where to send the operator's share later.
      */
-    const session = await stripeClient.checkout.sessions.create({
+    const session = await productStripeClient.checkout.sessions.create({
       mode: "payment",
       line_items: [
         {
