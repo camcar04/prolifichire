@@ -636,16 +636,22 @@ function RoleCard({ icon, title, desc, enabled, isPrimary, onEnable, enabling }:
   );
 }
 
-function BlockedItem({ label, reason, link, cta }: { label: string; reason: string; link: string; cta: string }) {
+function BlockedItem({ label, reason, link, cta, onClick }: { label: string; reason: string; link?: string; cta: string; onClick?: () => void }) {
   return (
     <div className="flex items-center justify-between gap-3 py-1.5">
       <div className="min-w-0">
         <p className="text-[13px] font-medium text-foreground">{label}</p>
         <p className="text-[11px] text-muted-foreground">{reason}</p>
       </div>
-      <Button size="sm" variant="outline" className="h-7 text-xs gap-1 shrink-0" asChild>
-        <Link to={link}>{cta} <ArrowRight size={10} /></Link>
-      </Button>
+      {onClick ? (
+        <Button size="sm" variant="outline" className="h-7 text-xs gap-1 shrink-0" onClick={onClick}>
+          {cta} <ArrowRight size={10} />
+        </Button>
+      ) : (
+        <Button size="sm" variant="outline" className="h-7 text-xs gap-1 shrink-0" asChild>
+          <Link to={link!}>{cta} <ArrowRight size={10} /></Link>
+        </Button>
+      )}
     </div>
   );
 }
