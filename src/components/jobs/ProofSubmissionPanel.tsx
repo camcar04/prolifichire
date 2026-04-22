@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useSubmitProofWithPhotos } from "@/hooks/useProofSubmission";
 import { Camera, FileUp, Send, X, CheckCircle2 } from "lucide-react";
-import { formatBytes } from "@/lib/format";
+import { formatFileSize } from "@/lib/format";
 
 interface Props {
   jobId: string;
@@ -157,7 +157,7 @@ export function ProofSubmissionPanel({ jobId, defaultAcres, isResubmission, onSu
               const idx = files.indexOf(f);
               return (
                 <li key={idx} className="flex items-center justify-between bg-surface-2 rounded px-2 py-1 text-[11px]">
-                  <span className="truncate">{f.name} <span className="text-muted-foreground">· {formatBytes(f.size)}</span></span>
+                  <span className="truncate">{f.name} <span className="text-muted-foreground">· {formatFileSize(f.size)}</span></span>
                   <button type="button" onClick={() => handleRemove(idx)} className="text-muted-foreground hover:text-destructive">
                     <X size={11} />
                   </button>
