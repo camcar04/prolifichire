@@ -7,10 +7,11 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ListSkeleton } from "@/components/shared/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Package, AlertTriangle, CheckCircle2, ChevronRight, MapPin, Clock, FileText, Store, RefreshCw, Loader2 } from "lucide-react";
+import { Package, AlertTriangle, CheckCircle2, ChevronRight, MapPin, Clock, FileText, Store, RefreshCw, Loader2, WifiOff } from "lucide-react";
 import { formatOperationType, formatAcres, formatRelative, formatCropType } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { OfflinePacketControls } from "@/components/shared/OfflinePacketControls";
 
 type PacketGroup = "ready" | "incomplete" | "in_progress" | "awaiting" | "completed";
 
@@ -35,7 +36,8 @@ export default function Packets() {
         .from("field_packets")
         .select(`
           *,
-          field_packet_files(*),
+          field_packet_files(*, dataset_assets(file_name, storage_path, file_size, format, category)),
+          fields(id, name, crop, acreage, county, state, boundary_geojson, centroid_lat, centroid_lng, field_access_instructions(*)),
           jobs(id, display_id, operation_type, title, status, total_acres, scheduled_start, deadline,
             job_fields(fields(name, crop, acreage, centroid_lat, centroid_lng))
           )
