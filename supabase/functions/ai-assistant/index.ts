@@ -9,7 +9,13 @@ const corsHeaders = {
 
 const rateLimits = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 20;
-const RATE_WINDOW_MS = 60_000;
+const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour per spec
+
+// Simple in-memory response cache (5 minute TTL) for identical questions
+const responseCache = new Map<string, { response: string; timestamp: number }>();
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const MAX_HISTORY_MESSAGES = 10;
+const MAX_OUTPUT_TOKENS = 500;
 
 function checkRateLimit(userId: string): boolean {
   const now = Date.now();
