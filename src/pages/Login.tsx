@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Briefcase, Wrench, ArrowRight } from "lucide-react";
 import { canPerformAction } from "@/lib/security";
 
 export default function Login() {
@@ -124,6 +124,28 @@ export default function Login() {
         <p className="text-sm text-center text-muted-foreground mt-4">
           Don't have an account? <Link to="/signup" className="text-primary font-medium hover:underline">Create one</Link>
         </p>
+
+        {/* New-user CTA — pre-selects role on Signup */}
+        <div className="rounded-xl border border-border bg-card mt-6 p-4">
+          <p className="text-sm font-semibold text-center mb-1">No account yet? Get started →</p>
+          <p className="text-xs text-muted-foreground text-center mb-3">
+            Pick the path that fits how you'll use ProlificHire.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" className="h-auto py-2.5 flex-col gap-1" asChild>
+              <Link to="/signup?role=grower">
+                <Briefcase size={16} />
+                <span className="text-xs font-semibold">I'm a Grower</span>
+              </Link>
+            </Button>
+            <Button variant="outline" className="h-auto py-2.5 flex-col gap-1" asChild>
+              <Link to="/signup?role=operator">
+                <Wrench size={16} />
+                <span className="text-xs font-semibold">I'm an Operator</span>
+              </Link>
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
