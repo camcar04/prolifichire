@@ -169,7 +169,7 @@ serve(async (req) => {
     }
 
     if (!checkRateLimit(user.id)) {
-      return new Response(JSON.stringify({ error: "Too many requests. Please wait a moment." }), {
+      return new Response(JSON.stringify({ error: "You've reached the AI assistant limit. Try again in an hour." }), {
         status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
