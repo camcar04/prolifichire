@@ -42,7 +42,6 @@ export function useProfileScore() {
       const missing: string[] = [];
       let core = 0, functional = 0, trust = 0, advanced = 0;
 
-      if (activeMode === "grower") {
       // Core profile fields (always evaluated, never racey — read from AuthContext)
       const hasName = !!(profile?.firstName && profile?.lastName);
       const hasEmail = !!profile?.email;
