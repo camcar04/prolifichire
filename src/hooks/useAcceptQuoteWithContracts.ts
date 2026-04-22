@@ -127,7 +127,7 @@ export function useAcceptQuoteWithContracts() {
       if (!operatorName) {
         const { data: opProfile } = await supabase
           .from("profiles")
-          .select("first_name, last_name, business_name")
+          .select("first_name, last_name")
           .eq("user_id", quote.operator_id)
           .maybeSingle();
         if (opProfile) {
@@ -137,7 +137,7 @@ export function useAcceptQuoteWithContracts() {
       if (!growerName) {
         const { data: grProfile } = await supabase
           .from("profiles")
-          .select("first_name, last_name, business_name")
+          .select("first_name, last_name")
           .eq("user_id", user.id)
           .maybeSingle();
         if (grProfile) {
