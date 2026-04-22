@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -57,6 +57,13 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            {/* Legacy /auth/* redirects for Supabase email links */}
+            <Route path="/auth" element={<Navigate to="/login" replace />} />
+            <Route path="/auth/login" element={<Navigate to="/login" replace />} />
+            <Route path="/auth/signup" element={<Navigate to="/signup" replace />} />
+            <Route path="/auth/callback" element={<Login />} />
+            <Route path="/auth/confirm" element={<Login />} />
+            <Route path="/auth/reset-password" element={<Login />} />
             <Route path="/enterprise" element={<Enterprise />} />
             <Route path="/legal/privacy" element={<PrivacyPolicy />} />
             <Route path="/legal/terms" element={<TermsOfService />} />
