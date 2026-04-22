@@ -6,6 +6,7 @@ const FUNDING_ICONS: Record<string, React.ElementType> = {
   not_required: Shield,
   unfunded: Clock,
   funding_required: AlertTriangle,
+  pending_payment: Clock,
   funded: CheckCircle2,
   payout_ready: DollarSign,
   payout_released: CheckCircle2,
@@ -27,9 +28,10 @@ export function FundingStatusBadge({ status, size = "sm" }: { status: string; si
       color,
       status === "funded" && "bg-success/10 border-success/20",
       status === "funding_required" && "bg-warning/10 border-warning/20",
+      status === "pending_payment" && "bg-info/10 border-info/20",
       status === "payout_released" && "bg-success/10 border-success/20",
       status === "disputed" && "bg-destructive/10 border-destructive/20",
-      !["funded", "funding_required", "payout_released", "disputed"].includes(status) && "bg-muted/50 border-border",
+      !["funded", "funding_required", "pending_payment", "payout_released", "disputed"].includes(status) && "bg-muted/50 border-border",
     )}>
       <Icon size={isSm ? 10 : 12} />
       {label}
