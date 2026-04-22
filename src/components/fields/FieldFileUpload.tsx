@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Upload, FileText, Loader2 } from "lucide-react";
+import { Upload, FileText, Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 const FILE_CATEGORIES = [
@@ -20,6 +20,28 @@ const FILE_CATEGORIES = [
   { value: "photo", label: "Photo" },
   { value: "other", label: "Other" },
 ];
+
+const MB = 1024 * 1024;
+
+/** Returns { maxBytes, label, kind } based on extension. */
+function getSizeLimit(ext: string): { maxBytes: number; label: string; kind: string } {
+  const e = ext.toLowerCase();
+  if (["geojson", "json", "kml", "kmz", "shp", "dbf", "shx", "prj", "cpg"].includes(e)) {
+    return { maxBytes: 50 * MB, label: "50MB", kind: "GeoJSON / KML / Shapefile" };
+  }
+  if (["xml"].includes(e)) {
+    return { maxBytes: 100 * MB, label: "100MB", kind: "ISOXML" };
+  }
+  if (["csv"].includes(e)) {
+    return { maxBytes: 25 * MB, label: "25MB", kind: "CSV" };
+  }
+  if (["pdf", "png", "jpg", "jpeg", "webp", "tif", "tiff"].includes(e)) {
+    return { maxBytes: 10 * MB, label: "10MB", kind: "PDF / image" };
+  }
+  // zip / other: treat like archive (allow up to 100MB for shapefile bundles)
+  if (e === "zip") return { maxBytes: 100 * MB, label: "100MB", kind: "archive" };
+  return { maxBytes: 25 * MB, label: "25MB", kind: e || "file" };
+}
 
 interface Props {
   fieldId: string;
@@ -34,6 +56,41 @@ export function FieldFileUpload({ fieldId, open, onOpenChange }: Props) {
   const [category, setCategory] = useState("boundary");
   const [description, setDescription] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [duplicate, setDuplicate] = useState<{ id: string; file_name: string } | null>(null);
+  const [forceUpload, setForceUpload] = useState(false);
+
+  function handleFileSelect(file: File | null) {
+    setDuplicate(null);
+    setForceUpload(false);
+    if (!file) { setSelectedFile(null); return; }
+    const ext = file.name.split(".").pop()?.toLowerCase() || "";
+    const limit = getSizeLimit(ext);
+    if (file.size > limit.maxBytes) {
+      const fileMb = (file.size / MB).toFixed(1);
+      toast.error(`File too large. ${file.name} is ${fileMb}MB. Maximum for ${limit.kind} files is ${limit.label}.`);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    setSelectedFile(file);
+  }
+
+  async function checkDuplicateAndUpload() {
+    if (!selectedFile) return;
+    if (!forceUpload) {
+      const { data: existing } = await supabase
+        .from("dataset_assets")
+        .select("id, file_name")
+        .eq("field_id", fieldId)
+        .eq("file_name", selectedFile.name)
+        .eq("file_size", selectedFile.size)
+        .limit(1);
+      if (existing && existing.length > 0) {
+        setDuplicate(existing[0]);
+        return;
+      }
+    }
+    uploadMutation.mutate();
+  }
 
   const uploadMutation = useMutation({
     mutationFn: async () => {
@@ -72,6 +129,7 @@ export function FieldFileUpload({ fieldId, open, onOpenChange }: Props) {
           uploaded_by: user.id,
           description: description || null,
           crop_year: new Date().getFullYear(),
+          is_latest: true,
         });
       if (dbError) throw dbError;
 
@@ -118,9 +176,12 @@ export function FieldFileUpload({ fieldId, open, onOpenChange }: Props) {
       queryClient.invalidateQueries({ queryKey: ["datasets", fieldId] });
       queryClient.invalidateQueries({ queryKey: ["field", fieldId] });
       queryClient.invalidateQueries({ queryKey: ["fields"] });
+      queryClient.invalidateQueries({ queryKey: ["storage-usage"] });
       toast.success("File uploaded successfully");
       setSelectedFile(null);
       setDescription("");
+      setDuplicate(null);
+      setForceUpload(false);
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -152,7 +213,7 @@ export function FieldFileUpload({ fieldId, open, onOpenChange }: Props) {
               type="file"
               className="hidden"
               accept=".geojson,.json,.shp,.dbf,.shx,.prj,.kml,.kmz,.csv,.pdf,.png,.jpg,.jpeg,.zip,.xml,.tif,.tiff"
-              onChange={e => setSelectedFile(e.target.files?.[0] || null)}
+              onChange={e => handleFileSelect(e.target.files?.[0] || null)}
             />
             {selectedFile ? (
               <div className="flex items-center gap-2 rounded-md border px-3 py-2">
@@ -164,7 +225,7 @@ export function FieldFileUpload({ fieldId, open, onOpenChange }: Props) {
                   </p>
                 </div>
                 <Button variant="ghost" size="sm" className="h-6 text-[10px]"
-                  onClick={() => { setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
+                  onClick={() => { handleFileSelect(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
                   Remove
                 </Button>
               </div>
@@ -188,11 +249,37 @@ export function FieldFileUpload({ fieldId, open, onOpenChange }: Props) {
               GeoJSON boundary files will automatically update the field's boundary, centroid, and bounding box.
             </p>
           )}
+
+          {duplicate && (
+            <div className="rounded border border-warning/40 bg-warning/10 p-2 space-y-2">
+              <div className="flex items-start gap-2">
+                <AlertTriangle size={14} className="text-warning shrink-0 mt-0.5" />
+                <p className="text-[11px] text-foreground">
+                  A file named <span className="font-medium">{duplicate.file_name}</span> already exists for this field.
+                </p>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button size="sm" variant="outline" className="h-7 text-[11px]"
+                  onClick={() => { setForceUpload(true); setDuplicate(null); uploadMutation.mutate(); }}>
+                  Keep Both
+                </Button>
+                <Button size="sm" className="h-7 text-[11px]"
+                  onClick={async () => {
+                    // Soft replace: insert new (trigger flips is_latest), keep history.
+                    setForceUpload(true);
+                    setDuplicate(null);
+                    uploadMutation.mutate();
+                  }}>
+                  Replace
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} className="h-8 text-xs">Cancel</Button>
-          <Button size="sm" onClick={() => uploadMutation.mutate()}
+          <Button size="sm" onClick={checkDuplicateAndUpload}
             disabled={!selectedFile || uploadMutation.isPending} className="h-8 text-xs gap-1">
             {uploadMutation.isPending ? <><Loader2 size={12} className="animate-spin" /> Uploading…</> : "Upload File"}
           </Button>
