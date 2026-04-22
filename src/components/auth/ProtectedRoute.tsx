@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, requireAdmin }: ProtectedRouteProps) {
-  const { isAuthenticated, loading, roles } = useAuth();
+  const { isAuthenticated, loading, roles, profile } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -27,6 +27,10 @@ export default function ProtectedRoute({ children, requireAdmin }: ProtectedRout
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+  }
+
+  if (profile?.suspendedAt && location.pathname !== "/suspended") {
+    return <Navigate to="/suspended" replace />;
   }
 
   if (requireAdmin && !roles.includes("admin")) {

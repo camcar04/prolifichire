@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Map, Briefcase, Store, DollarSign,
   ChevronLeft, ChevronRight, Search, Bell, X,
   MessageSquare, Calendar, Package, LogOut, Bookmark,
-  Link2, Settings, Menu, Users,
+  Link2, Settings, Menu, Users, LifeBuoy, Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, type AppMode } from "@/contexts/AuthContext";
@@ -16,6 +16,7 @@ import { MobileBottomBar } from "@/components/layout/MobileBottomBar";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
 import { getInitials } from "@/lib/format";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { SupportTicketDialog } from "@/components/support/SupportTicketDialog";
 
 interface NavItem {
   icon: typeof LayoutDashboard;
@@ -66,12 +67,14 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
-  const { activeMode, profile, signOut } = useAuth();
+  const { activeMode, profile, signOut, roles } = useAuth();
   const isMobile = useIsMobile();
   const navItems = getNavItems(activeMode);
+  const isAdmin = roles.includes("admin");
 
   const initials = profile
     ? getInitials(profile.firstName, profile.lastName)
@@ -151,6 +154,33 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
           </nav>
 
           <div className="border-t border-sidebar-border">
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className={cn(
+                  "flex items-center gap-2.5 w-full px-2.5 py-2 text-[12px] transition-colors",
+                  location.pathname.startsWith("/admin")
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                    : "text-sidebar-foreground/60 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground",
+                  collapsed && "justify-center px-0",
+                )}
+                title="Admin Panel"
+              >
+                <Shield size={14} className="shrink-0" />
+                {!collapsed && <span>Admin</span>}
+              </Link>
+            )}
+            <button
+              onClick={() => setSupportOpen(true)}
+              className={cn(
+                "flex items-center gap-2.5 w-full px-2.5 py-2 text-[12px] text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/30 transition-colors",
+                collapsed && "justify-center px-0",
+              )}
+              title="Help & Support"
+            >
+              <LifeBuoy size={14} className="shrink-0" />
+              {!collapsed && <span>Help & Support</span>}
+            </button>
             <button
               onClick={handleSignOut}
               className={cn(
@@ -205,6 +235,20 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
               })}
             </nav>
             <div className="border-t border-sidebar-border p-2">
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-sidebar-foreground/70 hover:text-sidebar-foreground transition-colors"
+                >
+                  <Shield size={14} /> Admin Panel
+                </Link>
+              )}
+              <button
+                onClick={() => { setMobileNavOpen(false); setSupportOpen(true); }}
+                className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-sidebar-foreground/70 hover:text-sidebar-foreground transition-colors"
+              >
+                <LifeBuoy size={14} /> Help & Support
+              </button>
               <button onClick={handleSignOut} className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors">
                 <LogOut size={14} /> Sign out
               </button>
@@ -270,6 +314,7 @@ export default function AppShell({ children, title, actions }: AppShellProps) {
 
       <MobileBottomBar />
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
+      <SupportTicketDialog open={supportOpen} onOpenChange={setSupportOpen} />
     </div>
   );
 }

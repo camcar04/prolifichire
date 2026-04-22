@@ -16,6 +16,7 @@ interface AuthState {
     primaryAccountType?: string | null;
     enabledAccountTypes?: string[];
     onboardingCompleted?: boolean;
+    suspendedAt?: string | null;
   } | null;
   roles: UserRole[];
   activeMode: AppMode;
@@ -49,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = useCallback(async (userId: string) => {
     const { data: prof } = await supabase
       .from("profiles")
-      .select("first_name, last_name, email, avatar_url, primary_account_type, enabled_account_types, onboarding_completed")
+      .select("first_name, last_name, email, avatar_url, primary_account_type, enabled_account_types, onboarding_completed, suspended_at")
       .eq("user_id", userId)
       .single();
 
@@ -63,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         primaryAccountType: prof.primary_account_type,
         enabledAccountTypes: enabledTypes,
         onboardingCompleted: prof.onboarding_completed ?? false,
+        suspendedAt: (prof as any).suspended_at ?? null,
       });
     }
 
