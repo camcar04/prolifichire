@@ -292,6 +292,13 @@ function PacketRow({ item, group, onGenerate, generating }: { item: any; group: 
           </Button>
         ) : (
           <>
+            {packet && (
+              <OfflinePacketControls
+                size="compact"
+                packetId={packet.id}
+                buildPayload={() => buildOfflinePayload(packet, job)}
+              />
+            )}
             <StatusBadge status={packet?.status || job?.status} />
             <Link to={`/jobs/${job?.id || item.id}`}><ChevronRight size={14} className="text-muted-foreground" /></Link>
           </>
@@ -299,4 +306,40 @@ function PacketRow({ item, group, onGenerate, generating }: { item: any; group: 
       </div>
     </div>
   );
+}
+
+/**
+ * Build the offline snapshot payload from a packet row joined with its field
+ * + access instructions + dataset assets. Storage paths are passed through so
+ * the snapshot records what's available even when we can't pre-cache the bytes
+ * (signed URLs are short-lived; downloading them happens on the JobDetail page).
+ */
+function buildOfflinePayload(packet: any, job: any) {
+  const field = packet?.fields;
+  const ai = field?.field_access_instructions?.[0];
+  const files = (packet?.field_packet_files || [])
+    .filter((f: any) => f.included)
+    .map((f: any) => ({
+      name: f.file_name || f.dataset_assets?.file_name || `${f.category || "file"}`,
+      category: f.category,
+      storagePath: f.dataset_assets?.storage_path || null,
+      sizeBytes: f.file_size ?? f.dataset_assets?.file_size ?? null,
+    }));
+  return {
+    jobId: job?.id || packet.job_id,
+    jobDisplayId: job?.display_id ?? null,
+    fieldName: field?.name || job?.job_fields?.[0]?.fields?.name || null,
+    boundaryGeoJSON: field?.boundary_geojson ?? undefined,
+    accessInstructions: ai
+      ? {
+          directions: ai.directions,
+          gateCode: ai.gate_code,
+          hazards: ai.hazards,
+          contactName: ai.contact_name,
+          contactPhone: ai.contact_phone,
+          notes: ai.notes,
+        }
+      : null,
+    files,
+  };
 }
