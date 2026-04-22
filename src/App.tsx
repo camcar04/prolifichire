@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import Jobs from "./pages/Jobs";
 import FieldWorkspace from "./pages/FieldWorkspace";
 import Fields from "./pages/Fields";
 import Marketplace from "./pages/Marketplace";
@@ -69,7 +70,7 @@ const App = () => (
             <Route path="/dashboard" element={<P><Dashboard /></P>} />
             <Route path="/fields" element={<P><Fields /></P>} />
             <Route path="/fields/:fieldId" element={<P><FieldWorkspace /></P>} />
-            <Route path="/jobs" element={<P><Dashboard /></P>} />
+            <Route path="/jobs" element={<P><Jobs /></P>} />
             <Route path="/jobs/:jobId" element={<P><JobDetail /></P>} />
             <Route path="/marketplace" element={<P><Marketplace /></P>} />
             <Route path="/schedule" element={<P><Schedule /></P>} />
