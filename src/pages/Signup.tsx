@@ -134,6 +134,25 @@ export default function Signup() {
         </Link>
 
         <div className="rounded-xl bg-card shadow-card p-6">
+          {confirmationPending ? (
+            <div className="text-center py-2">
+              <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <MailCheck size={22} className="text-primary" />
+              </div>
+              <h1 className="text-lg font-semibold mb-1">Confirm your email</h1>
+              <p className="text-sm text-muted-foreground mb-6">
+                Check your email at <span className="font-medium text-foreground">{email.trim().toLowerCase()}</span> to confirm your account before continuing.
+              </p>
+              <Button onClick={handleResend} variant="outline" className="w-full" disabled={resending}>
+                {resending && <Loader2 size={16} className="animate-spin mr-2" />}
+                Resend email
+              </Button>
+              <p className="text-xs text-muted-foreground mt-4">
+                Already confirmed? <Link to="/login" className="text-primary font-medium hover:underline">Sign in</Link>
+              </p>
+            </div>
+          ) : (
+          <>
           <h1 className="text-lg font-semibold mb-1">Create your account</h1>
           <p className="text-sm text-muted-foreground mb-5">How will you use ProlificHire?</p>
 
