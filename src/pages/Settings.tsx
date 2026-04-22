@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TeamManagement } from "@/components/settings/TeamManagement";
+import { StorageUsageCard } from "@/components/settings/StorageUsageCard";
 import { ProfileScoreCard } from "@/components/shared/ProfileScoreCard";
 import { EquipmentManager } from "@/components/operators/EquipmentManager";
 import { CredentialManager } from "@/components/operators/CredentialManager";
@@ -151,6 +152,7 @@ export default function Settings() {
           {/* ── Account Overview ── */}
           <TabsContent value="account" className="space-y-5">
             <ProfileScoreCard />
+            <StorageUsageCard />
 
             {score && score.missing.length > 0 && (
               <section className="rounded border border-warning/20 bg-warning/5 p-4">
