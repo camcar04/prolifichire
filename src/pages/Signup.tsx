@@ -73,37 +73,73 @@ export default function Signup() {
       email: trimmedEmail,
       password,
       options: {
-        data: { first_name: trimmedFirst, last_name: trimmedLast },
+        data: {
+          first_name: trimmedFirst,
+          last_name: trimmedLast,
+          // ⚠️ These metadata fields are read by the handle_new_user DB trigger
+          // to seed profiles + user_roles correctly. Without them the trigger
+          // falls back to role='grower' regardless of what the user picked.
+          selected_role: selectedRole,
+          phone: phone.trim() || null,
+          primary_account_type: selectedRole,
+          utm_source: utm.utm_source,
+          utm_medium: utm.utm_medium,
+          utm_campaign: utm.utm_campaign,
+          referral_source: utm.referral_source,
+        },
         emailRedirectTo: window.location.origin + "/auth/callback",
       },
     });
     
     if (error) {
       setLoading(false);
-      toast.error("Could not create account. Please try again.");
+      const msg = (error.message || "").toLowerCase();
+      if (
+        msg.includes("already registered") ||
+        msg.includes("user already") ||
+        msg.includes("already exists")
+      ) {
+        toast.error("An account with that email already exists. Try signing in.");
+      } else {
+        toast.error("Could not create account. Please try again.");
+      }
       return;
     }
 
-    // Store primary account type, enabled types, and user role
-    if (data.user) {
-      await supabase.from("profiles").update({
-        primary_account_type: selectedRole,
-        enabled_account_types: [selectedRole],
-        phone: phone.trim() || null,
-        utm_source: utm.utm_source,
-        utm_medium: utm.utm_medium,
-        utm_campaign: utm.utm_campaign,
-        referral_source: utm.referral_source,
-        signup_date: new Date().toISOString(),
-      }).eq("user_id", data.user.id);
+    // Only patch profiles + user_roles from the client when we already have a
+    // session — otherwise these writes run unauthenticated and are silently
+    // blocked by RLS. With email confirmation enabled, data.session is null
+    // and the handle_new_user DB trigger seeds these rows from the metadata
+    // we passed above.
+    if (data.user && data.session) {
+      const { error: profileErr } = await supabase
+        .from("profiles")
+        .update({
+          primary_account_type: selectedRole,
+          enabled_account_types: [selectedRole],
+          phone: phone.trim() || null,
+          utm_source: utm.utm_source,
+          utm_medium: utm.utm_medium,
+          utm_campaign: utm.utm_campaign,
+          referral_source: utm.referral_source,
+          signup_date: new Date().toISOString(),
+        })
+        .eq("user_id", data.user.id);
+      if (profileErr) {
+        console.warn("[signup] profiles.update failed:", profileErr);
+      }
 
-      // Insert the selected role into user_roles table
-      await supabase.from("user_roles").insert({
+      const { error: roleErr } = await supabase.from("user_roles").insert({
         user_id: data.user.id,
         role: selectedRole as any,
       });
+      if (roleErr) {
+        console.warn("[signup] user_roles.insert failed:", roleErr);
+      }
+    }
 
-      // Marketing event
+    if (data.user) {
+      // Marketing event — fire-and-forget, harmless if RLS blocks it
       trackEvent(data.user.id, "signup_completed", {
         role: selectedRole,
         ...utm,
