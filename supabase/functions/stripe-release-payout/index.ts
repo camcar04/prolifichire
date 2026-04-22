@@ -79,7 +79,8 @@ serve(async (req) => {
       .select(
         "id, status, requested_by, operator_id, approved_by, agreed_price, " +
           "approved_total, platform_fee_amount, platform_fee_rate, " +
-          "payment_intent_id, stripe_transfer_id, funding_status, farm_id"
+          "payment_intent_id, stripe_payment_intent_id, stripe_transfer_id, " +
+          "funding_status, farm_id, operator_payout_cents, platform_fee_cents"
       )
       .eq("id", job_id)
       .maybeSingle();
@@ -98,7 +99,8 @@ serve(async (req) => {
         400
       );
     }
-    if (job.approved_by !== user.id) {
+    // approved_by is set when the grower approves the work; allow self-approve only
+    if (job.approved_by && job.approved_by !== user.id) {
       return json({ error: "Job approval must be recorded by the grower before payout" }, 400);
     }
 
@@ -110,7 +112,10 @@ serve(async (req) => {
       });
     }
 
-    if (!job.payment_intent_id) {
+    // Prefer the new column; fall back to legacy
+    const paymentIntentId =
+      (job as any).stripe_payment_intent_id || job.payment_intent_id;
+    if (!paymentIntentId) {
       return json(
         { error: "No payment_intent_id on job — funding has not been received" },
         400
@@ -141,23 +146,38 @@ serve(async (req) => {
       );
     }
 
-    // ── Compute payout amount in cents ──
-    const grossDollars = Number(
-      job.approved_total || job.agreed_price || 0
-    );
-    if (!(grossDollars > 0)) {
-      return json({ error: "Job has no agreed price" }, 400);
+    // ── Compute payout amount ──
+    // Prefer the canonical operator_payout_cents stored at checkout (split-fee model).
+    // Fall back to legacy gross-minus-fee math if those columns are not present yet.
+    let payoutCents: number;
+    let grossCents: number;
+    let feeCents: number;
+    if (
+      typeof (job as any).operator_payout_cents === "number" &&
+      (job as any).operator_payout_cents > 0
+    ) {
+      payoutCents = (job as any).operator_payout_cents;
+      const jobTotalDollars = Number(
+        job.approved_total || job.agreed_price || 0
+      );
+      grossCents = Math.round(jobTotalDollars * 100);
+      feeCents = (job as any).platform_fee_cents || (grossCents - payoutCents);
+    } else {
+      const grossDollars = Number(
+        job.approved_total || job.agreed_price || 0
+      );
+      if (!(grossDollars > 0)) {
+        return json({ error: "Job has no agreed price" }, 400);
+      }
+      grossCents = Math.round(grossDollars * 100);
+      const feeDollars = Number(job.platform_fee_amount || 0);
+      const feeRate = Number(job.platform_fee_rate || 0.075);
+      feeCents =
+        feeDollars > 0
+          ? Math.round(feeDollars * 100)
+          : Math.round(grossCents * feeRate);
+      payoutCents = grossCents - feeCents;
     }
-    const grossCents = Math.round(grossDollars * 100);
-
-    const feeDollars = Number(job.platform_fee_amount || 0);
-    const feeRate = Number(job.platform_fee_rate || 0.05);
-    const feeCents =
-      feeDollars > 0
-        ? Math.round(feeDollars * 100)
-        : Math.round(grossCents * feeRate);
-
-    const payoutCents = grossCents - feeCents;
     if (payoutCents <= 0) {
       return json({ error: "Computed payout is zero or negative" }, 400);
     }
@@ -166,7 +186,7 @@ serve(async (req) => {
     const stripeClient = new Stripe(stripeKey);
     let pi: Stripe.PaymentIntent;
     try {
-      pi = await stripeClient.paymentIntents.retrieve(job.payment_intent_id);
+      pi = await stripeClient.paymentIntents.retrieve(paymentIntentId);
     } catch (e) {
       return json({ error: "Could not retrieve PaymentIntent" }, 400);
     }
@@ -193,6 +213,7 @@ serve(async (req) => {
           operator_id: job.operator_id,
           gross_cents: String(grossCents),
           fee_cents: String(feeCents),
+          payout_cents: String(payoutCents),
         },
       },
       { idempotencyKey: `job-payout-${job.id}` }
@@ -211,7 +232,8 @@ serve(async (req) => {
         stripe_transfer_id: transfer.id,
         funding_status: "payout_released",
         status: "paid",
-        paid_total: grossDollars,
+        paid_total: payoutCents / 100,
+        paid_at: new Date().toISOString(),
       } as any)
       .eq("id", job.id);
 
@@ -221,10 +243,10 @@ serve(async (req) => {
       field_id: job.farm_id, // best-effort link; many jobs are multi-field
       issued_by: job.operator_id,
       issued_to: job.requested_by,
-      subtotal: grossDollars,
+      subtotal: grossCents / 100,
       fees: feeCents / 100,
       tax: 0,
-      total: grossDollars,
+      total: grossCents / 100,
       due_date: new Date().toISOString().slice(0, 10),
       status: "paid",
       paid_at: new Date().toISOString(),
