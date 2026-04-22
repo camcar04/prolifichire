@@ -449,6 +449,21 @@ function JobDetailPane({ job, isSaved, onToggleSave, onOpenFull }: {
           </p>
         </div>
 
+        {/* Field location (critical for operators) */}
+        {fieldData?.county && fieldData?.state && (
+          <div className="flex items-center gap-1.5 text-[11px] bg-surface-2 rounded px-2 py-1.5">
+            <MapPin size={10} className="text-primary shrink-0" />
+            <span className="font-medium">{fieldData.county} County, {fieldData.state}</span>
+            {fieldData?.acreage && <span className="text-muted-foreground ml-auto">{formatAcres(Number(fieldData.acreage))}</span>}
+          </div>
+        )}
+        {!fieldData && (
+          <div className="flex items-center gap-1.5 text-[10px] bg-destructive/10 text-destructive rounded px-2 py-1.5 border border-destructive/20">
+            <AlertTriangle size={10} className="shrink-0" />
+            <span>No field linked — contact grower for location details before accepting</span>
+          </div>
+        )}
+
         {/* Metrics strip */}
         <div className="flex items-stretch divide-x border rounded bg-surface-1">
           {[
