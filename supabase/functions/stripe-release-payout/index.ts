@@ -237,21 +237,41 @@ serve(async (req) => {
       } as any)
       .eq("id", job.id);
 
-    // ── Insert invoice record ──
-    await supabase.from("invoices").insert({
-      job_id: job.id,
-      field_id: job.farm_id, // best-effort link; many jobs are multi-field
-      issued_by: job.operator_id,
-      issued_to: job.requested_by,
-      subtotal: grossCents / 100,
-      fees: feeCents / 100,
-      tax: 0,
-      total: grossCents / 100,
-      due_date: new Date().toISOString().slice(0, 10),
-      status: "paid",
-      paid_at: new Date().toISOString(),
-      stripe_invoice_id: transfer.id,
-    } as any);
+    // ── Mark the auto-created invoice paid (created by the
+    //    `auto_create_invoice_on_approval` trigger when status hit 'approved').
+    //    Fall back to inserting one if it doesn't exist (legacy / direct payouts). ──
+    const { data: existingInvoice } = await supabase
+      .from("invoices")
+      .select("id")
+      .eq("job_id", job.id)
+      .maybeSingle();
+
+    if (existingInvoice?.id) {
+      await supabase
+        .from("invoices")
+        .update({
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          stripe_invoice_id: transfer.id,
+          fees: feeCents / 100,
+        } as any)
+        .eq("id", existingInvoice.id);
+    } else {
+      await supabase.from("invoices").insert({
+        job_id: job.id,
+        field_id: job.farm_id,
+        issued_by: job.operator_id,
+        issued_to: job.requested_by,
+        subtotal: grossCents / 100,
+        fees: feeCents / 100,
+        tax: 0,
+        total: grossCents / 100,
+        due_date: new Date().toISOString().slice(0, 10),
+        status: "paid",
+        paid_at: new Date().toISOString(),
+        stripe_invoice_id: transfer.id,
+      } as any);
+    }
 
     return json({
       transfer_id: transfer.id,
