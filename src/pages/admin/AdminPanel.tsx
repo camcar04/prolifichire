@@ -510,6 +510,9 @@ function UsersTab() {
         <span className="text-xs text-muted-foreground ml-auto">
           {isLoading ? "Loading…" : `${filtered.length} user${filtered.length === 1 ? "" : "s"}`}
         </span>
+        <Button size="sm" variant="outline" className="h-9 gap-1.5" onClick={exportCsv} disabled={!filtered.length}>
+          <Download className="h-3.5 w-3.5" /> Export CSV
+        </Button>
       </div>
 
       <Card>
@@ -1176,7 +1179,10 @@ export default function AdminPanel() {
             <TabsTrigger value="settings"><SettingsIcon className="h-3.5 w-3.5 mr-1.5" /> Settings</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="mt-4"><OverviewTab /></TabsContent>
+          <TabsContent value="overview" className="mt-4 space-y-6">
+            <OverviewTab />
+            <PlatformAnalytics />
+          </TabsContent>
           <TabsContent value="users" className="mt-4"><UsersTab /></TabsContent>
           <TabsContent value="jobs" className="mt-4"><JobsTab /></TabsContent>
           <TabsContent value="payments" className="mt-4"><PaymentsTab /></TabsContent>
