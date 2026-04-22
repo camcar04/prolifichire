@@ -722,7 +722,7 @@ function SupportTab() {
                       update.mutate({
                         id: active.id,
                         patch: {
-                          status: v,
+                          status: v as TicketPatch["status"],
                           resolved_at: v === "resolved" ? new Date().toISOString() : null,
                         },
                       })
@@ -742,7 +742,7 @@ function SupportTab() {
                   <Select
                     value={active.priority}
                     onValueChange={(v) =>
-                      update.mutate({ id: active.id, patch: { priority: v } })
+                      update.mutate({ id: active.id, patch: { priority: v as TicketPatch["priority"] } })
                     }
                   >
                     <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
