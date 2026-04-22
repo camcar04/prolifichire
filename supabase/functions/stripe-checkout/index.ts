@@ -367,7 +367,7 @@ serve(async (req) => {
     const successUrl = `${origin}/storefront?session_id={CHECKOUT_SESSION_ID}&status=success`;
     const cancelUrl = `${origin}/storefront?status=cancelled`;
 
-    // ── Create the Stripe Client ──
+    // ── Create the Stripe Client (legacy product flow) ──
     const stripeClient = new Stripe(stripeKey);
 
     /**
