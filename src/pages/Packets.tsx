@@ -138,6 +138,20 @@ export default function Packets() {
   return (
     <AppShell title="Field Packets">
       <div className="animate-fade-in max-w-3xl">
+        {/* Connectivity advisory — surfaces above every state including loading and empty */}
+        <div className="rounded border border-warning/30 bg-warning/5 p-3 mb-4 flex items-start gap-2.5">
+          <WifiOff size={16} className="text-warning shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="text-[12px] font-semibold text-foreground">
+              Download packets before leaving for the field
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+              Cell service may be unavailable in your work area. Use <span className="font-medium">Save Offline</span> on each packet
+              to store boundaries, access instructions, and prescription files on this device.
+            </p>
+          </div>
+        </div>
+
         {isLoading ? (
           <ListSkeleton rows={4} />
         ) : totalItems === 0 ? (
