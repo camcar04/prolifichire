@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AppShell } from "@/components/layout/AppShell";
+import AppShell from "@/components/layout/AppShell";
 import { useJobs } from "@/hooks/useJobs";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
