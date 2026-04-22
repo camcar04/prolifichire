@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { formatAcres, formatCropType } from "@/lib/format";
+import { OperationSpecFields, validateOperationSpec, type OperationSpec } from "@/components/jobs/OperationSpecFields";
 
 const OP_TYPES = [
   { value: "spraying", label: "Spraying / Application" },
@@ -50,6 +51,7 @@ export function CreateJobDialog({ open, onOpenChange, preselectedFieldId }: Prop
     title: "",
     notes: "",
   });
+  const [spec, setSpec] = useState<OperationSpec>({});
   const [saving, setSaving] = useState(false);
 
   // Reset when opened
@@ -64,6 +66,7 @@ export function CreateJobDialog({ open, onOpenChange, preselectedFieldId }: Prop
         title: "",
         notes: "",
       });
+      setSpec({});
     }
     onOpenChange(v);
   };
@@ -81,6 +84,12 @@ export function CreateJobDialog({ open, onOpenChange, preselectedFieldId }: Prop
 
   const handlePost = async () => {
     if (!user || !canPost) return;
+    // Validate operation-specific required fields before posting
+    const missing = validateOperationSpec(form.opType, spec);
+    if (missing.length > 0) {
+      toast.error(`Missing required field${missing.length > 1 ? "s" : ""}: ${missing.join(", ")}`);
+      return;
+    }
     setSaving(true);
     try {
       const deadlineDate = form.deadline
@@ -116,6 +125,29 @@ export function CreateJobDialog({ open, onOpenChange, preselectedFieldId }: Prop
       }));
       const { error: jfErr } = await supabase.from("job_fields").insert(jobFields);
       if (jfErr) console.warn("job_fields insert error:", jfErr);
+
+      // Persist operation spec (JSONB) for relevant op types
+      if (["spraying", "fertilizing", "planting", "harvest"].includes(form.opType)) {
+        const { error: specErr } = await supabase.from("operation_specs").insert({
+          job_id: job.id,
+          operation_type: form.opType as any,
+          spec_data: spec as any,
+        });
+        if (specErr) console.warn("operation_specs insert error:", specErr);
+      }
+
+      // For application jobs, also create a job_inputs row so operators see the product clearly
+      if ((form.opType === "spraying" || form.opType === "fertilizing") && spec.product_name) {
+        const { error: inErr } = await supabase.from("job_inputs").insert({
+          job_id: job.id,
+          product_name: spec.product_name,
+          product_type: spec.product_type || "other",
+          supplied_by: "grower",
+          unit: spec.rate_unit || null,
+          quantity: spec.target_rate ? Number(spec.target_rate) * totalAcres : null,
+        });
+        if (inErr) console.warn("job_inputs insert error:", inErr);
+      }
 
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
       toast.success("Job posted! Operators can now see it.");
@@ -208,6 +240,9 @@ export function CreateJobDialog({ open, onOpenChange, preselectedFieldId }: Prop
               </SelectContent>
             </Select>
           </div>
+
+          {/* Operation-specific spec fields (conditional) */}
+          <OperationSpecFields opType={form.opType} value={spec} onChange={setSpec} />
 
           {/* Step 3: Contract mode */}
           <ContractModeSelector
