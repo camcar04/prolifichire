@@ -3211,6 +3211,9 @@ export type Database = {
       }
       proof_of_work: {
         Row: {
+          actual_acres: number | null
+          approved_at: string | null
+          completion_date: string | null
           created_at: string
           id: string
           job_id: string
@@ -3218,10 +3221,15 @@ export type Database = {
           review_notes: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          revision_requested_at: string | null
           status: string
           submitted_by: string
+          version: number
         }
         Insert: {
+          actual_acres?: number | null
+          approved_at?: string | null
+          completion_date?: string | null
           created_at?: string
           id?: string
           job_id: string
@@ -3229,10 +3237,15 @@ export type Database = {
           review_notes?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          revision_requested_at?: string | null
           status?: string
           submitted_by: string
+          version?: number
         }
         Update: {
+          actual_acres?: number | null
+          approved_at?: string | null
+          completion_date?: string | null
           created_at?: string
           id?: string
           job_id?: string
@@ -3240,8 +3253,10 @@ export type Database = {
           review_notes?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          revision_requested_at?: string | null
           status?: string
           submitted_by?: string
+          version?: number
         }
         Relationships: [
           {
@@ -3249,6 +3264,53 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proof_photos: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number
+          id: string
+          job_id: string
+          kind: string
+          mime_type: string | null
+          proof_id: string
+          storage_path: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number
+          id?: string
+          job_id: string
+          kind?: string
+          mime_type?: string | null
+          proof_id: string
+          storage_path: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number
+          id?: string
+          job_id?: string
+          kind?: string
+          mime_type?: string | null
+          proof_id?: string
+          storage_path?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proof_photos_proof_id_fkey"
+            columns: ["proof_id"]
+            isOneToOne: false
+            referencedRelation: "proof_of_work"
             referencedColumns: ["id"]
           },
         ]
