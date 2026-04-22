@@ -158,25 +158,28 @@ export function useFundJob() {
   });
 }
 
-// ── Hook: Release payout (simulated — will use Stripe Transfer in Phase 1) ──
+// ── Hook: Release payout via the stripe-release-payout edge function ──
+// Caller must be the grower (jobs.requested_by) and the job must be in
+// `approved` status with `approved_by = caller`. The edge function performs
+// the Stripe Transfer from the platform balance to the operator's connected
+// account, deducts the platform fee, and marks the job paid.
 export function useReleasePayout() {
   const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ jobId }: { jobId: string }) => {
-      // TODO: Phase 1 — Create Stripe Transfer to connected account
-      const { error } = await supabase
-        .from("jobs")
-        .update({
-          funding_status: "payout_released" as any,
-        } as any)
-        .eq("id", jobId);
-
+      const { data, error } = await supabase.functions.invoke(
+        "stripe-release-payout",
+        { body: { job_id: jobId } }
+      );
       if (error) throw error;
+      if (data && (data as any).error) throw new Error((data as any).error);
+      return data;
     },
     onSuccess: (_, { jobId }) => {
       toast.success("Payout released to operator.");
       qc.invalidateQueries({ queryKey: ["job", jobId] });
+      qc.invalidateQueries({ queryKey: ["jobs"] });
     },
     onError: (e: any) => toast.error(e.message || "Failed to release payout"),
   });

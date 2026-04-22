@@ -299,6 +299,11 @@ serve(async (req) => {
           const productId = session.metadata?.platform_product_id;
           const buyerId = session.metadata?.buyer_id;
           const sellerAccount = session.metadata?.seller_connected_account;
+          const jobId = session.metadata?.job_id;
+          const paymentIntentId =
+            typeof session.payment_intent === "string"
+              ? session.payment_intent
+              : session.payment_intent?.id;
 
           if (productId) {
             console.log(
@@ -307,8 +312,38 @@ serve(async (req) => {
             );
           }
 
-          // TODO: Create order/transaction record
-          // TODO: Send confirmation notifications
+          // ── Escrow flow: store the PaymentIntent on the job and mark funded ──
+          // The funds now sit on the platform balance and will only be transferred
+          // to the operator after the grower approves the work. The release is
+          // performed by the `stripe-release-payout` edge function.
+          if (jobId && paymentIntentId) {
+            const amountDollars =
+              typeof session.amount_total === "number"
+                ? session.amount_total / 100
+                : null;
+
+            const { error: updErr } = await supabase
+              .from("jobs")
+              .update({
+                payment_intent_id: paymentIntentId,
+                funding_status: "funded",
+                funded_amount: amountDollars,
+                funded_at: new Date().toISOString(),
+              } as any)
+              .eq("id", jobId);
+
+            if (updErr) {
+              console.error(
+                `[checkout.completed] Failed to mark job ${jobId} funded:`,
+                updErr
+              );
+            } else {
+              console.log(
+                `[checkout.completed] Job ${jobId} → funded ` +
+                  `(payment_intent=${paymentIntentId})`
+              );
+            }
+          }
         } catch (v1Err) {
           console.error("[checkout.completed] V1 parse error:", v1Err);
         }
