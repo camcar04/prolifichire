@@ -139,7 +139,7 @@ export default function Settings() {
   return (
     <AppShell title="Account Hub">
       <div className="max-w-3xl animate-fade-in">
-        <Tabs defaultValue={defaultTab} className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="h-8 flex-wrap">
             <TabsTrigger value="account" className="text-xs gap-1"><Settings2 size={12} /> Overview</TabsTrigger>
             <TabsTrigger value="profile" className="text-xs gap-1"><User size={12} /> Profile</TabsTrigger>
