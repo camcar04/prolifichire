@@ -25,7 +25,11 @@ import { formatCurrency, formatDate, formatRelative, formatOperationType } from 
 import {
   Users as UsersIcon, Briefcase, DollarSign, LifeBuoy, Settings as SettingsIcon,
   Activity, ShieldAlert, ShieldCheck, Search, ExternalLink, Save, UserX, UserCheck,
+  Download, TrendingUp, BarChart3, MapPin, Filter,
 } from "lucide-react";
+import {
+  ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
+} from "recharts";
 
 // ─────────────────────────────────────────────────────────────
 // Helpers
@@ -34,6 +38,20 @@ const startOfMonth = () => {
   const d = new Date();
   return new Date(d.getFullYear(), d.getMonth(), 1).toISOString();
 };
+
+/** Returns the start-of-week date (Mon) for a given date. */
+function startOfWeek(d: Date) {
+  const x = new Date(d);
+  const day = (x.getDay() + 6) % 7; // 0 = Mon
+  x.setHours(0, 0, 0, 0);
+  x.setDate(x.getDate() - day);
+  return x;
+}
+
+/** Format a date as MM/DD label for charts. */
+function weekLabel(d: Date) {
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+}
 
 const PRIORITY_TONE: Record<string, string> = {
   low: "bg-muted text-muted-foreground",
