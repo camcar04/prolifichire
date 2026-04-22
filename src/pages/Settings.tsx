@@ -59,7 +59,8 @@ const MISSING_ITEM_MAP: Record<string, { blocked: string; reason: string; link: 
 export default function Settings() {
   const { profile, user, roles, hasRole, canSwitchRoles, activeMode, refreshProfile } = useAuth();
   const [searchParams] = useSearchParams();
-  const defaultTab = searchParams.get("tab") || "account";
+  const initialTab = searchParams.get("tab") || "account";
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   const [enablingRole, setEnablingRole] = useState(false);
   const { data: score } = useProfileScore();
   const queryClient = useQueryClient();
