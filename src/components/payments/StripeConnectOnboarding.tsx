@@ -69,6 +69,21 @@ export function StripeConnectOnboarding() {
     refetchOnWindowFocus: true,
   });
 
+  // Fire stripe_connect_completed once per session when transition observed.
+  // Must run before any early returns to satisfy Rules of Hooks.
+  useEffect(() => {
+    const fullyOnboarded =
+      !!status?.has_account &&
+      !!status?.ready_to_receive_payments &&
+      !!status?.onboarding_complete;
+    if (fullyOnboarded && user && !onboardedFiredRef.current) {
+      onboardedFiredRef.current = true;
+      void trackFirstTimeEvent(user.id, "stripe_connect_completed", {
+        account_id: status?.account_id,
+      });
+    }
+  }, [status, user]);
+
   /**
    * Start onboarding — creates V2 account + generates V2 account link.
    * The edge function uses:
@@ -151,16 +166,6 @@ export function StripeConnectOnboarding() {
     status?.has_account &&
     status.ready_to_receive_payments &&
     status.onboarding_complete;
-
-  // Fire stripe_connect_completed once per session when transition observed.
-  useEffect(() => {
-    if (isFullyOnboarded && user && !onboardedFiredRef.current) {
-      onboardedFiredRef.current = true;
-      void trackFirstTimeEvent(user.id, "stripe_connect_completed", {
-        account_id: status?.account_id,
-      });
-    }
-  }, [isFullyOnboarded, user, status?.account_id]);
 
   const hasPendingRequirements =
     status?.requirements &&
