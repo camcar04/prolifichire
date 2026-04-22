@@ -2932,6 +2932,30 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_settings: {
+        Row: {
+          description: string | null
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: string | null
+        }
+        Insert: {
+          description?: string | null
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string | null
+        }
+        Update: {
+          description?: string | null
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string | null
+        }
+        Relationships: []
+      }
       pricing_estimates: {
         Row: {
           acreage: number
@@ -3030,6 +3054,7 @@ export type Database = {
           primary_account_type: string | null
           stripe_account_id: string | null
           stripe_onboarded: boolean | null
+          suspended_at: string | null
           updated_at: string
           user_id: string
         }
@@ -3055,6 +3080,7 @@ export type Database = {
           primary_account_type?: string | null
           stripe_account_id?: string | null
           stripe_onboarded?: boolean | null
+          suspended_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -3080,6 +3106,7 @@ export type Database = {
           primary_account_type?: string | null
           stripe_account_id?: string | null
           stripe_onboarded?: boolean | null
+          suspended_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -3380,6 +3407,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          description: string
+          id: string
+          priority: string
+          resolved_at: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       sync_logs: {
         Row: {
