@@ -290,6 +290,7 @@ serve(async (req) => {
           { role: "system", content: SYSTEM_PROMPT + contextBlock },
           ...sanitizedMessages,
         ],
+        max_tokens: MAX_OUTPUT_TOKENS,
         stream: true,
       }),
     });
@@ -311,7 +312,55 @@ serve(async (req) => {
       });
     }
 
-    return new Response(response.body, {
+    // Tee the upstream stream: pass-through to client AND collect content for cache
+    if (!response.body) {
+      return new Response(JSON.stringify({ error: "Empty AI response" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const [clientStream, cacheStream] = response.body.tee();
+
+    // Background task: aggregate full response and cache it
+    (async () => {
+      try {
+        const reader = cacheStream.getReader();
+        const decoder = new TextDecoder();
+        let buf = "";
+        let full = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          let idx: number;
+          while ((idx = buf.indexOf("\n")) !== -1) {
+            const line = buf.slice(0, idx).replace(/\r$/, "");
+            buf = buf.slice(idx + 1);
+            if (!line.startsWith("data: ")) continue;
+            const payload = line.slice(6).trim();
+            if (payload === "[DONE]") continue;
+            try {
+              const parsed = JSON.parse(payload);
+              const c = parsed.choices?.[0]?.delta?.content;
+              if (c) full += c;
+            } catch { /* partial */ }
+          }
+        }
+        if (full && lastUserMsg?.content) {
+          responseCache.set(cacheKey, { response: full, timestamp: Date.now() });
+          // Lightweight cleanup to prevent unbounded growth
+          if (responseCache.size > 200) {
+            const cutoff = Date.now() - CACHE_TTL_MS;
+            for (const [k, v] of responseCache) {
+              if (v.timestamp < cutoff) responseCache.delete(k);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("cache aggregator error:", e);
+      }
+    })();
+
+    return new Response(clientStream, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
