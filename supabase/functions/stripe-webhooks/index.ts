@@ -15,7 +15,27 @@
  *   • v2.core.account[configuration.recipient].capability_status_updated
  *     → Capability status changed (e.g., transfers became active)
  *   • checkout.session.completed (V1 event, still sent normally)
- *     → Payment completed through hosted checkout
+ *     → Payment completed through hosted checkout. ONLY path that may
+ *       transition a job to `funded`.
+ *   • checkout.session.expired (V1)
+ *     → Grower abandoned the Checkout Session — reset the job so they
+ *       can start a new one.
+ *   • payment_intent.payment_failed (V1)
+ *     → Card declined or auth failed — reset the job back to
+ *       `funding_required`.
+ *
+ * ⚠️  STRIPE DASHBOARD SUBSCRIPTION REQUIRED ⚠️
+ * Stripe will only deliver events you have explicitly subscribed to.
+ * In Stripe Dashboard → Developers → Webhooks → (this endpoint) →
+ * Listen to events, make sure ALL of the following are checked:
+ *
+ *   - checkout.session.completed
+ *   - checkout.session.expired
+ *   - payment_intent.payment_failed
+ *   - account.updated  (and the V2 thin-event equivalents above)
+ *
+ * Without these subscriptions, jobs will never transition to `funded`
+ * and abandoned sessions will stay stuck in `pending_payment`.
  *
  * ── Webhook Verification ──
  * Uses stripeClient.parseThinEvent() which handles both signature
