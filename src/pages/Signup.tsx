@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { canPerformAction } from "@/lib/security";
 import { readUtmParams, trackEvent } from "@/lib/analytics";
 import { ResendConfirmationButton } from "@/components/auth/ResendConfirmationButton";
+import type { ResendConfirmationButtonHandle } from "@/components/auth/ResendConfirmationButton";
+import { interpretResendError } from "@/lib/authErrors";
 
 export default function Signup() {
   const [firstName, setFirstName] = useState("");
@@ -32,6 +34,7 @@ export default function Signup() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [confirmationPending, setConfirmationPending] = useState(false);
   const navigate = useNavigate();
+  const resendRef = useRef<ResendConfirmationButtonHandle>(null);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,7 +199,13 @@ export default function Signup() {
       options: { emailRedirectTo: window.location.origin + "/auth/callback" },
     });
     if (error) {
-      toast.error("Could not resend. Try again in a moment.");
+      const info = interpretResendError(error);
+      toast.error(info.message);
+      if (info.applyCooldown) {
+        resendRef.current?.startCooldown(info.retryAfterSeconds);
+      }
+      // Returning false skips the default cooldown; we've already applied
+      // the server-suggested one above when relevant.
       return false;
     }
     toast.success("Confirmation email sent.");
@@ -224,6 +233,7 @@ export default function Signup() {
                 Check your email at <span className="font-medium text-foreground">{email.trim().toLowerCase()}</span> to confirm your account before continuing.
               </p>
               <ResendConfirmationButton
+                ref={resendRef}
                 onResend={handleResend}
                 label="Resend email"
                 storageKey={email.trim().toLowerCase() || "anon"}
