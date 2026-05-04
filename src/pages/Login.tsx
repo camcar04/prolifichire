@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { Eye, EyeOff, Loader2, Briefcase, Wrench, ArrowRight } from "lucide-react";
 import { canPerformAction } from "@/lib/security";
 import { ResendConfirmationButton } from "@/components/auth/ResendConfirmationButton";
+import type { ResendConfirmationButtonHandle } from "@/components/auth/ResendConfirmationButton";
+import { interpretResendError } from "@/lib/authErrors";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -19,6 +21,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = (location.state as any)?.from || "/dashboard";
+  const resendRef = useRef<ResendConfirmationButtonHandle>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +92,15 @@ export default function Login() {
       options: { emailRedirectTo: window.location.origin + "/auth/callback" },
     });
     if (error) {
-      toast.error("Could not resend. Try again in a moment.");
+      const info = interpretResendError(error);
+      toast.error(info.message);
+      if (info.applyCooldown) {
+        resendRef.current?.startCooldown(info.retryAfterSeconds);
+      }
+      if (info.category === "already_confirmed") {
+        // Hide the unconfirmed prompt — they should just sign in.
+        setUnconfirmed(false);
+      }
       return false;
     }
     toast.success("Confirmation email sent. Check your inbox.");
@@ -161,6 +172,7 @@ export default function Login() {
                   Your email isn't confirmed yet. We can send the confirmation link again.
                 </p>
                 <ResendConfirmationButton
+                  ref={resendRef}
                   onResend={handleResendConfirmation}
                   storageKey={email.trim().toLowerCase() || "anon"}
                 />
