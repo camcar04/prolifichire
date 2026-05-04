@@ -138,6 +138,18 @@ export const ResendConfirmationButton = forwardRef<ResendConfirmationButtonHandl
       ? `To prevent spam, you can resend in ${cooldown} second${cooldown === 1 ? "" : "s"}.`
       : "";
 
+    // Throttle screen-reader announcements: announce on start, every 5s,
+    // and for each of the final 3 seconds. Avoids per-second SR spam while
+    // still reliably updating assistive tech.
+    const shouldAnnounce =
+      onCooldown &&
+      (cooldown <= 3 || cooldown % 5 === 0 || cooldown === cooldownSeconds);
+    const announcement = shouldAnnounce
+      ? `Resend available in ${cooldown} second${cooldown === 1 ? "" : "s"}.`
+      : !onCooldown
+        ? "Resend is now available."
+        : "";
+
     const button = (
       <Button
         type="button"
@@ -145,7 +157,6 @@ export const ResendConfirmationButton = forwardRef<ResendConfirmationButtonHandl
         className={cn("w-full", className)}
         onClick={handleClick}
         disabled={busy || onCooldown || disabled}
-        aria-live="polite"
       >
         {busy && <Loader2 size={16} className="animate-spin mr-2" />}
         {onCooldown ? `Resend in ${cooldown}s` : label}
@@ -170,11 +181,20 @@ export const ResendConfirmationButton = forwardRef<ResendConfirmationButtonHandl
         {showHelperText && onCooldown && (
           <p
             className="text-[11px] text-muted-foreground text-center mt-2"
-            aria-live="polite"
+            aria-hidden="true"
           >
             Resend available in {cooldown} second{cooldown === 1 ? "" : "s"}.
           </p>
         )}
+        {/* Screen-reader-only live region with throttled updates. */}
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+        >
+          {announcement}
+        </div>
       </div>
     );
   }
