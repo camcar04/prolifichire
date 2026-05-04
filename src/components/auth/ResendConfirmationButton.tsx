@@ -14,6 +14,37 @@ export interface ResendConfirmationButtonHandle {
   startCooldown: (seconds?: number) => void;
 }
 
+/**
+ * Localizable string set for the countdown UI. Every entry is either a plain
+ * string or a formatter that receives the remaining seconds, so callers can
+ * supply translations (and language-appropriate plural rules) from any i18n
+ * library (react-intl, i18next, lingui, etc.).
+ *
+ * Defaults are English and preserve the current copy.
+ */
+export interface ResendConfirmationMessages {
+  /** Button label while counting down. */
+  buttonCountdown: (seconds: number) => string;
+  /** Helper line under the button while counting down. */
+  helper: (seconds: number) => string;
+  /** Tooltip shown over the disabled button while counting down. */
+  tooltip: (seconds: number) => string;
+  /** Announced to screen readers while counting down (throttled). */
+  ariaCountdown: (seconds: number) => string;
+  /** Announced to screen readers when the cooldown ends. */
+  ariaAvailable: string;
+}
+
+const defaultMessages: ResendConfirmationMessages = {
+  buttonCountdown: (s) => `Resend in ${s}s`,
+  helper: (s) => `Resend available in ${s} second${s === 1 ? "" : "s"}.`,
+  tooltip: (s) =>
+    `To prevent spam, you can resend in ${s} second${s === 1 ? "" : "s"}.`,
+  ariaCountdown: (s) =>
+    `Resend available in ${s} second${s === 1 ? "" : "s"}.`,
+  ariaAvailable: "Resend is now available.",
+};
+
 interface Props {
   /** Async resend handler. Should throw / return false on failure to skip cooldown. */
   onResend: () => Promise<boolean | void>;
@@ -38,6 +69,11 @@ interface Props {
    * for the remaining time. Use a stable, per-context key (e.g. an email).
    */
   storageKey?: string;
+  /**
+   * Optional translated/overridden copy for the countdown UI. Any keys you
+   * omit fall back to the English defaults.
+   */
+  messages?: Partial<ResendConfirmationMessages>;
 }
 
 /**
@@ -55,9 +91,11 @@ export const ResendConfirmationButton = forwardRef<ResendConfirmationButtonHandl
       disabled = false,
       showHelperText = true,
       storageKey,
+      messages,
     },
     ref
   ) {
+    const t: ResendConfirmationMessages = { ...defaultMessages, ...messages };
     const [busy, setBusy] = useState(false);
     const fullStorageKey = storageKey ? `ph_resend_cooldown:${storageKey}` : null;
 
@@ -134,9 +172,7 @@ export const ResendConfirmationButton = forwardRef<ResendConfirmationButtonHandl
     };
 
     const onCooldown = cooldown > 0;
-    const tooltipMessage = onCooldown
-      ? `To prevent spam, you can resend in ${cooldown} second${cooldown === 1 ? "" : "s"}.`
-      : "";
+    const tooltipMessage = onCooldown ? t.tooltip(cooldown) : "";
 
     // Throttle screen-reader announcements: announce on start, every 5s,
     // and for each of the final 3 seconds. Avoids per-second SR spam while
@@ -145,9 +181,9 @@ export const ResendConfirmationButton = forwardRef<ResendConfirmationButtonHandl
       onCooldown &&
       (cooldown <= 3 || cooldown % 5 === 0 || cooldown === cooldownSeconds);
     const announcement = shouldAnnounce
-      ? `Resend available in ${cooldown} second${cooldown === 1 ? "" : "s"}.`
+      ? t.ariaCountdown(cooldown)
       : !onCooldown
-        ? "Resend is now available."
+        ? t.ariaAvailable
         : "";
 
     const button = (
@@ -159,7 +195,7 @@ export const ResendConfirmationButton = forwardRef<ResendConfirmationButtonHandl
         disabled={busy || onCooldown || disabled}
       >
         {busy && <Loader2 size={16} className="animate-spin mr-2" />}
-        {onCooldown ? `Resend in ${cooldown}s` : label}
+        {onCooldown ? t.buttonCountdown(cooldown) : label}
       </Button>
     );
 
@@ -183,7 +219,7 @@ export const ResendConfirmationButton = forwardRef<ResendConfirmationButtonHandl
             className="text-[11px] text-muted-foreground text-center mt-2"
             aria-hidden="true"
           >
-            Resend available in {cooldown} second{cooldown === 1 ? "" : "s"}.
+            {t.helper(cooldown)}
           </p>
         )}
         {/* Screen-reader-only live region with throttled updates. */}
