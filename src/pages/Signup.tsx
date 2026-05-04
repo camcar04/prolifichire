@@ -223,7 +223,11 @@ export default function Signup() {
               <p className="text-sm text-muted-foreground mb-6">
                 Check your email at <span className="font-medium text-foreground">{email.trim().toLowerCase()}</span> to confirm your account before continuing.
               </p>
-              <ResendConfirmationButton onResend={handleResend} label="Resend email" />
+              <ResendConfirmationButton
+                onResend={handleResend}
+                label="Resend email"
+                storageKey={email.trim().toLowerCase() || "anon"}
+              />
               <p className="text-xs text-muted-foreground mt-4">
                 Already confirmed? <Link to="/login" className="text-primary font-medium hover:underline">Sign in</Link>
               </p>
