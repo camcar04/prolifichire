@@ -41,8 +41,8 @@ describe("ResendConfirmationButton aria-live announcements", () => {
       />
     );
 
-    // Initially idle: no countdown announcement.
-    expect(liveRegion()).toBe("");
+    // Idle: live region holds the "available" text (no countdown leaking in).
+    expect(liveRegion()).toBe("Resend is now available.");
 
     // Start the cooldown by clicking.
     const btn = screen.getByRole("button", { name: "Resend" });
@@ -54,32 +54,28 @@ describe("ResendConfirmationButton aria-live announcements", () => {
     // t=10 (start): announced.
     expect(liveRegion()).toBe("Resend available in 10 seconds.");
 
-    // t=9: not a 5-multiple and >3 → silent.
-    advance(1);
+    advance(1); // t=9 — silent (not 5x, >3)
     expect(liveRegion()).toBe("");
-
-    // t=5: 5-multiple → announced.
-    advance(4);
+    advance(1); // t=8 — silent
+    expect(liveRegion()).toBe("");
+    advance(1); // t=7 — silent
+    expect(liveRegion()).toBe("");
+    advance(1); // t=6 — silent
+    expect(liveRegion()).toBe("");
+    advance(1); // t=5 — 5-multiple, announced
     expect(liveRegion()).toBe("Resend available in 5 seconds.");
-
-    // t=4: silent.
-    advance(1);
+    advance(1); // t=4 — silent
     expect(liveRegion()).toBe("");
-
-    // Final 3 seconds: each tick announces.
-    advance(1); // t=3
+    advance(1); // t=3 — final 3
     expect(liveRegion()).toBe("Resend available in 3 seconds.");
     advance(1); // t=2
     expect(liveRegion()).toBe("Resend available in 2 seconds.");
     advance(1); // t=1 (singular)
     expect(liveRegion()).toBe("Resend available in 1 second.");
-
-    // t=0: end announcement.
-    advance(1);
+    advance(1); // t=0 — end
     expect(liveRegion()).toBe("Resend is now available.");
 
-    // Further time passes: no further announcements; region stays at end msg
-    // and no countdown text leaks back in.
+    // Cooldown stopped: further time passes without re-announcing countdowns.
     advance(5);
     expect(liveRegion()).toBe("Resend is now available.");
   });
@@ -104,7 +100,7 @@ describe("ResendConfirmationButton aria-live announcements", () => {
     });
 
     expect(liveRegion()).toBe("Renvoi disponible dans 5 s.");
-    advance(5);
+    for (let i = 0; i < 5; i++) advance(1);
     expect(liveRegion()).toBe("Renvoi disponible.");
   });
 });
