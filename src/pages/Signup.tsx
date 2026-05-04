@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,14 @@ export default function Signup() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [confirmationPending, setConfirmationPending] = useState(false);
   const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,6 +193,7 @@ export default function Signup() {
   };
 
   const handleResend = async () => {
+    if (resendCooldown > 0) return;
     if (!canPerformAction("resend-confirmation", 5000)) {
       toast.error("Please wait before resending.");
       return;
@@ -201,6 +209,7 @@ export default function Signup() {
       toast.error("Could not resend. Try again in a moment.");
     } else {
       toast.success("Confirmation email sent.");
+      setResendCooldown(30);
     }
   };
 
@@ -224,9 +233,14 @@ export default function Signup() {
               <p className="text-sm text-muted-foreground mb-6">
                 Check your email at <span className="font-medium text-foreground">{email.trim().toLowerCase()}</span> to confirm your account before continuing.
               </p>
-              <Button onClick={handleResend} variant="outline" className="w-full" disabled={resending}>
+              <Button
+                onClick={handleResend}
+                variant="outline"
+                className="w-full"
+                disabled={resending || resendCooldown > 0}
+              >
                 {resending && <Loader2 size={16} className="animate-spin mr-2" />}
-                Resend email
+                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend email"}
               </Button>
               <p className="text-xs text-muted-foreground mt-4">
                 Already confirmed? <Link to="/login" className="text-primary font-medium hover:underline">Sign in</Link>
