@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,16 @@ export default function Login() {
   const [attempts, setAttempts] = useState(0);
   const [unconfirmed, setUnconfirmed] = useState(false);
   const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = (location.state as any)?.from || "/dashboard";
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +81,7 @@ export default function Login() {
   };
 
   const handleResendConfirmation = async () => {
+    if (resendCooldown > 0) return;
     const trimmedEmail = email.trim().toLowerCase();
     if (!trimmedEmail) {
       toast.error("Enter your email above first.");
@@ -94,6 +102,7 @@ export default function Login() {
       toast.error("Could not resend. Try again in a moment.");
     } else {
       toast.success("Confirmation email sent. Check your inbox.");
+      setResendCooldown(30);
     }
   };
 
@@ -166,10 +175,12 @@ export default function Login() {
                   variant="outline"
                   className="w-full"
                   onClick={handleResendConfirmation}
-                  disabled={resending}
+                  disabled={resending || resendCooldown > 0}
                 >
                   {resending && <Loader2 size={16} className="animate-spin mr-2" />}
-                  Resend confirmation email
+                  {resendCooldown > 0
+                    ? `Resend in ${resendCooldown}s`
+                    : "Resend confirmation email"}
                 </Button>
               </div>
             )}
