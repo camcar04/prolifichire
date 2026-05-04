@@ -14,6 +14,8 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [attempts, setAttempts] = useState(0);
+  const [unconfirmed, setUnconfirmed] = useState(false);
+  const [resending, setResending] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = (location.state as any)?.from || "/dashboard";
@@ -51,11 +53,47 @@ export default function Login() {
 
     if (error) {
       setAttempts(a => a + 1);
-      // Generic message to prevent user enumeration
-      toast.error("Invalid email or password.");
+      const msg = (error.message || "").toLowerCase();
+      const isUnconfirmed =
+        msg.includes("not confirmed") ||
+        msg.includes("email not confirmed") ||
+        msg.includes("confirm your email");
+      if (isUnconfirmed) {
+        setUnconfirmed(true);
+        toast.error("Please confirm your email before signing in.");
+      } else {
+        setUnconfirmed(false);
+        // Generic message to prevent user enumeration
+        toast.error("Invalid email or password.");
+      }
     } else {
       setAttempts(0);
+      setUnconfirmed(false);
       navigate(redirectTo);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail) {
+      toast.error("Enter your email above first.");
+      return;
+    }
+    if (!canPerformAction("resend-confirmation", 5000)) {
+      toast.error("Please wait before resending.");
+      return;
+    }
+    setResending(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: trimmedEmail,
+      options: { emailRedirectTo: window.location.origin + "/auth/callback" },
+    });
+    setResending(false);
+    if (error) {
+      toast.error("Could not resend. Try again in a moment.");
+    } else {
+      toast.success("Confirmation email sent. Check your inbox.");
     }
   };
 
@@ -118,6 +156,23 @@ export default function Login() {
               {loading && <Loader2 size={16} className="animate-spin mr-2" />}
               Sign In
             </Button>
+            {unconfirmed && (
+              <div className="rounded-lg border border-border bg-surface-2 p-3 text-center">
+                <p className="text-xs text-muted-foreground mb-2">
+                  Your email isn't confirmed yet. We can send the confirmation link again.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleResendConfirmation}
+                  disabled={resending}
+                >
+                  {resending && <Loader2 size={16} className="animate-spin mr-2" />}
+                  Resend confirmation email
+                </Button>
+              </div>
+            )}
           </form>
         </div>
 
