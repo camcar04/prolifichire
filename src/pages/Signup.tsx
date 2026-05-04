@@ -172,11 +172,16 @@ export default function Signup() {
     const needsConfirmation = !!data.user && !data.session;
     if (needsConfirmation) {
       setConfirmationPending(true);
+      toast.info("Check your email to confirm your account before signing in.");
       return;
     }
 
     localStorage.setItem("ph_active_mode", selectedRole);
-    toast.success("Account created! Let's set up your workspace.");
+    toast.success(
+      selectedRole === "operator"
+        ? "You're signed in! Let's set up your operator workspace."
+        : "You're signed in! Let's set up your grower workspace."
+    );
     navigate(selectedRole === "operator" ? "/onboarding/operator" : "/onboarding/grower");
   };
 
