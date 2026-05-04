@@ -126,7 +126,17 @@ export default function Signup() {
         })
         .eq("user_id", data.user.id);
       if (profileErr) {
-        console.warn("[signup] profiles.update failed:", profileErr);
+        console.warn(
+          "[signup] profiles.update failed (likely RLS):",
+          {
+            message: profileErr.message,
+            code: (profileErr as any).code,
+            details: (profileErr as any).details,
+            hint: (profileErr as any).hint,
+            user_id: data.user.id,
+            selected_role: selectedRole,
+          }
+        );
       }
 
       const { error: roleErr } = await supabase.from("user_roles").insert({
@@ -134,7 +144,17 @@ export default function Signup() {
         role: selectedRole as any,
       });
       if (roleErr) {
-        console.warn("[signup] user_roles.insert failed:", roleErr);
+        console.warn(
+          "[signup] user_roles.insert failed (likely RLS):",
+          {
+            message: roleErr.message,
+            code: (roleErr as any).code,
+            details: (roleErr as any).details,
+            hint: (roleErr as any).hint,
+            user_id: data.user.id,
+            role: selectedRole,
+          }
+        );
       }
     }
 
