@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2, Briefcase, Wrench, ArrowRight } from "lucide-react";
 import { canPerformAction } from "@/lib/security";
+import { ResendConfirmationButton } from "@/components/auth/ResendConfirmationButton";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -15,17 +16,9 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [unconfirmed, setUnconfirmed] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = (location.state as any)?.from || "/dashboard";
-
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const t = setTimeout(() => setResendCooldown((s) => s - 1), 1000);
-    return () => clearTimeout(t);
-  }, [resendCooldown]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,30 +73,27 @@ export default function Login() {
     }
   };
 
-  const handleResendConfirmation = async () => {
-    if (resendCooldown > 0) return;
+  const handleResendConfirmation = async (): Promise<boolean> => {
     const trimmedEmail = email.trim().toLowerCase();
     if (!trimmedEmail) {
       toast.error("Enter your email above first.");
-      return;
+      return false;
     }
     if (!canPerformAction("resend-confirmation", 5000)) {
       toast.error("Please wait before resending.");
-      return;
+      return false;
     }
-    setResending(true);
     const { error } = await supabase.auth.resend({
       type: "signup",
       email: trimmedEmail,
       options: { emailRedirectTo: window.location.origin + "/auth/callback" },
     });
-    setResending(false);
     if (error) {
       toast.error("Could not resend. Try again in a moment.");
-    } else {
-      toast.success("Confirmation email sent. Check your inbox.");
-      setResendCooldown(30);
+      return false;
     }
+    toast.success("Confirmation email sent. Check your inbox.");
+    return true;
   };
 
   return (
@@ -170,18 +160,7 @@ export default function Login() {
                 <p className="text-xs text-muted-foreground mb-2">
                   Your email isn't confirmed yet. We can send the confirmation link again.
                 </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleResendConfirmation}
-                  disabled={resending || resendCooldown > 0}
-                >
-                  {resending && <Loader2 size={16} className="animate-spin mr-2" />}
-                  {resendCooldown > 0
-                    ? `Resend in ${resendCooldown}s`
-                    : "Resend confirmation email"}
-                </Button>
+                <ResendConfirmationButton onResend={handleResendConfirmation} />
               </div>
             )}
           </form>
