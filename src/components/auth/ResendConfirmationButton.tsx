@@ -1,6 +1,6 @@
 import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -215,12 +215,15 @@ export const ResendConfirmationButton = forwardRef<ResendConfirmationButtonHandl
           button
         )}
         {showHelperText && onCooldown && (
-          <p
-            className="text-[11px] text-muted-foreground text-center mt-2"
+          <div
+            className="mt-2 flex items-center justify-center gap-1.5 text-muted-foreground"
             aria-hidden="true"
           >
-            {t.helper(cooldown)}
-          </p>
+            <Clock size={11} className="shrink-0" />
+            <span className="text-[11px] leading-none tabular-nums truncate">
+              {t.helper(cooldown)}
+            </span>
+          </div>
         )}
         {/* Screen-reader-only live region with throttled updates. */}
         <div
