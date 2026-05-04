@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import type { AppMode } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { canPerformAction } from "@/lib/security";
 import { readUtmParams, trackEvent } from "@/lib/analytics";
+import { ResendConfirmationButton } from "@/components/auth/ResendConfirmationButton";
 
 export default function Signup() {
   const [firstName, setFirstName] = useState("");
@@ -30,15 +31,7 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [confirmationPending, setConfirmationPending] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const t = setTimeout(() => setResendCooldown((s) => s - 1), 1000);
-    return () => clearTimeout(t);
-  }, [resendCooldown]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,25 +185,22 @@ export default function Signup() {
     navigate(selectedRole === "operator" ? "/onboarding/operator" : "/onboarding/grower");
   };
 
-  const handleResend = async () => {
-    if (resendCooldown > 0) return;
+  const handleResend = async (): Promise<boolean> => {
     if (!canPerformAction("resend-confirmation", 5000)) {
       toast.error("Please wait before resending.");
-      return;
+      return false;
     }
-    setResending(true);
     const { error } = await supabase.auth.resend({
       type: "signup",
       email: email.trim().toLowerCase(),
       options: { emailRedirectTo: window.location.origin + "/auth/callback" },
     });
-    setResending(false);
     if (error) {
       toast.error("Could not resend. Try again in a moment.");
-    } else {
-      toast.success("Confirmation email sent.");
-      setResendCooldown(30);
+      return false;
     }
+    toast.success("Confirmation email sent.");
+    return true;
   };
 
   return (
@@ -233,15 +223,7 @@ export default function Signup() {
               <p className="text-sm text-muted-foreground mb-6">
                 Check your email at <span className="font-medium text-foreground">{email.trim().toLowerCase()}</span> to confirm your account before continuing.
               </p>
-              <Button
-                onClick={handleResend}
-                variant="outline"
-                className="w-full"
-                disabled={resending || resendCooldown > 0}
-              >
-                {resending && <Loader2 size={16} className="animate-spin mr-2" />}
-                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend email"}
-              </Button>
+              <ResendConfirmationButton onResend={handleResend} label="Resend email" />
               <p className="text-xs text-muted-foreground mt-4">
                 Already confirmed? <Link to="/login" className="text-primary font-medium hover:underline">Sign in</Link>
               </p>
