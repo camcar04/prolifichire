@@ -168,14 +168,41 @@ export default function Login() {
             </Button>
             {unconfirmed && (
               <div className="rounded-lg border border-border bg-surface-2 p-3 text-center">
-                <p className="text-xs text-muted-foreground mb-2">
+                <p className="text-xs text-muted-foreground mb-1">
                   Your email isn't confirmed yet. We can send the confirmation link again.
+                </p>
+                <p className="text-xs text-foreground font-medium mb-2 break-all">
+                  {email.trim().toLowerCase()}
                 </p>
                 <ResendConfirmationButton
                   ref={resendRef}
                   onResend={handleResendConfirmation}
                   storageKey={email.trim().toLowerCase() || "anon"}
                 />
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Clear the persisted cooldown for this email, then reset
+                    // the prompt + form so the user can type a different one.
+                    try {
+                      const key = `ph_resend_cooldown:${email.trim().toLowerCase() || "anon"}`;
+                      window.localStorage.removeItem(key);
+                    } catch {
+                      // ignore
+                    }
+                    setUnconfirmed(false);
+                    setEmail("");
+                    setPassword("");
+                    setAttempts(0);
+                    // Focus the email field on the next tick.
+                    setTimeout(() => {
+                      document.getElementById("email")?.focus();
+                    }, 0);
+                  }}
+                  className="text-xs text-primary font-medium hover:underline mt-3"
+                >
+                  Change email
+                </button>
               </div>
             )}
           </form>
