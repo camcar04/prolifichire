@@ -2,6 +2,12 @@ import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface ResendConfirmationButtonHandle {
   /** Start the cooldown externally (e.g. after an external send succeeded). */
@@ -22,6 +28,11 @@ interface Props {
   /** Disable independently of the cooldown (e.g. while parent is busy). */
   disabled?: boolean;
   /**
+   * When true (default), show a "Resend available in Xs" helper line under
+   * the button while the cooldown is active.
+   */
+  showHelperText?: boolean;
+  /**
    * Optional storage key. When provided, the cooldown's expiry timestamp is
    * persisted to localStorage so a page refresh keeps the button disabled
    * for the remaining time. Use a stable, per-context key (e.g. an email).
@@ -35,7 +46,16 @@ interface Props {
  */
 export const ResendConfirmationButton = forwardRef<ResendConfirmationButtonHandle, Props>(
   function ResendConfirmationButton(
-    { onResend, cooldownSeconds = 30, label = "Resend confirmation email", className, variant = "outline", disabled = false, storageKey },
+    {
+      onResend,
+      cooldownSeconds = 30,
+      label = "Resend confirmation email",
+      className,
+      variant = "outline",
+      disabled = false,
+      showHelperText = true,
+      storageKey,
+    },
     ref
   ) {
     const [busy, setBusy] = useState(false);
@@ -113,17 +133,49 @@ export const ResendConfirmationButton = forwardRef<ResendConfirmationButtonHandl
       }
     };
 
-    return (
+    const onCooldown = cooldown > 0;
+    const tooltipMessage = onCooldown
+      ? `To prevent spam, you can resend in ${cooldown} second${cooldown === 1 ? "" : "s"}.`
+      : "";
+
+    const button = (
       <Button
         type="button"
         variant={variant}
         className={cn("w-full", className)}
         onClick={handleClick}
-        disabled={busy || cooldown > 0 || disabled}
+        disabled={busy || onCooldown || disabled}
+        aria-live="polite"
       >
         {busy && <Loader2 size={16} className="animate-spin mr-2" />}
-        {cooldown > 0 ? `Resend in ${cooldown}s` : label}
+        {onCooldown ? `Resend in ${cooldown}s` : label}
       </Button>
+    );
+
+    return (
+      <div className="w-full">
+        {onCooldown ? (
+          <TooltipProvider delayDuration={150}>
+            <Tooltip>
+              {/* asChild lets the disabled button still trigger the tooltip */}
+              <TooltipTrigger asChild>
+                <span className="inline-block w-full">{button}</span>
+              </TooltipTrigger>
+              <TooltipContent side="top">{tooltipMessage}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          button
+        )}
+        {showHelperText && onCooldown && (
+          <p
+            className="text-[11px] text-muted-foreground text-center mt-2"
+            aria-live="polite"
+          >
+            Resend available in {cooldown} second{cooldown === 1 ? "" : "s"}.
+          </p>
+        )}
+      </div>
     );
   }
 );
