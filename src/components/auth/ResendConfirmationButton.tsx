@@ -1,4 +1,11 @@
-import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+  useCallback,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -99,61 +106,111 @@ export const ResendConfirmationButton = forwardRef<ResendConfirmationButtonHandl
     const [busy, setBusy] = useState(false);
     const fullStorageKey = storageKey ? `ph_resend_cooldown:${storageKey}` : null;
 
-    const readPersistedRemaining = (): number => {
-      if (!fullStorageKey || typeof window === "undefined") return 0;
+    // Anchor the countdown to an absolute wall-clock deadline (ms) instead of
+    // a decrementing counter. We re-derive the remaining seconds on every
+    // tick from `Date.now()`, so React re-renders, slow timers, throttled
+    // background tabs, and refresh-from-storage all read the same source of
+    // truth and never drift off-by-one from the real time remaining.
+    const readPersistedDeadline = (): number | null => {
+      if (!fullStorageKey || typeof window === "undefined") return null;
       try {
         const raw = window.localStorage.getItem(fullStorageKey);
-        if (!raw) return 0;
+        if (!raw) return null;
         const expiresAt = parseInt(raw, 10);
-        if (!Number.isFinite(expiresAt)) return 0;
-        const remaining = Math.ceil((expiresAt - Date.now()) / 1000);
-        return remaining > 0 ? remaining : 0;
+        if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return null;
+        return expiresAt;
       } catch {
-        return 0;
+        return null;
       }
     };
 
-    const [cooldown, setCooldown] = useState<number>(() => readPersistedRemaining());
+    const [deadline, setDeadline] = useState<number | null>(() =>
+      readPersistedDeadline()
+    );
+    // `now` is bumped on a sub-second interval so the derived `cooldown`
+    // value updates as the wall clock advances.
+    const [now, setNow] = useState<number>(() => Date.now());
+
+    const computeRemaining = (d: number | null, n: number): number =>
+      d ? Math.max(0, Math.ceil((d - n) / 1000)) : 0;
+
+    const cooldown = computeRemaining(deadline, now);
 
     // Re-sync from storage on key change (e.g. user typed a different email).
     useEffect(() => {
-      setCooldown(readPersistedRemaining());
+      setDeadline(readPersistedDeadline());
+      setNow(Date.now());
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fullStorageKey]);
 
+    // Drive the visible countdown. We tick every 250ms so the second-boundary
+    // transition is captured promptly even if a tick is delayed; remaining is
+    // always recomputed from `Date.now()`, so no decrement drift is possible.
     useEffect(() => {
-      if (cooldown <= 0) return;
-      const t = setTimeout(() => setCooldown((s) => s - 1), 1000);
-      return () => clearTimeout(t);
-    }, [cooldown]);
-
-    const persistCooldown = (seconds: number) => {
-      if (!fullStorageKey || typeof window === "undefined") return;
-      try {
-        if (seconds > 0) {
-          window.localStorage.setItem(
-            fullStorageKey,
-            String(Date.now() + seconds * 1000)
-          );
-        } else {
-          window.localStorage.removeItem(fullStorageKey);
+      if (!deadline) return;
+      const id = window.setInterval(() => {
+        const n = Date.now();
+        setNow(n);
+        if (n >= deadline) {
+          setDeadline(null);
+          if (fullStorageKey) {
+            try {
+              window.localStorage.removeItem(fullStorageKey);
+            } catch {
+              /* ignore */
+            }
+          }
         }
-      } catch {
-        // ignore storage errors (private mode, quota, etc.)
-      }
-    };
+      }, 250);
+      return () => window.clearInterval(id);
+    }, [deadline, fullStorageKey]);
 
-    // Clear persisted entry once countdown naturally hits 0.
+    // Re-sync when the tab becomes visible again — `setInterval` is throttled
+    // in background tabs, so without this the displayed seconds could lag the
+    // real wall clock for a beat after returning.
     useEffect(() => {
-      if (cooldown === 0) persistCooldown(0);
+      if (typeof document === "undefined") return;
+      const onVisible = () => {
+        if (document.visibilityState === "visible") {
+          setDeadline(readPersistedDeadline() ?? deadline);
+          setNow(Date.now());
+        }
+      };
+      document.addEventListener("visibilitychange", onVisible);
+      return () => document.removeEventListener("visibilitychange", onVisible);
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [cooldown]);
+    }, [fullStorageKey, deadline]);
+
+    const startCooldownAt = useCallback(
+      (seconds: number) => {
+        if (seconds <= 0) {
+          setDeadline(null);
+          if (fullStorageKey && typeof window !== "undefined") {
+            try {
+              window.localStorage.removeItem(fullStorageKey);
+            } catch {
+              /* ignore */
+            }
+          }
+          return;
+        }
+        const d = Date.now() + seconds * 1000;
+        setDeadline(d);
+        setNow(Date.now());
+        if (fullStorageKey && typeof window !== "undefined") {
+          try {
+            window.localStorage.setItem(fullStorageKey, String(d));
+          } catch {
+            /* ignore storage errors (private mode, quota, etc.) */
+          }
+        }
+      },
+      [fullStorageKey]
+    );
 
     useImperativeHandle(ref, () => ({
       startCooldown: (seconds?: number) => {
-        const s = seconds ?? cooldownSeconds;
-        setCooldown(s);
-        persistCooldown(s);
+        startCooldownAt(seconds ?? cooldownSeconds);
       },
     }));
 
@@ -163,13 +220,24 @@ export const ResendConfirmationButton = forwardRef<ResendConfirmationButtonHandl
       try {
         const result = await onResend();
         if (result !== false) {
-          setCooldown(cooldownSeconds);
-          persistCooldown(cooldownSeconds);
+          startCooldownAt(cooldownSeconds);
         }
       } finally {
         setBusy(false);
       }
     };
+
+    // Track the "starting" second so the SR live region announces on start
+    // regardless of cooldownSeconds (otherwise a deadline-derived value may
+    // skip the first equality with cooldownSeconds).
+    const startSecondRef = useRef<number | null>(null);
+    useEffect(() => {
+      if (deadline) {
+        startSecondRef.current = computeRemaining(deadline, Date.now());
+      } else {
+        startSecondRef.current = null;
+      }
+    }, [deadline]);
 
     const onCooldown = cooldown > 0;
     const tooltipMessage = onCooldown ? t.tooltip(cooldown) : "";
@@ -179,7 +247,9 @@ export const ResendConfirmationButton = forwardRef<ResendConfirmationButtonHandl
     // still reliably updating assistive tech.
     const shouldAnnounce =
       onCooldown &&
-      (cooldown <= 3 || cooldown % 5 === 0 || cooldown === cooldownSeconds);
+      (cooldown <= 3 ||
+        cooldown % 5 === 0 ||
+        cooldown === startSecondRef.current);
     const announcement = shouldAnnounce
       ? t.ariaCountdown(cooldown)
       : !onCooldown
