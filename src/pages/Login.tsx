@@ -160,7 +160,10 @@ export default function Login() {
                 <p className="text-xs text-muted-foreground mb-2">
                   Your email isn't confirmed yet. We can send the confirmation link again.
                 </p>
-                <ResendConfirmationButton onResend={handleResendConfirmation} />
+                <ResendConfirmationButton
+                  onResend={handleResendConfirmation}
+                  storageKey={email.trim().toLowerCase() || "anon"}
+                />
               </div>
             )}
           </form>
